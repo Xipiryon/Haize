@@ -1,0 +1,2 @@
+# Haize
+C++ Script Language
