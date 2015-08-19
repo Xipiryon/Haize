@@ -12,4 +12,4 @@ mkdir ../../tmp_install
 # Go back to Haize
 cd ../..
 # Generate a gmake make file, specifying libs and includes are in 
-./premake5 gmake --basedir=".tmp_install"
+./premake5 gmake --basedir="./tmp_install"
