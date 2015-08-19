@@ -1,0 +1,3 @@
+[submodule "extern/Muon"]
+	path = extern/Muon
+	url = git@github.com:Xleek/Muon.git
