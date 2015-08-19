@@ -51,6 +51,14 @@ solution "Haize"
 		linkoptions { "-Wl,-rpath,"..HaizeRoot.."/bin/lib/" }
 	end
 
+	-- If option exists, then override G_Install
+	if _OPTIONS["basedir"] then
+		G_Install.Root = _OPTIONS["basedir"]
+		G_Install.Header = _OPTIONS["basedir"].."/include"
+		G_Install.Lib = _OPTIONS["basedir"].."/lib"
+		print("Install directory has been overwritten to '"..G_Install.Root.."'")
+	end
+
 	includedirs {
 		HaizeRoot.."/include",
 		G_Install.Header,
@@ -132,6 +140,16 @@ project "HaizeExecutable"
 	filter "Release*"
 		links { "Haize", "Muon" }
 
+
+------------------------------
+-- Options
+------------------------------
+
+newoption {
+	trigger     = "basedir",
+	value       = "PATH",
+	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
+}
 ------------------------------
 -- Actions
 ------------------------------

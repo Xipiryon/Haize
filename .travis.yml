@@ -13,9 +13,9 @@ before_install:
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 before_script:
-  - ./premake5 gmake 
+  - ./travis_build.sh
 script:
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make config=releasedll ; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make config=releasedll -j4; fi
 branches:
   only:
   - master
@@ -33,6 +33,6 @@ addons:
     project:
       name: "Xleek/Haize"
       description: "Build submitted via Travis CI"
-    build_command_prepend: "./premake5 gmake"
+    build_command_prepend: "./travis_build.sh"
     build_command:   "make config=releasedll -j 4"
     branch_pattern: coverity_scan
