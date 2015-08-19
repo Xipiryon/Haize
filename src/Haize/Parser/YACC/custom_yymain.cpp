@@ -20,12 +20,16 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 		{
 			case IDENTIFIER:
 				str = *node->value.get<muon::String*>();
-				graphviz << " '" << str.cStr() << "'";
+				graphviz << "\\n'" << str.cStr() << "'";
 				break;
 			case STRING:
+			{
 				str = *node->value.get<muon::String*>();
-				str = str.substr(1, str.size() - 2);
-				graphviz << " '" << str.cStr() << "'";
+				str = str.replace("\n", "\\n");
+				str = str.replace("\r", "\\r");
+				str = str.replace("\t", "\\t");
+				graphviz << "\\n'" << str.cStr() << "'";
+			}
 				break;
 			default:
 				break;

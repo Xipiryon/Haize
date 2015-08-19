@@ -1,5 +1,5 @@
 %option noyywrap nodefault nounistd never-interactive
-%option warn debug
+%option warn 
 
 %{
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
@@ -94,6 +94,9 @@ namespace utils
 // (include order and all that stuff)
 #include <Muon/Type/String.hpp>
 #include "Haize/Parser/ASTNode.hpp"
+
+muon::String g_strBuffer;
+
 %}
 
 _Letters	[a-zA-Z_]
@@ -112,7 +115,6 @@ _IntRange	[0-9]
 Integer		[1-9]{_IntRange}*|0
 Float		{_IntRange}\.{_IntRange}*f?
 Identifer	{_Letters}({_Letters}|{_IntRange})*
-_String		\".*\"
 %x StringBlock
 
 %%
@@ -171,9 +173,19 @@ _String		\".*\"
 {Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(NUMBER); }
 {Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(NUMBER); }
 {Identifer}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(IDENTIFIER); }
-%{ 
-/*{String}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(STRING); } */ 
-%}
+
+<INITIAL>{
+	\"			{ BEGIN(StringBlock); }
+}
+<StringBlock>{
+	\"				{	BEGIN(INITIAL);
+						yylval.string = MUON_CNEW(muon::String, g_strBuffer);
+						g_strBuffer.clear();
+						HZ_TOK(STRING);
+					}
+	[^"\n]+			{ g_strBuffer += yytext;}
+	{NewLine}		{ g_strBuffer += yytext; ++g_lineCount; g_charCount = 0; }
+}
 
 ","		{ HZ_CHAR; HZ_TOK(S_COMMA); }
 "("		{ HZ_CHAR; HZ_TOK(S_LPARENT); }
