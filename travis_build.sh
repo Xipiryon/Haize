@@ -3,8 +3,9 @@ git submodule init
 git submodule update
 # Build Muon library
 cd extern/Muon
+chmod +x premake5
 ./premake5 gmake
-make
+make config=releasedll
 # "Install" Muon in a temporary folder
 mkdir ../../tmp_install
 ./premake5 install --basedir="../../tmp_install"
