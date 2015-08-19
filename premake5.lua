@@ -216,3 +216,31 @@ newaction {
 		end
 	end
 }
+
+if os.is("windows") then
+newaction {
+	trigger	 = "getlib",
+	description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
+	execute = function ()
+		print("** Retrieving files from: "..G_Install.Lib.." **")
+
+		local libDir = G_Install.Lib
+
+		for _,dir in pairs({"", "/lib"}) do
+			local destDir = './bin'..dir
+
+			-- Create required folders
+			if(not os.isdir(destDir)) then
+				if os.mkdir(destDir) then print("Creating "..destDir) end
+			end
+
+			-- Copy files
+			local fileList = os.matchfiles(libDir.."**Muon**dll")
+			for _,fpath in pairs(fileList) do
+				local destFile = destDir..string.sub(fpath, 1+#G_Install.Lib)
+				if os.copyfile(fpath, destFile) then print("Copying "..fpath.." to "..destDir) end
+			end
+		end
+	end
+}
+end
