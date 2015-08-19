@@ -1,0 +1,38 @@
+language: cpp
+sudo: false
+compiler:
+  - gcc
+  - clang
+cache: apt
+env:
+  global:
+    # Coverity Token
+    - secure: "AaGFN48qmufRDl34QRlA7DgfAxasUXa9U9ZGYYb7RP19l2Ze5eNdBTbrr+05Ox/dhvBx1+Ry4pHY6MuyH8wa/dIVBTjmqnZHOdNkcEU05x3SDa/uu6b93sGauNRIn7D1Uz8IcuOKM9V8FcW642hYMONR2WWCLJn6tA8HDaWtwg3ZxaQtfYTjA7iHcj6CjJnRn1OsFQkmrQxSurkAd1ySRt7/tQuRxo9fqzajiqfwGiyz8wNuBbB/SWFcu0Nh/7lgUeeTfMJqBfQMYY6WG9jzRO02IW0a9eXqsmCI8ShqwxtKi51WTVa1aHebQ01tHLdjCezcM6XhDizgTwtzuUWEDHjPVVLapRmayxdaMjLsPclbTNWX6QOJrM3FR1Q0zC8oc/ZhbN9G+C5Tgwul65u1CuCw1KNNjtJEY52rFqasw8kz3S/j5laIpC6RLT+VsmmR6ufbL9oBEV1T58D4M1SbCgr8/lKQuZt/kFyBAxPBwyssrwXxSlk0y2srkoPyOTMcGWhMUKaJngrSeJQG77IF615klRTWrPq/o3dJU5geSDjuqmaWFOZrvnPqdD/+8fNwOrfWA3k0y1wLrBR1xMiQUZw1OpVn2yZC1gLXQGVDrp8NowaAVApyKSjsYLepDvZ4qRr72gB37fUaaTcudwFPHAwwoAKavEb6u1V1mulRc+0="
+before_install:
+  - chmod +x premake5
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+before_script:
+  - ./premake5 gmake 
+script:
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make config=releasedll ; fi
+branches:
+  only:
+  - master
+notifications:
+  email: false
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-4.8
+      - g++-4.8
+      - clang
+  coverity_scan:
+    project:
+      name: "Xleek/Haize"
+      description: "Build submitted via Travis CI"
+    build_command_prepend: "./premake5 gmake"
+    build_command:   "make config=releasedll -j 4"
+    branch_pattern: coverity_scan
