@@ -11,5 +11,7 @@ mkdir ../../tmp_install
 ./premake5 install --basedir="../../tmp_install"
 # Go back to Haize
 cd ../..
+# Generate YACC Parser files
+./premake5 genparser
 # Generate a gmake make file, specifying libs and includes are in 
 ./premake5 gmake --basedir="./tmp_install"
