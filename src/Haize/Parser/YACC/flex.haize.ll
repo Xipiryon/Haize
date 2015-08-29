@@ -1,15 +1,15 @@
 %option noyywrap nodefault nounistd never-interactive
-%option warn 
+%option warn nodebug
 
 %{
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
 #pragma warning(disable: 4005) // macro redefinition (like INT8_MIN and so on...)
 
 // Generated file will be created in a subfolder called "generated/"
-// As we require some files that are not in "include/" folder, 
+// As we require some files that are not in "include/" folder,
 // we must look for them in with a relative path way.
 #include "../Extern.hpp"
-namespace hz 
+namespace hz
 {
 	namespace parser
 	{
@@ -26,8 +26,8 @@ namespace muon
 // as the current one, so no worries.
 #include "yacc.haize.hpp"
 
-// Define our own processInput function, 
-// so we can send either a file or a buffer, instead of relying upon the 
+// Define our own processInput function,
+// so we can send either a file or a buffer, instead of relying upon the
 // standard input.
 #undef YY_INPUT
 #define YY_INPUT(b,r,s) processInput(b,&r,s)
@@ -90,7 +90,7 @@ namespace utils
 	}
 }
 
-// Now, let's just include the real type 
+// Now, let's just include the real type
 // (include order and all that stuff)
 #include <Muon/Type/String.hpp>
 #include "Haize/Parser/ASTNode.hpp"
@@ -125,12 +125,12 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 
 
 <INITIAL>{
-	\/\*			BEGIN(MultiLineComment); 
+	\/\*			{ BEGIN(MultiLineComment); }
 }
 <MultiLineComment>{
-	\*\/			BEGIN(INITIAL);
-	[^*\n]+			{ }
-	"*"				{ }
+	\*\/			{ BEGIN(INITIAL); }
+	[^*\r\n]		{ }
+	"*"				{ ++g_charCount; }
 	{NewLine}		{ ++g_lineCount; g_charCount = 0; }
 }
 {LineComment}	{ ++g_lineCount; g_charCount = 0; }
@@ -232,3 +232,4 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "^="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_XOR); }
 
 .		{ HZ_CHAR; }
+<<EOF>>	{ yyterminate(); }

@@ -21,8 +21,8 @@ extern bool g_multiLineComment;
 extern bool g_error;
 
 // Functions from Flex/Yacc
+extern void yyerror(const char*);
 extern int yylex();
-extern int yyerror(char*);
 extern int yyparse();
 
 #endif

@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <Muon/System/Log.hpp>
+#include <Muon/Type/String.hpp>
 #include "Haize/Parser/Info.hpp"
 #include "Extern.hpp"
 #include "generated/yacc.haize.hpp"
@@ -45,16 +46,17 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 	return NULL;
 }
 
-namespace 
+namespace
 {
 	int g_readOffset = 0;
-	std::string g_strArgument;
+	muon::String g_strArgument;
 }
 
 void custom_yymain(const char* buffer)
 {
 	g_readOffset = 0;
 	g_strArgument = buffer;
+	g_strArgument += "\r\n";
 	yyparse();
 
 #ifdef MUON_DEBUG
@@ -93,16 +95,16 @@ void custom_yymain(const char* buffer)
 #endif
 }
 
-int processInput(char* buffer, int* numBytesRead, int maxBytesToRead ) 
+int processInput(char* buffer, int* numBytesRead, int maxBytesToRead )
 {
 	int numBytesToRead = maxBytesToRead;
 	int bytesRemaining = g_strArgument.size() - g_readOffset;
-	
-	if (numBytesToRead > bytesRemaining) 
-	{ 
-		numBytesToRead = bytesRemaining; 
+
+	if (numBytesToRead > bytesRemaining)
+	{
+		numBytesToRead = bytesRemaining;
 	}
-	for (int i = 0; i < numBytesToRead; ++i) 
+	for (int i = 0; i < numBytesToRead; ++i)
 	{
 		buffer[i] = g_strArgument[g_readOffset+i];
 	}
