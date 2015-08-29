@@ -7,7 +7,7 @@ chmod +x premake5
 ./premake5 gmake
 make config=releasedll -j4
 # "Install" Muon in a temporary folder
-mkdir ../../tmp_install
+mkdir ../../tmp_install 2> /dev/null
 ./premake5 install --basedir="../../tmp_install"
 # Go back to Haize
 cd ../..
