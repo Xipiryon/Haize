@@ -79,20 +79,20 @@ void custom_yymain(const char* buffer)
 		}
 		graphviz.close();
 
-#ifdef MUON_PLATFORM_WINDOWS
+#	ifdef MUON_PLATFORM_WINDOWS
 		::system("dot.exe -Tpng AST_Graph.gv -o AST_Graph.png");
-#else
+#	else
 		::system("dot -Tpng AST_Graph.gv -o AST_Graph.png");
-#endif
+#	endif //MUON_PLATFORM_WINDOWS
 	}
 	else
 	{
 		muon::system::Log("AST", muon::LOG_ERROR) << "** An error occured: no \"AST_Graph.gv\" will be generated **" << muon::endl;
-#ifdef MUON_PLATFORM_WINDOWS
+#	ifdef MUON_PLATFORM_WINDOWS
 		::system("PAUSE");
-#endif
+#	endif //MUON_PLATFORM_WINDOWS
 	}
-#endif
+#endif //MUON_DEBUG
 }
 
 int processInput(char* buffer, int* numBytesRead, int maxBytesToRead )
@@ -111,4 +111,12 @@ int processInput(char* buffer, int* numBytesRead, int maxBytesToRead )
 	*numBytesRead = numBytesToRead;
 	g_readOffset += numBytesToRead;
 	return 0;
+}
+
+void yyerror(const char* err)
+{
+	g_error = true;
+	muon::system::Log log("YACC", muon::LOG_ERROR);
+	log() << "** Error at " << g_lineCount << ":" << g_charCount << " **" << muon::endl;
+	log() << "=> " << err << muon::endl;
 }
