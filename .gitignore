@@ -26,3 +26,13 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio
+obj/
+*.sln
+*.vcxproj*
+*.*sdf
+*.exp
+
+# Generated files
+src/Haize/Parser/YACC/generated/*
