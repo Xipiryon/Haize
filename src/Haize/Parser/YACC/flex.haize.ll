@@ -145,6 +145,8 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "then"		{ HZ_CHAR; HZ_TOK(THEN); }
 "for"		{ HZ_CHAR; HZ_TOK(FOR); }
 "while"		{ HZ_CHAR; HZ_TOK(WHILE); }
+"unless"	{ HZ_CHAR; HZ_TOK(UNLESS); }
+"in"		{ HZ_CHAR; HZ_TOK(IN); }
 "end"		{ HZ_CHAR; HZ_TOK(END); }
 
 "class"		{ HZ_CHAR; HZ_TOK(CLASS); }
