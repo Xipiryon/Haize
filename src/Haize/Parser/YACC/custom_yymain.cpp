@@ -32,6 +32,9 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 				graphviz << "\\n'" << str.cStr() << "'";
 			}
 				break;
+			case UNARY_SIGN:
+				graphviz << "\\n'" << (node->value.get<bool>() ? "pos" : "neg") << "'";
+				break;
 			default:
 				break;
 		}

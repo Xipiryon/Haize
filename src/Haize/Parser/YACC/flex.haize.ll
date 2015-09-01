@@ -120,20 +120,20 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 %%
 
 [ \t]		{ HZ_CHAR; }
-{NewLine}	{ ++g_lineCount; g_charCount = 0; }
-{Separator}	{ HZ_CHAR; }
+{NewLine}	{ ++g_lineCount; g_charCount = 0; HZ_TOK(S_NEWLINE); }
+{Separator}	{ HZ_CHAR; HZ_TOK(S_NEWLINE); }
 
 
 <INITIAL>{
 	\/\*			{ BEGIN(MultiLineComment); }
 }
 <MultiLineComment>{
-	\*\/			{ BEGIN(INITIAL); }
+	\*\/			{ BEGIN(INITIAL); HZ_TOK(S_NEWLINE); }
 	[^*\r\n]		{ }
 	"*"				{ ++g_charCount; }
 	{NewLine}		{ ++g_lineCount; g_charCount = 0; }
 }
-{LineComment}	{ ++g_lineCount; g_charCount = 0; }
+{LineComment}	{ ++g_lineCount; g_charCount = 0; HZ_TOK(S_NEWLINE); }
 
 
 "true"		{ HZ_CHAR; yylval.integer = 1; HZ_TOK(TRUE); }
@@ -142,10 +142,11 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 
 "if"		{ HZ_CHAR; HZ_TOK(IF); }
 "else"		{ HZ_CHAR; HZ_TOK(ELSE); }
+"elseif"	{ HZ_CHAR; HZ_TOK(ELSEIF); }
 "then"		{ HZ_CHAR; HZ_TOK(THEN); }
 "for"		{ HZ_CHAR; HZ_TOK(FOR); }
 "while"		{ HZ_CHAR; HZ_TOK(WHILE); }
-"unless"	{ HZ_CHAR; HZ_TOK(UNLESS); }
+"do"		{ HZ_CHAR; HZ_TOK(DO); }
 "in"		{ HZ_CHAR; HZ_TOK(IN); }
 "end"		{ HZ_CHAR; HZ_TOK(END); }
 

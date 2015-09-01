@@ -24,7 +24,7 @@
 /*
 * Operator and Token Precedence
 */
-%left	<node> MATH_ASN
+%right	<node> MATH_ASN
 		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
 		MATH_ASN_BITWISE_OR MATH_ASN_BITWISE_AND
 		MATH_ASN_BITWISE_XOR MATH_ASN_BITWISE_NOT
@@ -51,23 +51,24 @@
 %token <node> NT_FUNC_CALL NT_FUNC_DECL NT_ARG_LIST
 %token <node> NT_STMT
 
-%token S_COMMA S_LPARENT S_RPARENT S_LCBRACE S_RCBRACE S_LBRACKET S_RBRACKET
+%token S_LPARENT S_RPARENT S_LCBRACE S_RCBRACE S_LBRACKET S_RBRACKET
+%token <node> S_COMMA S_NEWLINE
 
 %token <string> IDENTIFIER
 %token <string> STRING
 %token <floating> NUMBER
 %token <integer> TRUE FALSE NIL
 
-%token <node> IF THEN ELSE END FOR WHILE UNLESS IN
+%token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN
 %token <node> CLASS ATTR FUNCTION RETURN
 
 /*
 * Declares our customs non terminal tokens
 */
-%type <node> block chunk stmt_decl expr
-%type <node> param_list param_decl func_decl func_body func_call arg_decl arg_list
+%type <node> block chunk stmt_decl expr subexpr
+%type <node> param_list param_decl func_decl func_body func_call arg_list
 %type <node> attr_decl class_body class_body_decl class_decl
-%type <node> expr_asn_op expr_bin_op expr_cmp_op
+%type <node> expr_asn_op expr_bin_op expr_cmp_op expr_bit_op
 %type <node> conditional_block
 %type <node> constant variable
 
@@ -83,29 +84,37 @@ program
 	;
 
 block
-	: chunk				{ $$ = HZ_NEW(NT_BLOCK); $$->addChild($1); }
-	| block chunk		{ $$ = $1; $$->addChild($2); }
+	: chunk				{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
+	| block chunk		{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
 	;
 
 chunk
-	: stmt_decl			{ $$ = HZ_NEW(NT_STMT); $$->addChild($1); }
+	: stmt_decl			{ if($1 == NULL) { $$ = NULL; } else { $$ = HZ_NEW(NT_STMT); $$->addChild($1); } }
 	| func_decl			{ $$ = $1; }
 	| class_decl		{ $$ = $1; }
 	;
 
 stmt_decl
-	: expr						{ $$ = $1; }
-	| RETURN expr				{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
+	: S_NEWLINE					{ $$ = NULL; }
+	| expr S_NEWLINE			{ $$ = $1; }
+	| RETURN expr S_NEWLINE		{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
+	| conditional_block			{ $$ = $1; }
 	;
 
 expr
-	: constant 							{ $$ = $1; }
-	| variable 							{ $$ = $1; }
-	| expr_bin_op						{ $$ = $1; }
-	| expr_asn_op						{ $$ = $1; }
-	| expr_cmp_op						{ $$ = $1; }
-	| S_LPARENT expr S_RPARENT			{ $$ = $2; }
-	| conditional_block					{ $$ = $1; }
+	: subexpr						{ $$ = $1; }
+	| expr expr_bin_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr expr_cmp_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr expr_bit_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr expr_asn_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	;
+
+subexpr
+	: constant								{ $$ = $1; }
+	| variable								{ $$ = $1; }
+	| S_LPARENT expr S_RPARENT				{ $$ = $2; }
+	| MATH_ADD expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = true; $$->addChild($2); }
+	| MATH_SUB expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = false; $$->addChild($2); }
 	;
 
 arg_list
@@ -114,17 +123,13 @@ arg_list
 	| arg_list S_COMMA expr		{ $$ = $1; $$->addChild($3); }
 	;
 
-arg_decl
-	: S_LPARENT arg_list S_RPARENT		{ $$ = $2; }
-	;
-
 func_call
-	: IDENTIFIER arg_decl		{	$$ = HZ_NEW(NT_FUNC_CALL);
-									auto id = HZ_NEW(IDENTIFIER);
-									id->value = $1;
-									$$->addChild(id);
-									$$->addChild($2);
-								}
+	: IDENTIFIER S_LPARENT arg_list S_RPARENT		{	$$ = HZ_NEW(NT_FUNC_CALL);
+														auto id = HZ_NEW(IDENTIFIER);
+														id->value = $1;
+														$$->addChild(id);
+														$$->addChild($3);
+													}
 	;
 
 param_list
@@ -188,34 +193,52 @@ class_decl
 	;
 
 expr_asn_op
-	: variable MATH_ASN expr				{ $$ = HZ_NEW(MATH_ASN); $$->addChild($1); $$->addChild($3);}
-	| variable MATH_ASN_ADD expr			{ $$ = HZ_NEW(MATH_ASN_ADD); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_SUB expr			{ $$ = HZ_NEW(MATH_ASN_SUB); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_MUL expr			{ $$ = HZ_NEW(MATH_ASN_MUL); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_DIV expr			{ $$ = HZ_NEW(MATH_ASN_DIV); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_MOD expr			{ $$ = HZ_NEW(MATH_ASN_MOD); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_OR expr		{ $$ = HZ_NEW(MATH_ASN_BITWISE_OR); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_AND expr	{ $$ = HZ_NEW(MATH_ASN_BITWISE_AND); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_XOR expr	{ $$ = HZ_NEW(MATH_ASN_BITWISE_XOR); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_NOT expr	{ $$ = HZ_NEW(MATH_ASN_BITWISE_NOT); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_LSH expr	{ $$ = HZ_NEW(MATH_ASN_BITWISE_LSH); $$->addChild($1); $$->addChild($3); }
-	| variable MATH_ASN_BITWISE_RSH expr	{ $$ = HZ_NEW(MATH_ASN_BITWISE_RSH); $$->addChild($1); $$->addChild($3); }
+	: MATH_ASN				{ $$ = HZ_NEW(MATH_ASN); }
+	| MATH_ASN_ADD			{ $$ = HZ_NEW(MATH_ASN_ADD); }
+	| MATH_ASN_SUB			{ $$ = HZ_NEW(MATH_ASN_SUB); }
+	| MATH_ASN_MUL			{ $$ = HZ_NEW(MATH_ASN_MUL); }
+	| MATH_ASN_DIV			{ $$ = HZ_NEW(MATH_ASN_DIV); }
+	| MATH_ASN_MOD			{ $$ = HZ_NEW(MATH_ASN_MOD); }
+	| MATH_ASN_BITWISE_OR	{ $$ = HZ_NEW(MATH_ASN_BITWISE_OR); }
+	| MATH_ASN_BITWISE_AND	{ $$ = HZ_NEW(MATH_ASN_BITWISE_AND); }
+	| MATH_ASN_BITWISE_XOR	{ $$ = HZ_NEW(MATH_ASN_BITWISE_XOR); }
+	| MATH_ASN_BITWISE_NOT	{ $$ = HZ_NEW(MATH_ASN_BITWISE_NOT); }
+	| MATH_ASN_BITWISE_LSH	{ $$ = HZ_NEW(MATH_ASN_BITWISE_LSH); }
+	| MATH_ASN_BITWISE_RSH	{ $$ = HZ_NEW(MATH_ASN_BITWISE_RSH); }
 	;
 
 expr_bin_op
-	: expr MATH_ADD expr	{ $$ = HZ_NEW(MATH_ADD); $$->addChild($1); $$->addChild($3); }
-	| expr MATH_SUB expr	{ $$ = HZ_NEW(MATH_SUB); $$->addChild($1); $$->addChild($3); }
-	| expr MATH_DIV expr	{ $$ = HZ_NEW(MATH_DIV); $$->addChild($1); $$->addChild($3); }
-	| expr MATH_MUL expr	{ $$ = HZ_NEW(MATH_MUL); $$->addChild($1); $$->addChild($3); }
-	| expr MATH_MOD expr	{ $$ = HZ_NEW(MATH_MOD); $$->addChild($1); $$->addChild($3); }
+	: MATH_ADD	{ $$ = HZ_NEW(MATH_ADD); }
+	| MATH_SUB	{ $$ = HZ_NEW(MATH_SUB); }
+	| MATH_DIV	{ $$ = HZ_NEW(MATH_DIV); }
+	| MATH_MUL	{ $$ = HZ_NEW(MATH_MUL); }
+	| MATH_MOD	{ $$ = HZ_NEW(MATH_MOD); }
 	;
 
 expr_cmp_op
-	: expr_cmp_op LOGIC_EQ expr		{ $$ = HZ_NEW(LOGIC_EQ); $$->addChild($1); $$->addChild($3); }
+	: LOGIC_EQ		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_NEQ		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_NOT		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_OR		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_AND		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_LT		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_GT		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_LET		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_GET		{ $$ = HZ_NEW(LOGIC_EQ); }
+	;
+
+expr_bit_op
+	: BITWISE_NOT	{ $$ = HZ_NEW(LOGIC_EQ); }
+	| BITWISE_OR	{ $$ = HZ_NEW(LOGIC_EQ); }
+	| BITWISE_AND	{ $$ = HZ_NEW(LOGIC_EQ); }
+	| BITWISE_XOR	{ $$ = HZ_NEW(LOGIC_EQ); }
+	| BITWISE_LSH	{ $$ = HZ_NEW(LOGIC_EQ); }
+	| BITWISE_RSH	{ $$ = HZ_NEW(LOGIC_EQ); }
 	;
 
 conditional_block
-	: IF S_LPARENT expr_cmp_op S_RPARENT		{ $$ = HZ_NEW(IF); $$->addChild($3); }
+	: IF expr_cmp_op THEN func_body END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
+	| IF constant THEN func_body END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
 	;
 
 constant
