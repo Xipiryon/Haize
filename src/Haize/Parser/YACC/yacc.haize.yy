@@ -71,7 +71,7 @@
 %type <node> expr_asn_op expr_asn_op_decl
 %type <node> expr_bin_op expr_cmp_op expr_bit_op
 %type <node> conditional_block
-%type <node> constant variable
+%type <node> constant variable variable_lval
 
 /*
 * Let's start!
@@ -255,6 +255,11 @@ constant
 	;
 
 variable
-	: IDENTIFIER	{ $$ = HZ_NEW(IDENTIFIER); $$->value = $1; }
-	| func_call		{ $$ = $1; }
+	: variable_lval							{ $$ = $1; }
+	| variable OP_ACCESSOR variable_lval	{ $$ = HZ_NEW(OP_ACCESSOR); $$->addChild($1); $$->addChild($3); }
+	;
+
+variable_lval
+	: IDENTIFIER			{ $$ = HZ_NEW(IDENTIFIER); $$->value = $1; }
+	| func_call				{ $$ = $1; }
 	;
