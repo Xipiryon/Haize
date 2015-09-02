@@ -68,7 +68,8 @@
 %type <node> block chunk stmt_decl expr subexpr
 %type <node> param_list param_decl func_decl func_body func_call arg_list
 %type <node> attr_decl class_body class_body_decl class_decl
-%type <node> expr_asn_op expr_bin_op expr_cmp_op expr_bit_op
+%type <node> expr_asn_op expr_asn_op_decl
+%type <node> expr_bin_op expr_cmp_op expr_bit_op
 %type <node> conditional_block
 %type <node> constant variable
 
@@ -95,10 +96,11 @@ chunk
 	;
 
 stmt_decl
-	: S_NEWLINE					{ $$ = NULL; }
-	| expr S_NEWLINE			{ $$ = $1; }
-	| RETURN expr S_NEWLINE		{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
-	| conditional_block			{ $$ = $1; }
+	: S_NEWLINE						{ $$ = NULL; }
+	| expr S_NEWLINE				{ $$ = $1; }
+	| RETURN expr S_NEWLINE			{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
+	| conditional_block S_NEWLINE	{ $$ = $1; }
+	| expr_asn_op_decl S_NEWLINE	{ $$ = $1; }
 	;
 
 expr
@@ -106,7 +108,6 @@ expr
 	| expr expr_bin_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	| expr expr_cmp_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	| expr expr_bit_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	| expr expr_asn_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	;
 
 subexpr
@@ -190,6 +191,10 @@ class_decl
 													$$->addChild(id);
 													$$->addChild($3);
 												}
+	;
+
+expr_asn_op_decl
+	: variable expr_asn_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	;
 
 expr_asn_op
