@@ -65,8 +65,8 @@
 /*
 * Declares our customs non terminal tokens
 */
-%type <node> block chunk stmt_decl expr subexpr
-%type <node> param_list param_decl func_decl func_body func_call arg_list
+%type <node> block block_empty chunk stmt_decl expr subexpr
+%type <node> param_list param_decl func_decl func_call arg_list
 %type <node> attr_decl class_body class_body_decl class_decl
 %type <node> expr_asn_op expr_asn_op_decl
 %type <node> expr_bin_op expr_cmp_op expr_bit_op
@@ -101,6 +101,11 @@ stmt_decl
 	| RETURN expr S_NEWLINE			{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
 	| conditional_block S_NEWLINE	{ $$ = $1; }
 	| expr_asn_op_decl S_NEWLINE	{ $$ = $1; }
+	;
+
+block_empty
+	: /* E */			{ $$ = HZ_NEW(NT_EMPTY); }
+	| block				{ $$ = $1; }
 	;
 
 expr
@@ -151,17 +156,12 @@ param_decl
 	: S_LPARENT param_list S_RPARENT		{ $$ = $2; }
 	;
 
-func_body
-	: /* E */			{ $$ = HZ_NEW(NT_EMPTY); }
-	| block				{ $$ = $1; }
-	;
-
 func_decl
-	: FUNCTION IDENTIFIER param_decl func_body END	{	$$ = HZ_NEW(NT_FUNC_DECL);
-													$$->addChild(IDENTIFIER, "IDENTIFIER")->value = $2;
-													$$->addChild($3);
-													$$->addChild($4);
-												}
+	: FUNCTION IDENTIFIER param_decl block_empty END	{	$$ = HZ_NEW(NT_FUNC_DECL);
+															$$->addChild(IDENTIFIER, "IDENTIFIER")->value = $2;
+															$$->addChild($3);
+															$$->addChild($4);
+														}
 	;
 
 attr_decl
@@ -222,28 +222,27 @@ expr_bin_op
 
 expr_cmp_op
 	: LOGIC_EQ		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_NEQ		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_NOT		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_OR		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_AND		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_LT		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_GT		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_LET		{ $$ = HZ_NEW(LOGIC_EQ); }
-	| LOGIC_GET		{ $$ = HZ_NEW(LOGIC_EQ); }
+	| LOGIC_NEQ		{ $$ = HZ_NEW(LOGIC_NEQ); }
+	| LOGIC_NOT		{ $$ = HZ_NEW(LOGIC_NOT); }
+	| LOGIC_OR		{ $$ = HZ_NEW(LOGIC_OR); }
+	| LOGIC_AND		{ $$ = HZ_NEW(LOGIC_AND); }
+	| LOGIC_LT		{ $$ = HZ_NEW(LOGIC_LT); }
+	| LOGIC_GT		{ $$ = HZ_NEW(LOGIC_GT); }
+	| LOGIC_LET		{ $$ = HZ_NEW(LOGIC_LET); }
+	| LOGIC_GET		{ $$ = HZ_NEW(LOGIC_GET); }
 	;
 
 expr_bit_op
-	: BITWISE_NOT	{ $$ = HZ_NEW(LOGIC_EQ); }
-	| BITWISE_OR	{ $$ = HZ_NEW(LOGIC_EQ); }
-	| BITWISE_AND	{ $$ = HZ_NEW(LOGIC_EQ); }
-	| BITWISE_XOR	{ $$ = HZ_NEW(LOGIC_EQ); }
-	| BITWISE_LSH	{ $$ = HZ_NEW(LOGIC_EQ); }
-	| BITWISE_RSH	{ $$ = HZ_NEW(LOGIC_EQ); }
+	: BITWISE_NOT	{ $$ = HZ_NEW(BITWISE_NOT); }
+	| BITWISE_OR	{ $$ = HZ_NEW(BITWISE_OR); }
+	| BITWISE_AND	{ $$ = HZ_NEW(BITWISE_AND); }
+	| BITWISE_XOR	{ $$ = HZ_NEW(BITWISE_XOR); }
+	| BITWISE_LSH	{ $$ = HZ_NEW(BITWISE_LSH); }
+	| BITWISE_RSH	{ $$ = HZ_NEW(BITWISE_RSH); }
 	;
 
 conditional_block
-	: IF expr_cmp_op THEN func_body END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
-	| IF constant THEN func_body END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
+	: IF expr THEN block_empty END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
 	;
 
 constant
