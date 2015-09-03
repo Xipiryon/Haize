@@ -190,6 +190,8 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 	{NewLine}		{ g_strBuffer += yytext; ++g_lineCount; g_charCount = 0; }
 }
 
+"."		{ HZ_CHAR; HZ_TOK(OP_ACCESSOR); }
+"::"	{ HZ_CHAR; HZ_TOK(OP_NAMESPACE); }
 ","		{ HZ_CHAR; HZ_TOK(S_COMMA); }
 "("		{ HZ_CHAR; HZ_TOK(S_LPARENT); }
 ")"		{ HZ_CHAR; HZ_TOK(S_RPARENT); }
