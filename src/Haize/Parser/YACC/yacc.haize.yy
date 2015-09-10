@@ -68,8 +68,7 @@
 %type <node> block block_empty chunk stmt_decl expr subexpr
 %type <node> param_list param_decl func_decl func_call arg_list
 %type <node> attr_decl class_body class_body_decl class_decl
-%type <node> expr_asn_op expr_asn_op_decl
-%type <node> expr_bin_op expr_cmp_op expr_bit_op
+%type <node> expr_asn_op binop_all expr_bin_op expr_cmp_op expr_bit_op
 %type <node> conditional_block
 %type <node> constant variable variable_lval
 
@@ -81,26 +80,18 @@
 
 program
 	: /* Empty script is valid, though useless */
-	| block				{ g_parseInfo->ASTRoot->addChild($1); }
-	;
-
-block
-	: chunk				{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
-	| block chunk		{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
+	| chunk				{ g_parseInfo->ASTRoot->addChild($1); }
 	;
 
 chunk
+	: block				{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
+	| chunk block		{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
+	;
+
+block
 	: stmt_decl			{ if($1 == NULL) { $$ = NULL; } else { $$ = HZ_NEW(NT_STMT); $$->addChild($1); } }
 	| func_decl			{ $$ = $1; }
 	| class_decl		{ $$ = $1; }
-	;
-
-stmt_decl
-	: S_NEWLINE						{ $$ = NULL; }
-	| expr S_NEWLINE				{ $$ = $1; }
-	| RETURN expr S_NEWLINE			{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
-	| conditional_block S_NEWLINE	{ $$ = $1; }
-	| expr_asn_op_decl S_NEWLINE	{ $$ = $1; }
 	;
 
 block_empty
@@ -108,17 +99,23 @@ block_empty
 	| block				{ $$ = $1; }
 	;
 
+stmt_decl
+	: S_NEWLINE									{ $$ = NULL; }
+	| expr S_NEWLINE							{ $$ = $1; }
+	| RETURN expr S_NEWLINE						{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
+	| conditional_block S_NEWLINE				{ $$ = $1; }
+	| variable expr_asn_op expr S_NEWLINE		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	;
+
 expr
 	: subexpr						{ $$ = $1; }
-	| expr expr_bin_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	| expr expr_cmp_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	| expr expr_bit_op subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr binop_all subexpr			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
 	;
 
 subexpr
 	: constant								{ $$ = $1; }
 	| variable								{ $$ = $1; }
-	| S_LPARENT expr S_RPARENT				{ $$ = $2; }
 	| MATH_ADD expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = true; $$->addChild($2); }
 	| MATH_SUB expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = false; $$->addChild($2); }
 	;
@@ -170,13 +167,21 @@ attr_decl
 								node->value = $2;
 								$$->addChild(node);
 							}
+	| ATTR IDENTIFIER IDENTIFIER		{	$$ = HZ_NEW(NT_ATTR_DECL);
+											auto type = HZ_NEW(IDENTIFIER);
+											type->value = $2;
+											$$->addChild(type);
+											auto node = HZ_NEW(IDENTIFIER);
+											node->value = $2;
+											type->addChild(node);
+										}
 	;
 
 class_body
 	: attr_decl				{ $$ = HZ_NEW(NT_CLASS_BODY); $$->addChild($1); }
 	| func_decl				{ $$ = HZ_NEW(NT_CLASS_BODY); $$->addChild($1); }
-	| class_body attr_decl	{ $1->addChild($2); }
-	| class_body func_decl	{ $1->addChild($2); }
+	| class_body attr_decl	{ $$ = $1; $$->addChild($2); }
+	| class_body func_decl	{ $$ = $1; $$->addChild($2); }
 	;
 
 class_body_decl
@@ -193,10 +198,6 @@ class_decl
 												}
 	;
 
-expr_asn_op_decl
-	: variable expr_asn_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	;
-
 expr_asn_op
 	: MATH_ASN				{ $$ = HZ_NEW(MATH_ASN); }
 	| MATH_ASN_ADD			{ $$ = HZ_NEW(MATH_ASN_ADD); }
@@ -210,6 +211,12 @@ expr_asn_op
 	| MATH_ASN_BITWISE_NOT	{ $$ = HZ_NEW(MATH_ASN_BITWISE_NOT); }
 	| MATH_ASN_BITWISE_LSH	{ $$ = HZ_NEW(MATH_ASN_BITWISE_LSH); }
 	| MATH_ASN_BITWISE_RSH	{ $$ = HZ_NEW(MATH_ASN_BITWISE_RSH); }
+	;
+
+binop_all
+	: expr_bin_op		{ $$ = $1; }
+	| expr_cmp_op		{ $$ = $1; }
+	| expr_bit_op		{ $$ = $1; }
 	;
 
 expr_bin_op
