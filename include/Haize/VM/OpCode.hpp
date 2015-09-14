@@ -6,7 +6,7 @@
 
 namespace hz
 {
-	enum HAIZE_API eOpCode
+	enum eOpCode
 	{
 		SYS_MOV = 0,	//! Copy the content of a register into another
 		SYS_SETRAW,		//! Set in a register a boxed value, stored in the next 64 bits
@@ -39,10 +39,10 @@ namespace hz
 		// *****
 		SYS_PRG_END,	//! Indicate that program must end
 		// *****
-		_I_COUNT		//! Total counter of OpCode (Internal Value)
+		TOTAL_COUNT		//! Total counter of OpCode (Internal Value)
 	};
 
-	static const char* OpCodeStr[eOpCode::_I_COUNT] =
+	static const char* OpCodeStr[eOpCode::TOTAL_COUNT] =
 	{
 		"SYS_MOV",
 		"SYS_SETRAW",

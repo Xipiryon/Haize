@@ -5,12 +5,14 @@
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
 #include "Haize/VM/OpCode.hpp"
+#include "Haize/Parser/Lexical.hpp"
+#include "Haize/Parser/Syntaxic.hpp"
 #include "Haize/Parser/Semantic.hpp"
 #include "Haize/Parser/Info.hpp"
 
 //Require the include to the parser folder, relative to this one
-#include "./Parser/YACC/generated/yacc.haize.hpp"
-#include "./Parser/YACC/Extern.hpp"
+//#include "./Parser/YACC/generated/yacc.haize.hpp"
+//#include "./Parser/YACC/Extern.hpp"
 
 #include "Haize/VM.hpp"
 
@@ -18,7 +20,7 @@ namespace
 {
 	using namespace muon;
 	void arithmetic(hz::VMInstance&, hz::eOpCode, u32, u32, u32);
-	void printError(hz::parser::ParseInfoError& error);
+	void printError(hz::parser::InfoError& error);
 }
 
 namespace hz
@@ -40,28 +42,48 @@ namespace hz
 
 		system::Time time;
 		muon::f32 totalTime = 0;
-		time.start();
-		{
-			_info.ASTRoot->name = "NT_ROOT";
-			_info.ASTRoot->type = NT_ROOT;
-			g_parseInfo = &_info;
-			custom_yymain(code);
-		}
-		totalTime += time.now();
-		log() << "AST Creation: " << time.now() << " seconds" << muon::endl;
 
+		// Lexical
 		time.start();
 		{
-			if (!hz::parser::sem::parse(_info))
+			if (!hz::parser::lexical::parse(_info, code))
 			{
 				printError(_info.error);
 				return nil;
 			}
-			hz::parser::sem::display(_info);
+			hz::parser::lexical::display(_info);
+		}
+		totalTime += time.now();
+		log() << "Lexical parse: " << time.now() << " seconds" << muon::endl;
+
+		// Syntaxic
+		time.start();
+		{
+			if (!hz::parser::syntaxic::parse(_info))
+			{
+				printError(_info.error);
+				return nil;
+			}
+			hz::parser::syntaxic::display(_info);
+		}
+		totalTime += time.now();
+		log() << "Syntaxic parse: " << time.now() << " seconds" << muon::endl;
+
+		// Semantic
+		time.start();
+		{
+			if (!hz::parser::semantic::parse(_info))
+			{
+				printError(_info.error);
+				return nil;
+			}
+			hz::parser::semantic::display(_info);
 		}
 		totalTime += time.now();
 		log() << "ByteCode Creation: " << time.now() << " seconds" << muon::endl;
 		log() << "** Total Parse Time: " << totalTime << " seconds **" << muon::endl;
+
+		// Execution
 		return execute(_info.IRCode);
 	}
 
@@ -249,7 +271,7 @@ namespace
 	}
 #undef VM_REG
 
-	void printError(hz::parser::ParseInfoError& error)
+	void printError(hz::parser::InfoError& error)
 	{
 		muon::system::Log log("VM", muon::LOG_ERROR);
 		log() << "Section: " << error.section << muon::endl;

@@ -4,18 +4,23 @@
 #include <deque>
 #include "Haize/Core/Define.hpp"
 #include "Haize/VM/ByteCode.hpp"
+#include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
 namespace hz
 {
 	namespace parser
 	{
+		struct InfoImpl
+		{
+			// Empty struct used in each
+			// step of parsing
+		};
+
 		/*!
 		*
 		*/
-		struct ParseInfoImpl;
-
-		struct ParseInfoError
+		struct InfoError
 		{
 			String message;
 			String section;
@@ -31,9 +36,10 @@ namespace hz
 		{
 			Info();
 			~Info();
-			ParseInfoImpl* impl;
+			InfoImpl* impl;
 
-			ParseInfoError error;
+			InfoError error;
+			std::vector<Token>* TokenList;
 			ASTNode* ASTRoot;
 			ByteCode* IRCode;
 			muon::u32 IRCodeSize;

@@ -35,14 +35,15 @@ namespace hz
 		* Custom ParseInfoImpl
 		* Specific for Syntaxic parsing
 		*/
-		struct ParseInfoImpl
+		struct InfoImplSemantic : InfoImpl
 		{
 			std::list<u32>* childIndex;
 			std::list<ByteCode>* bytecode;
 			SymbolTable* symbols;
 		};
+#define INFO_IMPL ((hz::parser::InfoImplSemantic*)info.impl)
 
-		namespace sem
+		namespace semantic
 		{
 
 			bool parse(Info& info)
@@ -52,19 +53,19 @@ namespace hz
 					::free(info.IRCode);
 					info.IRCodeSize = 0;
 				}
-				info.impl = MUON_CNEW(ParseInfoImpl);
-				info.impl->childIndex = MUON_CNEW(std::list<u32>);
-				info.impl->bytecode = MUON_CNEW(std::list<ByteCode>);
-				info.impl->symbols = MUON_CNEW(SymbolTable);
+				info.impl = MUON_CNEW(InfoImplSemantic);
+				INFO_IMPL->childIndex = MUON_CNEW(std::list<u32>);
+				INFO_IMPL->bytecode = MUON_CNEW(std::list<ByteCode>);
+				INFO_IMPL->symbols = MUON_CNEW(SymbolTable);
 
-				info.impl->childIndex->push_back(0);
+				INFO_IMPL->childIndex->push_back(0);
 
 				if (generateByteCode(info))
 				{
 					u32 offset = 0;
-					info.IRCodeSize = sizeof(ByteCode) * (info.impl->bytecode->size() + 1);
+					info.IRCodeSize = sizeof(ByteCode) * (INFO_IMPL->bytecode->size() + 1);
 					info.IRCode = (ByteCode*)::malloc(info.IRCodeSize);
-					for (auto it = info.impl->bytecode->begin(); it != info.impl->bytecode->end(); ++it)
+					for (auto it = INFO_IMPL->bytecode->begin(); it != INFO_IMPL->bytecode->end(); ++it)
 					{
 						*(info.IRCode + offset) = *it;
 						++offset;
@@ -72,15 +73,17 @@ namespace hz
 					(info.IRCode + offset)->opCode(hz::SYS_PRG_END);
 				}
 
-				MUON_CDELETE(info.impl->childIndex);
-				MUON_CDELETE(info.impl->bytecode);
-				MUON_CDELETE(info.impl->symbols);
-				MUON_CDELETE(info.impl);
+				MUON_CDELETE(INFO_IMPL->childIndex);
+				MUON_CDELETE(INFO_IMPL->bytecode);
+				MUON_CDELETE(INFO_IMPL->symbols);
+				MUON_CDELETE(INFO_IMPL);
 				return info.error.message.empty();
 			}
 
 			void display(Info& info)
 			{
+#ifdef MUON_DEBUG
+#endif
 			}
 		}
 	}
@@ -93,7 +96,7 @@ namespace
 	{
 		hz::ByteCode bc;
 		bc.setup(args...);
-		info.impl->bytecode->push_back(bc);
+		INFO_IMPL->bytecode->push_back(bc);
 	}
 
 
@@ -102,36 +105,36 @@ namespace
 		/*
 		hz::ByteCode bc;
 		bc.setup(hz::eOpCode::SYS_SETRAW, dest, data);
-		info.impl->bytecode->push_back(bc);
+		INFO_IMPL->bytecode->push_back(bc);
 		//Must split in two bytecode of 4 byte
 		u64 raw = box.getInteger();
 		bc.data = raw;
-		info.impl->bytecode->push_back(bc);
+		INFO_IMPL->bytecode->push_back(bc);
 		//*/
 		/*
 		u32 lside = (raw & 0xFFffFFff00000000) >> 32;
 		u32 rside = (raw & 0x00000000FFffFFff);
 		bc.data = lside;
-		info.impl->bytecode->push_back(bc);
+		INFO_IMPL->bytecode->push_back(bc);
 		bc.data = rside;
-		info.impl->bytecode->push_back(bc);
+		INFO_IMPL->bytecode->push_back(bc);
 		//*/
 	}
 
 	hz::parser::ASTNode* up(hz::parser::Info& info, hz::parser::ASTNode* node)
 	{
-		info.impl->childIndex->pop_back();
+		INFO_IMPL->childIndex->pop_back();
 		return node->parent;
 	}
 
 	hz::parser::ASTNode* down(hz::parser::Info& info, hz::parser::ASTNode* node)
 	{
 		hz::parser::ASTNode* downNode = NULL;
-		muon::u32 id = info.impl->childIndex->back();
+		muon::u32 id = INFO_IMPL->childIndex->back();
 		if (id < node->children->size())
 		{
 			downNode = node->children->at(id);
-			info.impl->childIndex->push_back(0);
+			INFO_IMPL->childIndex->push_back(0);
 			return downNode;
 		}
 		return downNode;
@@ -139,7 +142,7 @@ namespace
 
 	hz::parser::ASTNode* next(hz::parser::Info& info, hz::parser::ASTNode* node)
 	{
-		muon::u32 id = ++info.impl->childIndex->back();
+		muon::u32 id = ++INFO_IMPL->childIndex->back();
 		if (id < node->children->size())
 		{
 			return node->children->at(id);
@@ -171,19 +174,15 @@ namespace
 		bool success = true;
 		hz::parser::ASTNode* node = info.ASTRoot;
 
+		muon::system::Log log("Semantic", muon::LOG_ERROR);
 		while (node = down(info, node))
 		{
-			switch (node->type)
+			switch (node->token.type)
 			{
-				/*
-				case hz::parser::NT_ASN:
-					node = process(info, node, generateASN, success);
+				case hz::SYS_PRG_END:
 					break;
-				case hz::parser::NT_RETSTAT:
-					node = process(info, node, generateRetstat, success);
-					break;
-				//*/
 				default:
+					log() << "Unhandled code " << node->name << muon::endl;
 					break;
 			}
 
@@ -213,7 +212,7 @@ namespace
 	u8 generateLVal(hz::parser::Info& info, hz::parser::ASTNode* node)
 	{
 		hz::parser::ASTNode* child = node->children->front();
-		//u8 dest = info.impl->symbols->checkOrCreateRegister(child->token.value.cStr());
+		//u8 dest = INFO_IMPL->symbols->checkOrCreateRegister(child->token.value.cStr());
 		return hz::ByteCode::INVALID_REG;
 	}
 
@@ -228,7 +227,7 @@ namespace
 		}
 		else
 		{
-			r = info.impl->symbols->checkOrCreateRegister(child->token.value.cStr());
+			r = INFO_IMPL->symbols->checkOrCreateRegister(child->token.value.cStr());
 			hz::BoxedValue box = child->token.value;
 			pushRawByteCode(info, r, box);
 		}

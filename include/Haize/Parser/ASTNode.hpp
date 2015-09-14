@@ -4,6 +4,7 @@
 #include <deque>
 #include <Muon/Meta/Variant.hpp>
 #include "Haize/Core/Define.hpp"
+#include "Haize/Parser/Token.hpp"
 
 namespace hz
 {
@@ -21,18 +22,19 @@ namespace hz
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			ASTNode(u32, const char* = NULL);
+			ASTNode(eTokenType, const char* = NULL);
 			~ASTNode();
 
 			const char* name;
-			u32 type;
-			meta::Variant value;
+			Token token;
 			ASTNodeList* children;
 			ASTNode* parent;
 
-			ASTNode* addChild(u32, const char* = NULL);
-			void addChild(ASTNode*);
-			void removeChild(ASTNode*);
+			ASTNode* addChild(eTokenType, const char* = NULL);
+			ASTNode* addChild(const Token&);
+			ASTNode* addChild(ASTNode*);
+			bool removeChild(ASTNode*);
+			bool deleteChild(ASTNode*);
 		};
 	}
 }

@@ -12,7 +12,7 @@
 void leave(int code)
 {
 #ifdef MUON_PLATFORM_WINDOWS
-	//::system("PAUSE");
+	::system("PAUSE");
 #endif
 	::exit(code);
 }
@@ -196,7 +196,7 @@ void executeProgram()
 			file.close();
 		}
 
-		leave(0);
+		return;
 	}
 	// LOAD FILE
 	else if (g_LoadFile)
@@ -215,7 +215,7 @@ void executeProgram()
 		}
 
 		free(g_Buffer);
-		leave(0);
+		return;
 	}
 	// BYTECODE LOAD FILE
 	else if (g_LoadBytecode)
@@ -224,6 +224,6 @@ void executeProgram()
 		//log() << "> Returned " << hz::execute(vm, (const hz::ByteCode*)g_Buffer) << muon::endl;
 
 		free(g_Buffer);
-		leave(0);
+		return;
 	}
 }

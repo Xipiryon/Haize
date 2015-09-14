@@ -19,25 +19,6 @@ if not G_Install.Lib then G_Install.Lib = G_Install.Root.."lib" end
 
 HaizeRoot = os.getcwd()
 
--- Generate Lex/Yacc files
-function generateParserFiles(executeOsCommand)
-	local parserPath = HaizeRoot.."/src/Haize/Parser/YACC/"
-	if os.is("windows") then
-		lex = "flex.exe"
-		yacc = "bison.exe"
-	else -- Unix
-		lex = "flex"
-		yacc = "bison"
-	end
-	local generatedPath = parserPath.."generated/"
-	if(not os.isdir(generatedPath)) then
-		if os.mkdir(generatedPath) then print("Creating "..generatedPath) end
-	end
-	
-	os.execute(lex.." -o "..generatedPath.."flex.haize.cpp "..parserPath.."flex.haize.ll")
-	os.execute(yacc.." -v -d -o "..generatedPath.."yacc.haize.cpp "..parserPath.."yacc.haize.yy")
-end
-
 ------------------------------
 -- Solution
 ------------------------------
@@ -107,10 +88,6 @@ project "Haize"
 	files {
 		HaizeRoot.."/src/**.cpp",
 		HaizeRoot.."/include/**.hpp",
-		-- Flex/Bison and related files
-		HaizeRoot.."/src/Haize/Parser/**.hpp",
-		HaizeRoot.."/src/Haize/Parser/YACC/yacc.haize.yy",
-		HaizeRoot.."/src/Haize/Parser/YACC/flex.haize.ll",
 	}
 	filter "Debug*"
 		links	{ "Muon-d" }
@@ -150,17 +127,10 @@ newoption {
 	value       = "PATH",
 	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
 }
+
 ------------------------------
 -- Actions
 ------------------------------
-
-newaction {
-	trigger = "genparser",
-	description = "Generate Flex & Bison files",
-	execute = function() 
-		generateParserFiles();
-	end
-}
 
 newaction {
 	trigger	 = "install",

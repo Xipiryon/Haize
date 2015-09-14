@@ -12,7 +12,7 @@ namespace hz
 		* Contains everything require to convert an abstract syntax tree
 		* to the final ByteCode buffer used by the VMInstance
 		*/
-		namespace sem
+		namespace semantic
 		{
 			/*!
 			*
