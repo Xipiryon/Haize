@@ -29,7 +29,7 @@ namespace hz
 				section = token.section;
 				function = token.function;
 				line = token.line;
-				column = token.line;
+				column = token.column;
 				value = token.value;
 			}
 			return *this;

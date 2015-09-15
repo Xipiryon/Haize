@@ -22,7 +22,8 @@ namespace hz
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			ASTNode(eTokenType, const char* = NULL);
+			ASTNode(eTokenType, const char*);
+			ASTNode(const Token&);
 			~ASTNode();
 
 			const char* name;
@@ -30,7 +31,7 @@ namespace hz
 			ASTNodeList* children;
 			ASTNode* parent;
 
-			ASTNode* addChild(eTokenType, const char* = NULL);
+			ASTNode* addChild(eTokenType, const char*);
 			ASTNode* addChild(const Token&);
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);

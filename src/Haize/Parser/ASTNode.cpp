@@ -24,6 +24,14 @@ namespace hz
 		{
 		}
 
+		ASTNode::ASTNode(const Token& token_)
+			: name(TokenTypeStr[token_.type])
+			, token(token_)
+			, children(MUON_CNEW(ASTNodeList))
+			, parent(NULL)
+		{
+		}
+
 		ASTNode::~ASTNode()
 		{
 			for (auto it = children->begin(); it != children->end(); ++it)
@@ -44,7 +52,7 @@ namespace hz
 		ASTNode* ASTNode::addChild(const Token& token)
 		{
 			ASTNode* c = addChild(token.type, TokenTypeStr[token.type]);
-			this->token = token;
+			c->token = token;
 			return c;
 		}
 

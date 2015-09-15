@@ -1,4 +1,5 @@
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -8,7 +9,7 @@
 
 namespace
 {
-	void displayToken(muon::system::Log&, const hz::parser::Token&);
+	template<typename T> void displayToken(T&, const hz::parser::Token&);
 	bool isLetter(char);
 	bool isNumber(char);
 	bool isLogicSymbol(char);
@@ -493,16 +494,16 @@ namespace hz
 			void display(parser::Info& info)
 			{
 #ifdef MUON_DEBUG
-				muon::system::Log log("LEXICAL", muon::LOG_INFO);
-				log() << "** Displaying Tokens **" << muon::endl;
-				log() << "( " << info.TokenList->size() << " Tokens stored)" << muon::endl;
+				std::ofstream f("parse.lexical.txt");
+				f << "== Lexical Tokens: " << info.TokenList->size() << " stored" << muon::endl;
+				f << "========================================" << muon::endl;
 				if (info.TokenList->size() > 0)
 				{
 					for (u32 i = 0; i < (info.TokenList->size() - 1); ++i)
 					{
-						displayToken(log, (*info.TokenList)[i]);
+						displayToken(f, (*info.TokenList)[i]);
 					}
-					displayToken(log, info.TokenList->back());
+					displayToken(f, info.TokenList->back());
 				}
 #endif
 			}
@@ -512,11 +513,33 @@ namespace hz
 
 namespace
 {
-	void displayToken(muon::system::Log& log, const hz::parser::Token& token)
+	template<typename T>
+	void displayToken(T& stream, const hz::parser::Token& token)
 	{
-		log() << hz::parser::TokenTypeStr[token.type] << muon::endl;
-		//log() << "\t(" << token.value << ") " << muon::endl;
-		log() << "\t#" << token.line << ":" << token.column << muon::endl;
+		stream << hz::parser::TokenTypeStr[token.type] << "@#" << token.line << ":" << token.column << muon::endl;
+		switch(token.type)
+		{
+			case hz::parser::V_NIL:
+				stream << "\t[ NIL ] " << muon::endl;
+				break;
+			case hz::parser::V_TRUE:
+				stream << "\t[ TRUE ] " << muon::endl;
+				break;
+			case hz::parser::V_FALSE:
+				stream << "\t[ FALSE ] " << muon::endl;
+				break;
+			case hz::parser::V_NUMBER:
+				stream << "\t[" << token.value.get<muon::f32>() << "] " << muon::endl;
+				break;
+			case hz::parser::V_STRING:
+				stream << "\t[" << token.value.get<muon::String*>()->cStr() << "] " << muon::endl;
+				break;
+			case hz::parser::V_IDENTIFIER:
+				stream << "\t[" << token.value.get<muon::String*>()->cStr() << "] " << muon::endl;
+				break;
+			default:
+				break;
+		}
 	}
 
 	bool isLetter(char c)
