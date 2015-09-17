@@ -26,7 +26,7 @@ namespace
 	void initPrecedenceAssoc(hz::parser::Info&);
 
 	//********************************************************
-	hz::parser::ASTNode* parseChunk(hz::parser::Info& info);
+	bool parseChunk(hz::parser::Info& info);
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info);
 
 	hz::parser::ASTNode* parseStmt(hz::parser::Info& info);
@@ -95,7 +95,7 @@ namespace hz
 				info.ASTRoot->token = Token(NT_CHUNK);
 
 				info.impl = MUON_CNEW(InfoImplSyntaxic);
-				INFO_IMPL->node = info.ASTRoot;
+				INFO_IMPL->node = NULL;
 				INFO_IMPL->state = RUNNING;
 				INFO_IMPL->currIndex = 0;
 				INFO_IMPL->depth = 0;
@@ -114,16 +114,7 @@ namespace hz
 				{
 					initPrecedenceAssoc(info);
 					// Start parsing!
-					hz::parser::ASTNode* chunk = parseChunk(info);
-					ret = (chunk != NULL && info.error.message.empty());
-					if (ret)
-					{
-						info.ASTRoot->addChild(chunk);
-					}
-					else
-					{
-						MUON_CDELETE(chunk);
-					}
+					ret = parseChunk(info);
 				}
 
 				MUON_CDELETE(INFO_IMPL->precedence);
@@ -136,7 +127,11 @@ namespace hz
 			void display(parser::Info& info)
 			{
 #ifdef MUON_DEBUG
-				muon::system::Log("SYNTAXIC", muon::LOG_INFO) << "** Outputing AST to \"parse.syntaxic.gv\" file **" << muon::endl;
+				muon::system::Log log("SYNTAXIC", muon::LOG_INFO);
+				log() << "** Displaying AST in ASCII **" << muon::endl;
+				displayASCII(info.ASTRoot);
+
+				log() << "** Outputing AST to \"parse.syntaxic.gv\" file **" << muon::endl;
 
 				std::ofstream graphviz("parse.syntaxic.gv", std::ios::trunc);
 				if (graphviz)
@@ -152,14 +147,11 @@ namespace hz
 				}
 				graphviz.close();
 
-#ifdef MUON_PLATFORM_PC
+#	ifdef MUON_PLATFORM_PC
 				::system("dot.exe -Tpng parse.syntaxic.gv -o parse.syntaxic.png");
-#else
+#	else
 				::system("dot -Tpng parse.syntaxic.gv -o parse.syntaxic.png");
-#endif
-
-				muon::system::Log("SYNTAXIC", muon::LOG_INFO) << "** Displaying AST in ASCII **" << muon::endl;
-				displayASCII(info.ASTRoot);
+#	endif
 #endif
 			}
 		}
@@ -290,7 +282,7 @@ namespace
 	{
 #ifdef MUON_DEBUG
 		muon::system::Log c("Consuming", muon::LOG_DEBUG);
-		for(muon::u32 i = 0; i < count; ++i)
+		for (muon::u32 i = 0; i < count; ++i)
 		{
 			c << hz::parser::TokenTypeStr[TOK_TYPE(0)] << muon::endl;
 			INFO_IMPL->currIndex++;
@@ -301,15 +293,14 @@ namespace
 	}
 
 	//********************************************************
-	hz::parser::ASTNode* parseChunk(hz::parser::Info& info)
+	bool parseChunk(hz::parser::Info& info)
 	{
-		hz::parser::ASTNode* chunk = CREATENODE(hz::parser::NT_CHUNK);
+		hz::parser::ASTNode* chunk = info.ASTRoot;
 		hz::parser::ASTNode* block = NULL;
 		do
 		{
 			if (block = parseBlock(info))
 			{
-				CREATENODE(hz::parser::NT_CHUNK);
 				chunk->addChild(block);
 				continue;
 			}
@@ -323,12 +314,12 @@ namespace
 			}
 		} while (block);
 		// If there is no error message, then we're ok
-		return chunk;
+		return info.error.message.empty();
 	}
 
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info)
 	{
-		if(EXPECT(0, S_EOF))
+		if (EXPECT(0, S_EOF))
 		{
 			INFO_IMPL->state = hz::parser::DONE;
 			return NULL;
@@ -350,7 +341,7 @@ namespace
 		{
 			CONSUME(1);	// Eat the return token
 			auto ret = CREATENODE(hz::parser::NT_RETURN);
-			if(auto expr = parseExpr(info))
+			if (auto expr = parseExpr(info))
 			{
 				ret->addChild(expr);
 				return ret;
@@ -383,7 +374,7 @@ namespace
 	{
 		hz::parser::ASTNode* prefixexpr = parsePrefixexpr(info);
 
-		if(!prefixexpr)
+		if (!prefixexpr)
 		{
 			if (EXPECT(0, S_LPARENT))
 			{
@@ -425,9 +416,9 @@ namespace
 			binop = bitwise;
 		}
 
-		if(binop)
+		if (binop)
 		{
-			if(auto expr = parseExpr(info))
+			if (auto expr = parseExpr(info))
 			{
 				binop->addChild(prefixexpr);
 				binop->addChild(expr);
@@ -440,8 +431,8 @@ namespace
 				return NULL;
 			}
 		}
-		
-		if(!prefixexpr)
+
+		if (!prefixexpr)
 		{
 			ERR("");
 		}
@@ -467,7 +458,7 @@ namespace
 		{
 			CONSUME(1);
 			auto unary = CREATENODE(hz::parser::UNARY_MINUS);
-			if(auto expr = parseExpr(info))
+			if (auto expr = parseExpr(info))
 			{
 				unary->addChild(expr);
 				return unary;
@@ -550,13 +541,13 @@ namespace
 				break;
 			case hz::parser::V_NUMBER:
 				constant = CREATENODE(hz::parser::V_NUMBER);
-				INFO_IMPL->node->token.value = VARIANT(0);
+				constant->token.value = VARIANT(0);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_STRING:
 				constant = CREATENODE(hz::parser::V_STRING);
-				INFO_IMPL->node->token.value.set<muon::String*>(VARIANT(0).get<muon::String*>());
+				constant->token.value.set<muon::String*>(VARIANT(0).get<muon::String*>());
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
