@@ -12,9 +12,9 @@ namespace hz
 	class HAIZE_API GCObject
 	{
 	public:
-		u32 incCount();
-		u32 decCount();
-		u32 getCount() const;
+		muon::u32 incCount();
+		muon::u32 decCount();
+		muon::u32 getCount() const;
 
 	protected:
 
@@ -26,7 +26,7 @@ namespace hz
 		GCObject(const GCObject&);
 		GCObject& operator=(const GCObject&);
 
-		u32 _refCount;
+		muon::u32 _refCount;
 	};
 
 	class HAIZE_API GC
@@ -39,8 +39,8 @@ namespace hz
 		}
 
 		GCObject* add();
-		u32 garbage();
-		u32 size() const;
+		muon::u32 garbage();
+		muon::u32 size() const;
 
 	protected:
 		GC();

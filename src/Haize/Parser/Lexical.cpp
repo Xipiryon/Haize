@@ -44,12 +44,12 @@ namespace hz
 			bool multiLineComment;
 			std::istream* stream;
 
-			f32 fvalue;
-			u32 fdenOffset;
+			muon::f32 fvalue;
+			muon::u32 fdenOffset;
 			bool fdenUsed;
 
-			u32 line;
-			u32 column;
+			muon::u32 line;
+			muon::u32 column;
 		};
 #define INFO_IMPL ((hz::parser::InfoImplLexical*)info.impl)
 
@@ -77,7 +77,7 @@ namespace hz
 				INFO_IMPL->line = 1;
 				INFO_IMPL->column = 0;
 
-				String word;
+				muon::String word;
 
 				while (!stream.eof())
 				{
@@ -88,7 +88,7 @@ namespace hz
 					// **************
 					if (isNewLine(c))
 					{
-						// If String, update word, line & column count
+						// If muon::String, update word, line & column count
 						if (INFO_IMPL->token.type == V_STRING)
 						{
 							word += c;
@@ -168,7 +168,7 @@ namespace hz
 							if (INFO_IMPL->fdenUsed)
 							{
 								INFO_IMPL->fdenOffset *= 10;
-								f32 n = f32(c - '0') / INFO_IMPL->fdenOffset;
+								muon::f32 n = muon::f32(c - '0') / INFO_IMPL->fdenOffset;
 								INFO_IMPL->fvalue += n;
 							}
 							else
@@ -499,7 +499,7 @@ namespace hz
 				f << "========================================" << muon::endl;
 				if (info.TokenList->size() > 0)
 				{
-					for (u32 i = 0; i < (info.TokenList->size() - 1); ++i)
+					for (muon::u32 i = 0; i < (info.TokenList->size() - 1); ++i)
 					{
 						displayToken(f, (*info.TokenList)[i]);
 					}

@@ -19,7 +19,7 @@
 namespace
 {
 	using namespace muon;
-	void arithmetic(hz::VMInstance&, hz::eOpCode, u32, u32, u32);
+	void arithmetic(hz::VMInstance&, hz::eOpCode, muon::u32, muon::u32, muon::u32);
 	void printError(hz::parser::InfoError& error);
 }
 
@@ -40,7 +40,7 @@ namespace hz
 		muon::meta::Variant nil;
 		_info.error.section = "#RunTimeEval#";
 
-		system::Time time;
+		muon::system::Time time;
 		muon::f32 totalTime = 0;
 
 		// Lexical
@@ -97,7 +97,7 @@ namespace hz
 		return false;
 	}
 
-	bool VMInstance::compile(const String& module)
+	bool VMInstance::compile(const muon::String& module)
 	{
 		return false;
 	}
@@ -112,7 +112,7 @@ namespace hz
 #	define DEBUG_CASE(Case) case Case:
 #endif
 		_stack = 0;
-		u32 reg[3] = { 0, 0, 0 };
+		muon::u32 reg[3] = { 0, 0, 0 };
 
 		bool exec = true;
 		do
@@ -130,7 +130,7 @@ namespace hz
 				DEBUG_CASE(SYS_SETRAW)
 				{
 					muon::u64 type = _instr.argG();
-					u8 dest = _instr.res();
+					muon::u8 dest = _instr.res();
 					muon::RawPointer rawData = muon::RawPointer(buffer + _stack + 1);
 					_registers[dest].set(rawData);
 					_stack += 2;
@@ -253,12 +253,12 @@ namespace hz
 namespace
 {
 #define VM_REG(Id) (*registers)[Id]
-	void arithmetic(hz::VMInstance& vm, hz::eOpCode op, u32 rA, u32 rB, u32 rC)
+	void arithmetic(hz::VMInstance& vm, hz::eOpCode op, muon::u32 rA, muon::u32 rB, muon::u32 rC)
 	{
 		/*
-		f64 left = hz::boxed::getFloating(REG(rB));
-		f64 right = hz::boxed::getFloating(REG(rC));
-		f64 r = 0;
+		muon::f64 left = hz::boxed::getFloating(REG(rB));
+		muon::f64 right = hz::boxed::getFloating(REG(rC));
+		muon::f64 r = 0;
 		switch (op)
 		{
 			DEBUG_CASE(hz::OP_ADD) r = left + right; break;

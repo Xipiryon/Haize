@@ -35,7 +35,7 @@ namespace hz
 		/*!
 		*
 		*/
-		bool compile(const String& module);
+		bool compile(const muon::String& module);
 
 		/*!
 		*
@@ -61,7 +61,7 @@ namespace hz
 		parser::Info _info;
 
 		ByteCode _instr;
-		u32 _stack;
+		muon::u32 _stack;
 		SymbolTable _symbols;
 		muon::meta::Variant _registers[ByteCode::INVALID_REG];
 	};

@@ -15,13 +15,13 @@ namespace
 
 	// ASCII Tree variables
 	char g_Depth[2048];
-	u32 g_DepthIndex;
+	muon::u32 g_DepthIndex;
 
 	void pushASCII(char c);
 	void popASCII();
 	void displayASCII(hz::parser::ASTNode* node);
 
-	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, u32 id, hz::parser::ASTNode* node);
+	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node);
 
 	void initPrecedenceAssoc(hz::parser::Info&);
 
@@ -48,7 +48,7 @@ namespace
 		RIGHT,
 	};
 
-	typedef std::map<hz::parser::eTokenType, u32> TokenPrecedenceMap;
+	typedef std::map<hz::parser::eTokenType, muon::u32> TokenPrecedenceMap;
 	typedef std::map<hz::parser::eTokenType, TokenAssoc> TokenAssociativityMap;
 	typedef std::map<hz::parser::eTokenType, std::vector<hz::parser::eTokenType>> SyntaxicTable;
 }
@@ -70,10 +70,10 @@ namespace hz
 		struct InfoImplSyntaxic : InfoImpl
 		{
 			ParserState	state;
-			u32			currIndex;
+			muon::u32			currIndex;
 			ASTNode*	node;
-			u32		depth;
-			u32		inputOffset;
+			muon::u32		depth;
+			muon::u32		inputOffset;
 			TokenPrecedenceMap* precedence;
 			TokenAssociativityMap* associativity;
 			SyntaxicTable* syntaxicTable;
@@ -166,7 +166,7 @@ namespace
 		INFO_IMPL->associativity->clear();
 
 		using namespace hz::parser;
-		for (u32 i = 0; i < eTokenType::TOTAL_COUNT; ++i)
+		for (muon::u32 i = 0; i < eTokenType::TOTAL_COUNT; ++i)
 		{
 			eTokenType t = (eTokenType)i;
 			switch (t)
@@ -242,9 +242,9 @@ namespace
 		}
 	}
 
-	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, u32 id, hz::parser::ASTNode* node)
+	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node)
 	{
-		for (u32 i = 0; i < id; ++i)
+		for (muon::u32 i = 0; i < id; ++i)
 			graphviz << "  ";
 
 		graphviz << "\"" << node << "\" [label=\""

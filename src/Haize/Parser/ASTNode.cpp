@@ -65,7 +65,7 @@ namespace hz
 
 		bool ASTNode::removeChild(ASTNode* child)
 		{
-			for (u32 i = 0; i < this->children->size(); ++i)
+			for (muon::u32 i = 0; i < this->children->size(); ++i)
 			{
 				if (this->children->at(i) == child)
 				{

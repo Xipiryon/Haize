@@ -222,10 +222,10 @@ namespace hz
 			eTokenType type;
 			muon::meta::Variant value;
 
-			String section;
-			String function;
-			u32 line;
-			u32 column;
+			muon::String section;
+			muon::String function;
+			muon::u32 line;
+			muon::u32 column;
 		};
 	}
 }

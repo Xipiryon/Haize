@@ -13,19 +13,19 @@ namespace hz
 	{
 	}
 
-	u32 GCObject::incCount()
+	muon::u32 GCObject::incCount()
 	{
 		++_refCount;
 		return _refCount;
 	}
 
-	u32 GCObject::decCount()
+	muon::u32 GCObject::decCount()
 	{
 		--_refCount;
 		return _refCount;
 	}
 
-	u32 GCObject::getCount() const
+	muon::u32 GCObject::getCount() const
 	{
 		return _refCount;
 	}
@@ -53,14 +53,14 @@ namespace hz
 		return gc;
 	}
 
-	u32 GC::garbage()
+	muon::u32 GC::garbage()
 	{
-		i32 aliveInRow = 0;
-		i32 count = 0;
+		muon::i32 aliveInRow = 0;
+		muon::i32 count = 0;
 		while (_objects->size() > 0 && aliveInRow < GC_CHECK_ALIVE_IN_ROW)
 		{
 			++aliveInRow;
-			i32 i = (rand() % _objects->size());
+			muon::i32 i = (rand() % _objects->size());
 			if (_objects->at(i)->getCount() == 0)
 			{
 				++count;
@@ -72,7 +72,7 @@ namespace hz
 		return count;
 	}
 
-	u32 GC::size() const
+	muon::u32 GC::size() const
 	{
 		return _objects->size();
 	}

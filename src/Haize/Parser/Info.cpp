@@ -24,7 +24,7 @@ namespace hz
 
 		Info::~Info()
 		{
-			for(u32 i = 0; i < TokenList->size(); ++i)
+			for(muon::u32 i = 0; i < TokenList->size(); ++i)
 			{
 				Token& t = (*TokenList)[i];
 				if(t.value.getMeta() == MUON_META(muon::String))

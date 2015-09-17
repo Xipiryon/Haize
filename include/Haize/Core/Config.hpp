@@ -5,7 +5,7 @@
 
 namespace hz
 {
-	static const i8 GC_CHECK_ALIVE_IN_ROW = 5;
+	static const muon::i8 GC_CHECK_ALIVE_IN_ROW = 5;
 }
 
 #define HAIZE_VERSION_MAJOR		0

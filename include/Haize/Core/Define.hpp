@@ -23,12 +23,4 @@
 #	endif
 #endif
 
-//		--------------------------
-//				NAMESPACE
-//		--------------------------
-namespace hz
-{
-	using namespace muon;
-}
-
 #endif //_HAIZE_DEFINE_H_INCLUDED

@@ -23,11 +23,11 @@ namespace hz
 		MUON_CDELETE(_namespaces);
 	}
 
-	u8 SymbolTable::checkOrCreateRegister(const muon::String& identifier)
+	muon::u8 SymbolTable::checkOrCreateRegister(const muon::String& identifier)
 	{
 		if (_registerId == hz::ByteCode::INVALID_REG)
 		{
-			system::Log log("SYMBOLTABLE", LOG_ERROR);
+			muon::system::Log log("SYMBOLTABLE", muon::LOG_ERROR);
 			log() << "Maximum number of internal registers reached!" << muon::endl;
 			log() << "  This indicates that a block have 254 register used!" << muon::endl;
 			log() << "  Previous register will be used. Value may be overwritten." << muon::endl;
@@ -47,7 +47,7 @@ namespace hz
 	{
 	}
 	
-	void SymbolTable::freeRegister(u8 reg)
+	void SymbolTable::freeRegister(muon::u8 reg)
 	{
 	}
 }
