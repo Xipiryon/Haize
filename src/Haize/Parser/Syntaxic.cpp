@@ -9,6 +9,7 @@
 #include "Haize/Parser/ASTNode.hpp"
 #include "Haize/Parser/Syntaxic.hpp"
 
+#define HAIZE_PARSE_PRINT 1
 namespace
 {
 	using namespace muon;
@@ -42,15 +43,25 @@ namespace
 	hz::parser::ASTNode* parseVariable(hz::parser::Info& info);
 	hz::parser::ASTNode* parseVariableLval(hz::parser::Info& info);
 	//********************************************************
-	enum TokenAssoc
+	enum OpAssociativity
 	{
-		LEFT,
-		RIGHT,
+		ASSOC_LEFT,
+		ASSOC_RIGHT,
 	};
 
-	typedef std::map<hz::parser::eTokenType, muon::u32> TokenPrecedenceMap;
-	typedef std::map<hz::parser::eTokenType, TokenAssoc> TokenAssociativityMap;
-	typedef std::map<hz::parser::eTokenType, std::vector<hz::parser::eTokenType>> SyntaxicTable;
+	struct OpAttribute
+	{
+		muon::u32 precedence;
+		OpAssociativity associativity;
+	};
+
+	struct NodeOpAttribute
+	{
+		hz::parser::ASTNode* node;
+		OpAttribute attr;
+	};
+	std::map<hz::parser::eTokenType, OpAttribute> g_OpAttribute;
+	std::deque<NodeOpAttribute> g_NodeOpAttribute;
 }
 
 namespace hz
@@ -63,9 +74,9 @@ namespace hz
 		*/
 		enum ParserState
 		{
-			RUNNING,
-			SKIPPING,
-			DONE
+			STATE_RUNNING,
+			STATE_SKIPPING,
+			STATE_DONE
 		};
 		struct InfoImplSyntaxic : InfoImpl
 		{
@@ -74,9 +85,6 @@ namespace hz
 			ASTNode*	node;
 			muon::u32		depth;
 			muon::u32		inputOffset;
-			TokenPrecedenceMap* precedence;
-			TokenAssociativityMap* associativity;
-			SyntaxicTable* syntaxicTable;
 		};
 #define INFO_IMPL ((hz::parser::InfoImplSyntaxic*)info.impl)
 
@@ -91,18 +99,15 @@ namespace hz
 						MUON_CDELETE(info.ASTRoot->children->back());
 					}
 				}
-				info.ASTRoot->name = "NT_PROGRAM";
+				info.ASTRoot->name = "NT_CHUNK";
 				info.ASTRoot->token = Token(NT_CHUNK);
 
 				info.impl = MUON_CNEW(InfoImplSyntaxic);
 				INFO_IMPL->node = NULL;
-				INFO_IMPL->state = RUNNING;
+				INFO_IMPL->state = STATE_RUNNING;
 				INFO_IMPL->currIndex = 0;
 				INFO_IMPL->depth = 0;
 				INFO_IMPL->inputOffset = 0;
-				INFO_IMPL->precedence = MUON_CNEW(TokenPrecedenceMap);
-				INFO_IMPL->associativity = MUON_CNEW(TokenAssociativityMap);
-				INFO_IMPL->syntaxicTable = MUON_CNEW(SyntaxicTable);
 
 				bool ret = true;
 				if (info.TokenList->empty() || info.TokenList->front().type == S_EOF)
@@ -115,11 +120,9 @@ namespace hz
 					initPrecedenceAssoc(info);
 					// Start parsing!
 					ret = parseChunk(info);
+					MUON_ASSERT(!g_OpAttribute.empty(), "Operator Precedence Stack is not empty!");
 				}
 
-				MUON_CDELETE(INFO_IMPL->precedence);
-				MUON_CDELETE(INFO_IMPL->associativity);
-				MUON_CDELETE(INFO_IMPL->syntaxicTable);
 				MUON_CDELETE(INFO_IMPL);
 				return ret;
 			}
@@ -162,48 +165,111 @@ namespace
 {
 	void initPrecedenceAssoc(hz::parser::Info& info)
 	{
-		INFO_IMPL->precedence->clear();
-		INFO_IMPL->associativity->clear();
+		//If Init has already been called, just skip it
+		//(Operator precedence won't change at runtime)
+		if (!g_OpAttribute.empty())
+		{
+			return;
+		}
 
 		using namespace hz::parser;
-		for (muon::u32 i = 0; i < eTokenType::TOTAL_COUNT; ++i)
+
+		// Precedence value set are arbritrary:
+		// They must just reflect if an operator precedence is
+		// higher / lower than another.
+		// --
+		//
+		// We don't have to set the RBRACKET, as LBRACKET
+		// operator attribute will be used for chained expression
+		// like (((expr) op1 expr) op2 expr) where op1 perc. is < op2 prec
+		g_OpAttribute[S_LBRACKET] = { 100, ASSOC_LEFT };
+
+		g_OpAttribute[S_ACCESSOR] = { 30, ASSOC_RIGHT };
+
+		g_OpAttribute[UNARY_PLUS] = { 25, ASSOC_RIGHT };
+		g_OpAttribute[UNARY_MINUS] = { 25, ASSOC_RIGHT };
+		g_OpAttribute[MATH_INC] = { 25, ASSOC_RIGHT };
+		g_OpAttribute[MATH_DEC] = { 25, ASSOC_RIGHT };
+
+		g_OpAttribute[MATH_MUL] = { 20, ASSOC_LEFT };
+		g_OpAttribute[MATH_DIV] = { 20, ASSOC_LEFT };
+		g_OpAttribute[MATH_MOD] = { 20, ASSOC_LEFT };
+
+		g_OpAttribute[MATH_ADD] = { 15, ASSOC_LEFT };
+		g_OpAttribute[MATH_SUB] = { 15, ASSOC_LEFT };
+
+		g_OpAttribute[MATH_ASN] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_ADD] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_SUB] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_MUL] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_DIV] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_MOD] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_AND] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_OR] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_XOR] = { 10, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_NOT] = { 10, ASSOC_RIGHT };
+	}
+
+	void pushNodePrecedence(hz::parser::Info& info, hz::parser::ASTNode* node)
+	{
+		g_NodeOpAttribute.push_back({ node, g_OpAttribute[node->token.type] });
+
+#if defined(MUON_DEBUG) && HAIZE_PARSE_PRINT
+		muon::system::Log log("NodeStack", muon::LOG_DEBUG);
+		log() << " + [";
+		for (auto it : g_NodeOpAttribute)
 		{
-			eTokenType t = (eTokenType)i;
-			switch (t)
-			{
-				case eTokenType::S_ACCESSOR:
-					(*INFO_IMPL->precedence)[t] = 30;
-					(*INFO_IMPL->associativity)[t] = TokenAssoc::RIGHT;
-					break;
-				case eTokenType::S_LBRACKET:
-				case eTokenType::S_RBRACKET:
-					(*INFO_IMPL->precedence)[t] = 30;
-					break;
-				case eTokenType::UNARY_PLUS:
-				case eTokenType::UNARY_MINUS:
-				case eTokenType::MATH_INC:
-				case eTokenType::MATH_DEC:
-					(*INFO_IMPL->precedence)[t] = 25;
-					(*INFO_IMPL->associativity)[t] = TokenAssoc::RIGHT;
-					break;
-				case eTokenType::MATH_MUL:
-				case eTokenType::MATH_DIV:
-				case eTokenType::MATH_MOD:
-					(*INFO_IMPL->precedence)[t] = 20;
-					break;
-				case eTokenType::MATH_ADD:
-				case eTokenType::MATH_SUB:
-					(*INFO_IMPL->precedence)[t] = 10;
-					break;
-				case eTokenType::MATH_ASN:
-					(*INFO_IMPL->precedence)[t] = 1;
-					(*INFO_IMPL->associativity)[t] = TokenAssoc::RIGHT;
-					break;
-				default:
-					(*INFO_IMPL->associativity)[t] = TokenAssoc::LEFT;
-					(*INFO_IMPL->precedence)[t] = 0;
-					break;
-			}
+			log << hz::parser::TokenTypeStr[it.node->token.type] << ":" << it.attr.precedence << ", ";
+		}
+		log << "]" << muon::endl;
+#endif
+	}
+
+	void popNodePrecedence(hz::parser::Info& info)
+	{
+		MUON_ASSERT(!g_NodeOpAttribute.empty(), "Operator Precedence Stack is empty!");
+		if (!g_NodeOpAttribute.empty())
+		{
+			g_NodeOpAttribute.pop_back();
+		}
+
+#if defined(MUON_DEBUG) && HAIZE_PARSE_PRINT
+		muon::system::Log log("NodeStack", muon::LOG_DEBUG);
+		log() << " - [";
+		for (auto it : g_NodeOpAttribute)
+		{
+			log << hz::parser::TokenTypeStr[it.node->token.type] << ":" << it.attr.precedence << ", ";
+		}
+		log << "]" << muon::endl;
+#endif
+	}
+
+	bool checkForLowerPrecOrDiffAssoc(hz::parser::Info& info, hz::parser::ASTNode* node)
+	{
+		const OpAttribute& op = g_OpAttribute[node->token.type];
+		const OpAttribute& opStack = g_NodeOpAttribute.back().attr;
+
+		return ((op.precedence < opStack.precedence)
+				|| (op.associativity == ASSOC_LEFT && opStack.associativity == ASSOC_RIGHT));
+	}
+
+	void updateBinaryNodePrecedence(hz::parser::Info& info, hz::parser::ASTNode* node)
+	{
+		if(g_NodeOpAttribute.empty())
+		{
+			pushNodePrecedence(info, node);
+			return;
+		}
+
+		hz::parser::ASTNode* nodeStack = g_NodeOpAttribute.back().node;
+		const OpAttribute& op = g_OpAttribute[node->token.type];
+		const OpAttribute& opStack = g_NodeOpAttribute.back().attr;
+
+		if (checkForLowerPrecOrDiffAssoc(info, node))
+		{
+		}
+		else
+		{
 		}
 	}
 
@@ -229,12 +295,20 @@ namespace
 			hz::parser::ASTNode* n = (*node->children)[i];
 			if (i < node->children->size() - 1)
 			{
+#ifdef MUON_PLATFORM_WINDOWS
+				printf("%s |-", g_Depth);
+#else
 				printf("%s ├─", g_Depth);
+#endif
 				pushASCII('|');
 			}
 			else // Last element
 			{
+#ifdef MUON_PLATFORM_WINDOWS
+				printf("%s `-", g_Depth);
+#else
 				printf("%s └─", g_Depth);
+#endif
 				pushASCII(' ');
 			}
 			displayASCII(n);
@@ -280,7 +354,7 @@ namespace
 	// Functions helper
 	void consume(hz::parser::Info& info, muon::u32 count)
 	{
-#ifdef MUON_DEBUG
+#if defined(MUON_DEBUG) && HAIZE_PARSE_PRINT
 		muon::system::Log c("Consuming", muon::LOG_DEBUG);
 		for (muon::u32 i = 0; i < count; ++i)
 		{
@@ -306,10 +380,10 @@ namespace
 			}
 			switch (INFO_IMPL->state)
 			{
-				case hz::parser::SKIPPING:
-					INFO_IMPL->state = hz::parser::RUNNING;
+				case hz::parser::STATE_SKIPPING:
+					INFO_IMPL->state = hz::parser::STATE_RUNNING;
 					continue;
-				case hz::parser::DONE:
+				case hz::parser::STATE_DONE:
 					break;
 			}
 		} while (block);
@@ -321,7 +395,7 @@ namespace
 	{
 		if (EXPECT(0, S_EOF))
 		{
-			INFO_IMPL->state = hz::parser::DONE;
+			INFO_IMPL->state = hz::parser::STATE_DONE;
 			return NULL;
 		}
 		return parseStmt(info);
@@ -333,7 +407,7 @@ namespace
 		if (EXPECT(0, S_SEPARATOR))
 		{
 			CONSUME(1); // Eat the separator
-			INFO_IMPL->state = hz::parser::SKIPPING;
+			INFO_IMPL->state = hz::parser::STATE_SKIPPING;
 			return NULL;
 		}
 
@@ -418,6 +492,8 @@ namespace
 
 		if (binop)
 		{
+			pushNodePrecedence(info, binop);
+			// TODO: Check operator here
 			if (auto expr = parseExpr(info))
 			{
 				binop->addChild(prefixexpr);
