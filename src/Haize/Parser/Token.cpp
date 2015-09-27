@@ -7,6 +7,15 @@ namespace hz
 {
 	namespace parser
 	{
+		Token::Token()
+			: type(S_INVALID)
+			, section("#Undefined#")
+			, function("#Undefined#")
+			, line(0)
+			, column(0)
+		{
+		}
+
 		Token::Token(eTokenType type)
 			: type(type)
 			, section("#Undefined#")
