@@ -12,6 +12,7 @@ How to compile
 You will need the following:
 - A C++11 compiler
 - Premake5 (See bottom of this README)
+- Muon Library ( http://github.com/Xleek/Muon )
 - Optionally, an IDE
 - Optionally, Git
 
@@ -19,19 +20,29 @@ The premake build system is used to generate IDE solutions or makefiles.
 It's been choosed over CMake because it is very small (and can be fearlessly embedded in the repository),
 it uses a well-known language (Lua) rather than a custom cryptic one, which makes writing build scripts very easy.
 
-1) Get the engine from its Git repository, or download a zip file from Github
-2) Run premake5 for the platform / target you want to build
-3) You should now see your project / make file at the root of the repository
+1) Follow the Muon installation steps
+2) Get the engine from its Git repository, or download a zip file from Github
+3) Run premake5 for the platform / target you want to build
+4) You should now see your project / make file at the root of the repository
 
 Example with Visual Studio 2013:
 1) Open a command prompt in the repository
 2) Run `premake5.exe vs2013`
-3) A set of Visual Studio file ( Muon.sln, Muon.vcproj, ...) are now located in the repository root folder
-4) Open the Muon.sln file
+3) A set of Visual Studio file ( Haize.sln, Haize.vcproj, ...) are now located in the repository root folder
+4) Open the Haize.sln file
 5) Build the solution
+6) Run the `premake5.exe install` command. _(Depending on where you want to install, you may require administrator rights)_
 
-If you've pulled a new version of the project, it is recommanded to regenerate the solution using premake.
+If you've pulled a new version of the project, it is recommanded to regenerate the solution using premake and rebuild.
+Unless major changes in Muon, you should not have the need to rebuild & reinstall the library.
 
+Note
+====================
+
+* The `premake5 install` command will install header and libraries (.dll, .lib, .so, ...) files 
+	* On Windows, they're installed under the C:\Premake folder
+	* On Unix, they're installed under the /usr/local/ folder _(and may require the use of `sudo` )_
+	
 License
 ====================
 This project is licenced under the Creative Commons - Attribution & Share Alike licence
