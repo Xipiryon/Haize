@@ -1,6 +1,5 @@
 
 #include <Muon/Memory/Allocator.hpp>
-
 #include "Haize/Parser/Token.hpp"
 
 namespace hz
@@ -32,6 +31,14 @@ namespace hz
 			*this = token;
 		}
 
+		Token::~Token()
+		{
+			if(value.getMeta() == MUON_META(muon::String))
+			{
+				MUON_CDELETE(value.get<muon::String*>());
+			}
+		}
+
 		Token& Token::operator=(const Token& token)
 		{
 			if (this != &token)
@@ -42,7 +49,14 @@ namespace hz
 				function = token.function;
 				line = token.line;
 				column = token.column;
-				value = token.value;
+				if (token.value.getMeta() == MUON_META(muon::String))
+				{
+					value = MUON_CNEW(muon::String, *token.value.get<muon::String*>());
+				}
+				else
+				{
+					value = token.value;
+				}
 			}
 			return *this;
 		}

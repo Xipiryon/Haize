@@ -222,6 +222,7 @@ namespace hz
 			Token();
 			Token(eTokenType);
 			Token(const Token&);
+			~Token();
 			Token& operator=(const Token&);
 
 			eTokenType type;
