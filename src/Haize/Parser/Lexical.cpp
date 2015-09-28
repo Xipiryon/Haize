@@ -532,11 +532,12 @@ namespace
 				stream << "\t[" << token.value.get<muon::f32>() << "] " << muon::endl;
 				break;
 			case hz::parser::V_STRING:
-				stream << "\t[" << token.value.get<muon::String*>()->cStr() << "] " << muon::endl;
-				break;
 			case hz::parser::V_IDENTIFIER:
-				stream << "\t[" << token.value.get<muon::String*>()->cStr() << "] " << muon::endl;
+			{
+				muon::String* str = token.value.get<muon::String*>();
+				stream << "\t[" << str->cStr() << "] " << muon::endl;
 				break;
+			}
 			default:
 				break;
 		}
