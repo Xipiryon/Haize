@@ -9,6 +9,7 @@ namespace hz
 	{
 		Token::Token()
 			: type(S_INVALID)
+			, category(S_INVALID)
 			, section("#Undefined#")
 			, function("#Undefined#")
 			, line(0)
@@ -18,6 +19,7 @@ namespace hz
 
 		Token::Token(eTokenType type)
 			: type(type)
+			, category(S_INVALID)
 			, section("#Undefined#")
 			, function("#Undefined#")
 			, line(0)
@@ -35,6 +37,7 @@ namespace hz
 			if (this != &token)
 			{
 				type = token.type;
+				category = token.category;
 				section = token.section;
 				function = token.function;
 				line = token.line;

@@ -15,8 +15,8 @@ namespace hz
 		*/
 		enum eTokenType
 		{
-			S_EOF = 0,
-			S_INVALID,
+			S_INVALID = 0,
+			S_EOF,
 
 			S_COMMA,		//!< ','
 			S_ACCESSOR,		//!< '.'
@@ -103,6 +103,8 @@ namespace hz
 			NT_OP_MATH,
 			NT_OP_CMP,
 			NT_CONDITION_BLOCK,
+			NT_BINOP,
+			NT_UNOP,
 			NT_CONSTANT,
 			NT_VARIABLE,
 			NT_VARIABLE_LVAL,
@@ -116,8 +118,8 @@ namespace hz
 		*/
 		static const char* TokenTypeStr[eTokenType::TOTAL_COUNT] =
 		{
-			"S_EOF",
 			"S_INVALID",
+			"S_EOF",
 
 			"S_COMMA",
 			"S_ACCESSOR",
@@ -204,6 +206,8 @@ namespace hz
 			"NT_OP_MATH",
 			"NT_OP_CMP",
 			"NT_CONDITION_BLOCK",
+			"NT_BINOP",
+			"NT_UNOP",
 			"NT_CONSTANT",
 			"NT_VARIABLE",
 			"NT_VARIABLE_LVAL",
@@ -221,6 +225,7 @@ namespace hz
 			Token& operator=(const Token&);
 
 			eTokenType type;
+			eTokenType category;
 			muon::meta::Variant value;
 
 			muon::String section;
