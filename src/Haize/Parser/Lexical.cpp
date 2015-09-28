@@ -640,6 +640,7 @@ namespace
 
 	void pushToken(hz::parser::Info& info, muon::String& word)
 	{
+		INFO_IMPL->token.category = hz::parser::S_INVALID;
 		if (INFO_IMPL->token.type != hz::parser::S_INVALID)
 		{
 			if (INFO_IMPL->token.type == hz::parser::V_IDENTIFIER)
