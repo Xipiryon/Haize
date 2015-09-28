@@ -25,16 +25,17 @@ namespace
 	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node);
 
 	void initPrecedenceAssoc(hz::parser::Info&);
-	void initLookupTable(hz::parser::Info&);
+	void initParserStep(hz::parser::Info&);
 	bool initParse(hz::parser::Info&);
+	muon::u32 getLookUpRule(hz::parser::Info&);
 
-	enum ParserStep
+	enum eParserStep
 	{
 		STMT_DECL = 0,
 		FUNC_DECL,
 		CLASS_DECL,
 
-		PARSESTEP_COUNT
+		STEP_COUNT
 	};
 
 	enum OpAssociativity
@@ -58,10 +59,7 @@ namespace
 	std::map<hz::parser::eTokenType, OpAttribute> g_OpAttribute;
 	std::deque<NodeOpAttribute> g_NodeOpAttribute;
 
-	const muon::u32 LOOKUP_ERROR_INDEX = 0;
-	const muon::u32 LOOKUP_ELEMENT_COUNT = 256;
-	//TODO: Set the exact number of maximum combinaison
-	muon::u32 g_LookUpTable[PARSESTEP_COUNT][LOOKUP_ELEMENT_COUNT];
+	const muon::u32 INVALID_RULE = 0;
 }
 
 namespace hz
@@ -72,17 +70,14 @@ namespace hz
 		* Custom parser::InfoImpl
 		* Specific for Syntaxic parsing
 		*/
-		enum ParserState
-		{
-			STATE_RUNNING,
-			STATE_SKIPPING,
-			STATE_DONE
-		};
 		struct InfoImplSyntaxic : InfoImpl
 		{
-			ParserState	state;
 			muon::u32	readIndex;
 			ASTNode*	node;
+
+			std::deque<eParserStep> stackStep;
+			std::deque<Token> stackOperator;
+			std::deque<Token> stackValue;
 		};
 #define INFO_IMPL ((hz::parser::InfoImplSyntaxic*)info.impl)
 
@@ -102,7 +97,6 @@ namespace hz
 
 				info.impl = MUON_CNEW(InfoImplSyntaxic);
 				INFO_IMPL->node = NULL;
-				INFO_IMPL->state = STATE_RUNNING;
 				INFO_IMPL->readIndex = 0;
 
 				bool ret = true;
@@ -114,9 +108,8 @@ namespace hz
 				else
 				{
 					initPrecedenceAssoc(info);
-					// Start parsing!
+					initParserStep(info);
 					ret = initParse(info);
-					MUON_ASSERT(!g_OpAttribute.empty(), "Operator Precedence Stack is not empty!");
 				}
 
 				MUON_CDELETE(INFO_IMPL);
@@ -344,21 +337,141 @@ namespace
 				|| (op.associativity == ASSOC_LEFT && opStack.associativity == ASSOC_RIGHT));
 	}
 
-	void initLookupTable(hz::parser::Info& info)
+	muon::u32 getLookUpRule(hz::parser::Info& info)
 	{
-		// Statement Lookup Table
-		memset(g_LookUpTable[STMT_DECL], LOOKUP_ERROR_INDEX, LOOKUP_ELEMENT_COUNT  * sizeof(muon::u32));
+		muon::u32 nextIndex = INFO_IMPL->readIndex+1;
+		if(nextIndex >= info.TokenList->size())
+		{
+			return INVALID_RULE;
+		}
 
-		// Function Declaration Table
-		memset(g_LookUpTable[FUNC_DECL], LOOKUP_ERROR_INDEX, LOOKUP_ELEMENT_COUNT  * sizeof(muon::u32));
+		hz::parser::eTokenType currType = (*info.TokenList)[INFO_IMPL->readIndex].type;
+		hz::parser::eTokenType currCategory = (*info.TokenList)[INFO_IMPL->readIndex].category;
+		hz::parser::eTokenType nextType = (*info.TokenList)[nextIndex].type;
+		hz::parser::eTokenType nextCategory = (*info.TokenList)[nextIndex].category;
 
-		// Class Declaration Table
-		memset(g_LookUpTable[CLASS_DECL], LOOKUP_ERROR_INDEX, LOOKUP_ELEMENT_COUNT * sizeof(muon::u32));
+#define HAIZE_RULE(Curr, Next, lToken, rToken, Rule) if( (Curr == lToken) && (Next == rToken)) { return Rule; }
+		using namespace hz::parser;
+		switch (INFO_IMPL->stackStep.back())
+		{
+			case STMT_DECL:
+			{
+				HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, NT_BINOP, 4);
+				HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, NT_BINOP, 4);
+			}
+			break;
+			case FUNC_DECL:
+			{
+			}
+			break;
+			case CLASS_DECL:
+			{
+			}
+			break;
+		}
+
+		return INVALID_RULE;
+#undef HAIZE_RULE
+	}
+
+	void initParserStep(hz::parser::Info& info)
+	{
+		hz::parser::eTokenType type = (*info.TokenList)[INFO_IMPL->readIndex].type;
+		if (type == hz::parser::S_KEYWORD)
+		{
+			muon::String* keyword = (*info.TokenList)[INFO_IMPL->readIndex].value.get<muon::String*>();
+			if (*keyword == "function")
+			{
+				INFO_IMPL->stackStep.push_back(FUNC_DECL);
+				return;
+			}
+			else if (*keyword == "class")
+			{
+				INFO_IMPL->stackStep.push_back(CLASS_DECL);
+				return;
+			}
+		}
+		INFO_IMPL->stackStep.push_back(STMT_DECL);
 	}
 
 	bool initParse(hz::parser::Info& info)
 	{
+		muon::system::Log log("Syntaxic");
+		while(!INFO_IMPL->stackStep.empty())
+		{
+			muon::u32 rule = getLookUpRule(info);
+			eParserStep step = INFO_IMPL->stackStep.back();
+			switch (step)
+			{
+				case STMT_DECL:
+				{
+					switch (rule)
+					{
+						// IDENTIFIER -> ...
+						// ... binop
+						case 4:
+						{
+							break;
+						}
+						// ... (
+						case 5:
+						{
+							break;
+						}
+						// ... )
+						case 6:
+						{
+							break;
+						}
+						// ... [
+						case 7:
+						{
+							break;
+						}
+						// ... ]
+						case 8:
+						{
+							break;
+						}
+						// ... ,
+						case 11:
+						{
+							break;
+						}
+						// ... ;
+						case 12:
+						{
+							break;
+						}
+						// ... in
+						case 16:
+						{
+							break;
+						}
+						// ... EOF
+						case 26:
+						{
+							break;
+						}
 
+						default:
+						{
+							log(muon::LOG_ERROR) << "Rule " << rule << " is not recognized!" << muon::endl;
+							return false;
+						}
+					}
+				}
+				break;
+				case FUNC_DECL:
+				{
+				}
+				break;
+				case CLASS_DECL:
+				{
+				}
+				break;
+			}
+		}
 		return true;
 	}
 
