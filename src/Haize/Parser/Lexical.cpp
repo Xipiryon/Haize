@@ -677,6 +677,7 @@ namespace
 						 || word == "while"
 						 || word == "switch"
 						 || word == "case"
+						 || word == "default"
 						 || word == "break"
 						 // other keyword
 						 || word == "global"
