@@ -20,8 +20,9 @@ namespace hz
 
 			S_COMMA,		//!< ','
 			S_ACCESSOR,		//!< '.'
+			S_RESOLUTION,	//!< '::'
 			S_SEPARATOR,	//!< New line, or ';'
-			S_KEYWORD,		//!< 
+			S_KEYWORD,		//!<
 			S_LPARENT,		//!< '('
 			S_RPARENT,		//!< ')'
 			S_LBRACKET,		//!< '['
@@ -33,8 +34,8 @@ namespace hz
 			V_IDENTIFIER,	//!< An alphanumeric identifier
 			V_STRING,		//!< A string contained between two '"' character
 			V_NIL,			//!<
-			V_TRUE,			//!< 
-			V_FALSE,		//!< 
+			V_TRUE,			//!<
+			V_FALSE,		//!<
 
 			E_LOGIC_OP_BEGIN,
 			LOGIC_EQ,		//!< '=='
@@ -123,6 +124,7 @@ namespace hz
 
 			"S_COMMA",
 			"S_ACCESSOR",
+			"S_RESOLUTION",
 			"S_SEPARATOR",
 			"S_KEYWORD",
 			"S_LPARENT",

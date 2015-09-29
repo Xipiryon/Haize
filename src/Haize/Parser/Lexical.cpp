@@ -471,6 +471,27 @@ namespace hz
 						}
 					}
 
+					// *** RESOLUTION OPERATOR ***
+					// **************
+					else if (c == ':')
+					{
+						char nc = peek(info);
+						if (matchCombinedChar(c, nc, ':', ':'))
+						{
+							pushToken(info, word);
+							word = "::";
+							INFO_IMPL->token.type = S_RESOLUTION;
+							pushToken(info, word);
+						}
+						else
+						{
+							info.error.line = INFO_IMPL->line;
+							info.error.column = INFO_IMPL->column;
+							info.error.message = "Ill-formed resolution operator: do you mean '::' ?";
+							return false;
+						}
+					}
+
 					// *** COMMA ***
 					// **************
 					else if (c == ',')
