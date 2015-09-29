@@ -342,6 +342,7 @@ namespace
 		muon::u32 nextIndex = INFO_IMPL->readIndex+1;
 		if(nextIndex >= info.TokenList->size())
 		{
+			MUON_ERROR("Trying to get next rule while there is no next Token!");
 			return INVALID_RULE;
 		}
 
