@@ -9,22 +9,8 @@
 
 namespace
 {
-	using namespace muon;
-	hz::parser::ASTNode* up(hz::parser::Info&, hz::parser::ASTNode*);
-	hz::parser::ASTNode* down(hz::parser::Info&, hz::parser::ASTNode*);
-	hz::parser::ASTNode* next(hz::parser::Info&, hz::parser::ASTNode*);
-
 	bool generateByteCode(hz::parser::Info&);
-	hz::parser::ASTNode* process(hz::parser::Info&, hz::parser::ASTNode*, muon::u8(*)(hz::parser::Info&, hz::parser::ASTNode*), bool&);
-
-	muon::u8 generateASN(hz::parser::Info&, hz::parser::ASTNode*);
-	muon::u8 generateLVal(hz::parser::Info&, hz::parser::ASTNode*);
-	muon::u8 generateRVal(hz::parser::Info&, hz::parser::ASTNode*);
-	muon::u8 generateExpr(hz::parser::Info&, hz::parser::ASTNode*);
-	muon::u8 generateSubexpr(hz::parser::Info&, hz::parser::ASTNode*);
-	muon::u8 generateRetstat(hz::parser::Info&, hz::parser::ASTNode*);
-
-	void pushRawByteCode(hz::parser::Info& info, muon::u8 dest, muon::u64 metaId, const RawPointer& data);
+	void pushRawByteCode(hz::parser::Info& info, muon::u8 dest, muon::u64 metaId, const muon::RawPointer& data);
 }
 
 namespace hz
@@ -100,7 +86,7 @@ namespace
 	}
 
 
-	void pushRawByteCode(hz::parser::Info& info, muon::u8 dest, muon::u64 metaId, const RawPointer& data)
+	void pushRawByteCode(hz::parser::Info& info, muon::u8 dest, muon::u64 metaId, const muon::RawPointer& data)
 	{
 		/*
 		hz::ByteCode bc;
@@ -121,60 +107,13 @@ namespace
 		//*/
 	}
 
-	hz::parser::ASTNode* up(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		INFO_IMPL->childIndex->pop_back();
-		return node->parent;
-	}
-
-	hz::parser::ASTNode* down(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		hz::parser::ASTNode* downNode = NULL;
-		muon::u32 id = INFO_IMPL->childIndex->back();
-		if (id < node->children->size())
-		{
-			downNode = node->children->at(id);
-			INFO_IMPL->childIndex->push_back(0);
-			return downNode;
-		}
-		return downNode;
-	}
-
-	hz::parser::ASTNode* next(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		muon::u32 id = ++INFO_IMPL->childIndex->back();
-		if (id < node->children->size())
-		{
-			return node->children->at(id);
-		}
-		return NULL;
-	}
-
-	hz::parser::ASTNode* process(hz::parser::Info& info, hz::parser::ASTNode* node, muon::u8(*f)(hz::parser::Info&, hz::parser::ASTNode*), bool& success)
-	{
-		success = (f(info, node) != hz::ByteCode::INVALID_REG);
-		hz::parser::ASTNode* nextNode = next(info, node);
-		//While we didn't find a next node
-		while (!nextNode)
-		{
-			//Try to search from upper
-			nextNode = up(info, nextNode);
-			//No parent? Then no more node to parse, return
-			if (!nextNode)
-			{
-				return NULL;
-			}
-		}
-
-		return nextNode;
-	}
-
 	bool generateByteCode(hz::parser::Info& info)
 	{
 		bool success = true;
 		hz::parser::ASTNode* node = info.ASTRoot;
 
 		muon::system::Log log("Semantic", muon::LOG_ERROR);
+		/*
 		while (node = down(info, node))
 		{
 			switch (node->token.type)
@@ -196,79 +135,7 @@ namespace
 				return false;
 			}
 		}
+		// */
 		return success;
-	}
-
-	muon::u8 generateASN(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		hz::parser::ASTNode* asn = node->children->at(0);
-		muon::u8 dest = generateLVal(info, node->children->at(1));
-		muon::u16 src = generateExpr(info, node->children->at(2));
-
-		pushByteCode(info, hz::MATH_ASN, dest, src);
-		return dest;
-	}
-
-	muon::u8 generateLVal(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		hz::parser::ASTNode* child = node->children->front();
-		//muon::u8 dest = INFO_IMPL->symbols->checkOrCreateRegister(child->token.value.cStr());
-		return hz::ByteCode::INVALID_REG;
-	}
-
-	muon::u8 generateRVal(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		muon::u8 r = hz::ByteCode::INVALID_REG;
-		/*
-		hz::parser::TokenNode* child = node->child->front();
-		if (child->token.type == hz::NT_LVAL)
-		{
-			r = generateLVal(info, child);
-		}
-		else
-		{
-			r = INFO_IMPL->symbols->checkOrCreateRegister(child->token.value.cStr());
-			hz::BoxedValue box = child->token.value;
-			pushRawByteCode(info, r, box);
-		}
-		//*/
-		return r;
-	}
-
-	muon::u8 generateExpr(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		muon::u8 r = hz::ByteCode::INVALID_REG;
-		/*
-		hz::parser::TokenNode* child = node->child->front();
-		switch (child->token.type)
-		{
-			case hz::NT_SUBEXPR:
-				r = generateSubexpr(info, child);
-				break;
-		}
-		//*/
-		return r;
-	}
-
-	muon::u8 generateSubexpr(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		muon::u8 r = hz::ByteCode::INVALID_REG;
-		/*
-		hz::parser::TokenNode* child = node->child->front();
-		switch (child->token.type)
-		{
-			case hz::NT_RVAL:
-				r = generateRVal(info, child);
-				break;
-		}
-		//*/
-		return r;
-	}
-
-	muon::u8 generateRetstat(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		muon::u8 dest = generateRVal(info, node->children->at(1));
-		pushByteCode(info, hz::SYS_RETURN, 0, dest);
-		return dest;
 	}
 }
