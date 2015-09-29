@@ -1,7 +1,7 @@
 Haize
 ====================
 
-[![Build Status](http://louis-schnellbach.com:8080/buildStatus/icon?job=Haize)](http://louis-schnellbach.com:8080/job/Haize/)
+[![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize)](http://ci.louis-schnellbach.com/job/Haize/)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xleek/haize/branch/master)
 
 C++ Script Language highly WIP.
