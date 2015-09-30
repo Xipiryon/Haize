@@ -700,10 +700,10 @@ namespace
 						 || word == "case"
 						 || word == "default"
 						 || word == "break"
+						 || word == "continue"
 						 // other keyword
 						 || word == "global"
 						 || word == "return"
-						 || word == "end"
 						 )
 				{
 					INFO_IMPL->token.type = hz::parser::S_KEYWORD;
