@@ -1,4 +1,3 @@
-
 #include <map>
 #include <stack>
 #include <algorithm>
@@ -258,16 +257,12 @@ namespace
 
 		using namespace hz::parser;
 
-		// Precedence value set are arbritrary:
-		// They must just reflect if an operator precedence is
+		// Precedence value reflect if an operator precedence is
 		// higher / lower than another.
-		// --
-		//
-		// We don't have to set the RBRACKET, as LBRACKET
-		// operator attribute will be used for chained expression
-		// like (((expr) op1 expr) op2 expr) where op1 perc. is < op2 prec
+
 		g_OpAttribute[S_LBRACKET] = { 100, ASSOC_LEFT };
 
+		g_OpAttribute[S_RESOLUTION] = { 50, ASSOC_LEFT };
 		g_OpAttribute[S_ACCESSOR] = { 30, ASSOC_RIGHT };
 
 		g_OpAttribute[UNARY_PLUS] = { 25, ASSOC_RIGHT };
@@ -339,8 +334,8 @@ namespace
 
 	muon::u32 getLookUpRule(hz::parser::Info& info)
 	{
-		muon::u32 nextIndex = INFO_IMPL->readIndex+1;
-		if(nextIndex >= info.TokenList->size())
+		muon::u32 nextIndex = INFO_IMPL->readIndex + 1;
+		if (nextIndex >= info.TokenList->size())
 		{
 			MUON_ERROR("Trying to get next rule while there is no next Token!");
 			return INVALID_RULE;
@@ -357,8 +352,70 @@ namespace
 		{
 			case STMT_DECL:
 			{
+				// IDENTIFIER
 				HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, NT_BINOP, 4);
+				HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, S_EOF, 26);
+
+				// CONSTANTS
 				HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, NT_BINOP, 4);
+				HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, S_EOF, 26);
+
+				// UNOP
+
+				// BINOP
+				HAIZE_RULE(currCategory, nextType, NT_BINOP, V_IDENTIFIER, 88);
+				HAIZE_RULE(currCategory, nextCategory, NT_BINOP, NT_CONSTANT, 89);
+				HAIZE_RULE(currCategory, nextType, NT_BINOP, NT_UNOP, 90);
+				HAIZE_RULE(currCategory, nextType, NT_BINOP, S_LPARENT, 92);
+
+				// (
+
+				// )
+
+				// [
+
+				// ]
+
+				// {
+				// }
+
+				// ,
+
+				// ::
+
+				// SEPARATOR (; \n)
+
+				// if
+
+				// else
+
+				// for
+
+				// in
+
+				// while
+
+				// switch
+
+				// case
+
+				// default
+
+				// break
+
+				// continue
+
+				// namespace
+
+				// class
+
+				// function
+
+				// attr
+
+				// global
+
+				// EOF
 			}
 			break;
 			case FUNC_DECL:
@@ -398,12 +455,14 @@ namespace
 	bool initParse(hz::parser::Info& info)
 	{
 		muon::system::Log log("Syntaxic");
-		while(!INFO_IMPL->stackStep.empty())
+		while (!INFO_IMPL->stackStep.empty())
 		{
 			muon::u32 rule = getLookUpRule(info);
 			eParserStep step = INFO_IMPL->stackStep.back();
 			switch (step)
 			{
+				// Here, STMT will be build as a RPN structure,
+				// which will then be converted into an AST to match FUNC and CLASS
 				case STMT_DECL:
 				{
 					switch (rule)
@@ -452,6 +511,38 @@ namespace
 						// ... EOF
 						case 26:
 						{
+							INFO_IMPL->stackStep.pop_back();
+							if(!INFO_IMPL->stackStep.empty())
+							{
+								ERR("Parset Step Stack is not empty, something went wrong!");
+								return false;
+							}
+							break;
+						}
+
+						// CONSTANT -> ...
+
+						// UNOP -> ...
+
+						// BINOP -> ...
+						// ... identifier
+						case 88:
+						{
+							break;
+						}
+						// ... constant
+						case 89:
+						{
+							break;
+						}
+						// ... unop
+						case 90:
+						{
+							break;
+						}
+						// ... (
+						case 92:
+						{
 							break;
 						}
 
@@ -472,8 +563,8 @@ namespace
 				}
 				break;
 			}
+			++INFO_IMPL->readIndex;
 		}
 		return true;
 	}
-
 }
