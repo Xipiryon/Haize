@@ -132,7 +132,7 @@ namespace hz
 					muon::u64 type = _instr.argG();
 					muon::u8 dest = _instr.res();
 					muon::RawPointer rawData = muon::RawPointer(buffer + _stack + 1);
-					_registers[dest].set(rawData);
+					//_registers[dest].set(rawData);
 					_stack += 2;
 					break;
 				}
