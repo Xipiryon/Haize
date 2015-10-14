@@ -24,18 +24,8 @@ namespace
 	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node);
 
 	void initPrecedenceAssoc(hz::parser::Info&);
-	void initParserStep(hz::parser::Info&);
 	bool initParse(hz::parser::Info&);
 	muon::u32 getLookUpRule(hz::parser::Info&);
-
-	enum eParserStep
-	{
-		STMT_DECL = 0,
-		FUNC_DECL,
-		CLASS_DECL,
-
-		STEP_COUNT
-	};
 
 	enum OpAssociativity
 	{
@@ -74,7 +64,6 @@ namespace hz
 			muon::u32	readIndex;
 			ASTNode*	node;
 
-			std::deque<eParserStep> stackStep;
 			std::deque<Token> stackOperator;
 			std::deque<Token> stackValue;
 		};
@@ -107,7 +96,6 @@ namespace hz
 				else
 				{
 					initPrecedenceAssoc(info);
-					initParserStep(info);
 					ret = initParse(info);
 				}
 
@@ -348,221 +336,165 @@ namespace
 
 #define HAIZE_RULE(Curr, Next, lToken, rToken, Rule) if( (Curr == lToken) && (Next == rToken)) { return Rule; }
 		using namespace hz::parser;
-		switch (INFO_IMPL->stackStep.back())
-		{
-			case STMT_DECL:
-			{
-				// IDENTIFIER
-				HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, NT_BINOP, 4);
-				HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, S_EOF, 26);
 
-				// CONSTANTS
-				HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, NT_BINOP, 4);
-				HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, S_EOF, 26);
+		// IDENTIFIER
+		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, NT_BINOP, 4);
+		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, S_EOF, 26);
 
-				// UNOP
+		// CONSTANTS
+		HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, NT_BINOP, 4);
+		HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, S_EOF, 26);
 
-				// BINOP
-				HAIZE_RULE(currCategory, nextType, NT_BINOP, V_IDENTIFIER, 88);
-				HAIZE_RULE(currCategory, nextCategory, NT_BINOP, NT_CONSTANT, 89);
-				HAIZE_RULE(currCategory, nextType, NT_BINOP, NT_UNOP, 90);
-				HAIZE_RULE(currCategory, nextType, NT_BINOP, S_LPARENT, 92);
+		// UNOP
 
-				// (
+		// BINOP
+		HAIZE_RULE(currCategory, nextType, NT_BINOP, V_IDENTIFIER, 88);
+		HAIZE_RULE(currCategory, nextCategory, NT_BINOP, NT_CONSTANT, 89);
+		HAIZE_RULE(currCategory, nextType, NT_BINOP, NT_UNOP, 90);
+		HAIZE_RULE(currCategory, nextType, NT_BINOP, S_LPARENT, 92);
 
-				// )
+		// (
 
-				// [
+		// )
 
-				// ]
+		// [
 
-				// {
-				// }
+		// ]
 
-				// ,
+		// {
+		// }
 
-				// ::
+		// ,
 
-				// SEPARATOR (; \n)
+		// ::
 
-				// if
+		// SEPARATOR (; \n)
 
-				// else
+		// if
 
-				// for
+		// else
 
-				// in
+		// for
 
-				// while
+		// in
 
-				// switch
+		// while
 
-				// case
+		// switch
 
-				// default
+		// case
 
-				// break
+		// default
 
-				// continue
+		// break
 
-				// namespace
+		// continue
 
-				// class
+		// namespace
 
-				// function
+		// class
 
-				// attr
+		// function
 
-				// global
+		// attr
 
-				// EOF
-			}
-			break;
-			case FUNC_DECL:
-			{
-			}
-			break;
-			case CLASS_DECL:
-			{
-			}
-			break;
-		}
+		// global
+
+		// EOF
 
 		return INVALID_RULE;
 #undef HAIZE_RULE
 	}
 
-	void initParserStep(hz::parser::Info& info)
-	{
-		hz::parser::eTokenType type = (*info.TokenList)[INFO_IMPL->readIndex].type;
-		if (type == hz::parser::S_KEYWORD)
-		{
-			muon::String* keyword = (*info.TokenList)[INFO_IMPL->readIndex].value.get<muon::String*>();
-			if (*keyword == "function")
-			{
-				INFO_IMPL->stackStep.push_back(FUNC_DECL);
-				return;
-			}
-			else if (*keyword == "class")
-			{
-				INFO_IMPL->stackStep.push_back(CLASS_DECL);
-				return;
-			}
-		}
-		INFO_IMPL->stackStep.push_back(STMT_DECL);
-	}
-
 	bool initParse(hz::parser::Info& info)
 	{
 		muon::system::Log log("Syntaxic");
-		while (!INFO_IMPL->stackStep.empty())
+		bool parse = true;
+		while (parse)
 		{
 			muon::u32 rule = getLookUpRule(info);
-			eParserStep step = INFO_IMPL->stackStep.back();
-			switch (step)
+			switch (rule)
 			{
-				// Here, STMT will be build as a RPN structure,
-				// which will then be converted into an AST to match FUNC and CLASS
-				case STMT_DECL:
+				// IDENTIFIER -> ...
+				// ... binop
+				case 4:
 				{
-					switch (rule)
-					{
-						// IDENTIFIER -> ...
-						// ... binop
-						case 4:
-						{
-							break;
-						}
-						// ... (
-						case 5:
-						{
-							break;
-						}
-						// ... )
-						case 6:
-						{
-							break;
-						}
-						// ... [
-						case 7:
-						{
-							break;
-						}
-						// ... ]
-						case 8:
-						{
-							break;
-						}
-						// ... ,
-						case 11:
-						{
-							break;
-						}
-						// ... ;
-						case 12:
-						{
-							break;
-						}
-						// ... in
-						case 16:
-						{
-							break;
-						}
-						// ... EOF
-						case 26:
-						{
-							INFO_IMPL->stackStep.pop_back();
-							if(!INFO_IMPL->stackStep.empty())
-							{
-								ERR("Parset Step Stack is not empty, something went wrong!");
-								return false;
-							}
-							break;
-						}
-
-						// CONSTANT -> ...
-
-						// UNOP -> ...
-
-						// BINOP -> ...
-						// ... identifier
-						case 88:
-						{
-							break;
-						}
-						// ... constant
-						case 89:
-						{
-							break;
-						}
-						// ... unop
-						case 90:
-						{
-							break;
-						}
-						// ... (
-						case 92:
-						{
-							break;
-						}
-
-						default:
-						{
-							log(muon::LOG_ERROR) << "Rule " << rule << " is not recognized!" << muon::endl;
-							return false;
-						}
-					}
+					break;
 				}
-				break;
-				case FUNC_DECL:
+				// ... (
+				case 5:
 				{
+					break;
 				}
-				break;
-				case CLASS_DECL:
+				// ... )
+				case 6:
 				{
+					break;
 				}
-				break;
-			}
+				// ... [
+				case 7:
+				{
+					break;
+				}
+				// ... ]
+				case 8:
+				{
+					break;
+				}
+				// ... ,
+				case 11:
+				{
+					break;
+				}
+				// ... ;
+				case 12:
+				{
+					break;
+				}
+				// ... in
+				case 16:
+				{
+					break;
+				}
+				// ... EOF
+				case 26:
+				{
+					parse = false;
+					break;
+				}
+
+				// CONSTANT -> ...
+
+				// UNOP -> ...
+
+				// BINOP -> ...
+				// ... identifier
+				case 88:
+				{
+					break;
+				}
+				// ... constant
+				case 89:
+				{
+					break;
+				}
+				// ... unop
+				case 90:
+				{
+					break;
+				}
+				// ... (
+				case 92:
+				{
+					break;
+				}
+
+				default:
+				{
+					log(muon::LOG_ERROR) << "Rule " << rule << " is not recognized!" << muon::endl;
+					return false;
+				}
+			};
 			++INFO_IMPL->readIndex;
 		}
 		return true;
