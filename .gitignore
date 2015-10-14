@@ -28,11 +28,12 @@
 *.app
 
 # Visual Studio
-obj/
+*.exp
 *.sln
 *.vcxproj*
-*.*sdf
-*.exp
+*.sdf
+*.opensdf
+obj/
 
-# Generated files
-src/Haize/Parser/YACC/generated/*
+# Doxygen
+doc/
