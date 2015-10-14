@@ -34,10 +34,10 @@ namespace hz
 	{
 	}
 
-	muon::meta::Variant VMInstance::eval(const char* code)
+	muon::Variant VMInstance::eval(const char* code)
 	{
 		muon::system::Log log("VM", muon::LOG_DEBUG);
-		muon::meta::Variant nil;
+		muon::Variant nil;
 		_info.error.section = "#RunTimeEval#";
 
 		muon::system::Time time;
@@ -102,7 +102,7 @@ namespace hz
 		return false;
 	}
 
-	muon::meta::Variant VMInstance::execute(const ByteCode* buffer)
+	muon::Variant VMInstance::execute(const ByteCode* buffer)
 	{
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
@@ -244,9 +244,9 @@ namespace hz
 		return _registers[ByteCode::RETURN_REG];
 	}
 
-	muon::meta::Variant VMInstance::execute()
+	muon::Variant VMInstance::execute()
 	{
-		return muon::meta::Variant();
+		return muon::Variant();
 	}
 }
 

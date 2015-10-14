@@ -2,7 +2,7 @@
 #define _HAIZE_STRUCTS_INCLUDE
 
 #include <deque>
-#include <Muon/Meta/Variant.hpp>
+#include <Muon/Variant.hpp>
 #include "Haize/Core/Define.hpp"
 #include "Haize/VM/OpCode.hpp"
 
@@ -229,7 +229,7 @@ namespace hz
 
 			eTokenType type;
 			eTokenType category;
-			muon::meta::Variant value;
+			muon::Variant value;
 
 			muon::String section;
 			muon::String function;

@@ -2,7 +2,7 @@
 #define _HAIZE_SYMBOLTABLE_INCLUDE
 
 #include <unordered_map>
-#include <Muon/Type/String.hpp>
+#include <Muon/String.hpp>
 #include "Haize/Core/Define.hpp"
 
 namespace hz

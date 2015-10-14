@@ -2,7 +2,6 @@
 #define _HAIZE_ASTNODE_INCLUDE
 
 #include <deque>
-#include <Muon/Meta/Variant.hpp>
 #include "Haize/Core/Define.hpp"
 #include "Haize/Parser/Token.hpp"
 

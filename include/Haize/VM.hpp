@@ -3,7 +3,7 @@
 #define _HAIZE_VIRTUALMACHINE_INCLUDED
 
 #include <unordered_map>
-#include <Muon/Meta/Variant.hpp>
+#include <Muon/Variant.hpp>
 #include "Haize/Parser/Info.hpp"
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
@@ -40,17 +40,17 @@ namespace hz
 		/*!
 		*
 		*/
-		muon::meta::Variant execute(const ByteCode* instr);
+		muon::Variant execute(const ByteCode* instr);
 
 		/*!
 		*
 		*/
-		muon::meta::Variant execute();
+		muon::Variant execute();
 
 		/*!
 		*
 		*/
-		muon::meta::Variant eval(const char* str);
+		muon::Variant eval(const char* str);
 
 		const parser::Info& getInfo() const
 		{
@@ -63,7 +63,7 @@ namespace hz
 		ByteCode _instr;
 		muon::u32 _stack;
 		SymbolTable _symbols;
-		muon::meta::Variant _registers[ByteCode::INVALID_REG];
+		muon::Variant _registers[ByteCode::INVALID_REG];
 	};
 }
 #endif
