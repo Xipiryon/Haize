@@ -50,6 +50,10 @@ void executeProgram();
 
 int main(int argc, char** argv)
 {
+	if(!muon::meta::MetaDatabase::isInstantiated())
+	{
+		muon::meta::MetaDatabase::instantiate();
+	}
 	muon::system::Log::registerDefaultLogImpl();
 	muon::system::Log log("", muon::LOG_INFO);
 	log << " => Haize v" << HAIZE_VERSION << " (c) 2015" << muon::endl << muon::endl;
