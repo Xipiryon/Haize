@@ -555,8 +555,7 @@ namespace
 			case hz::parser::V_STRING:
 			case hz::parser::V_IDENTIFIER:
 			{
-				muon::String* str = token.value.get<muon::String*>();
-				stream << "\t[" << str->cStr() << "] " << muon::endl;
+				stream << "\t[" << token.value.get<muon::String>().cStr() << "] " << muon::endl;
 				break;
 			}
 			default:
@@ -707,17 +706,17 @@ namespace
 						 )
 				{
 					INFO_IMPL->token.type = hz::parser::S_KEYWORD;
-					INFO_IMPL->token.value = MUON_CNEW(muon::String, word);
+					INFO_IMPL->token.value = word;
 				}
 				else
 				{
-					INFO_IMPL->token.value = MUON_CNEW(muon::String, word);
+					INFO_IMPL->token.value = word;
 				}
 			}
 			else if (INFO_IMPL->token.type == hz::parser::V_STRING)
 			{
 				INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
-				INFO_IMPL->token.value = MUON_CNEW(muon::String, word);
+				INFO_IMPL->token.value = word;
 			}
 			else if (INFO_IMPL->token.type == hz::parser::V_NUMBER)
 			{

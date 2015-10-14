@@ -33,10 +33,6 @@ namespace hz
 
 		Token::~Token()
 		{
-			if(value.getMeta() == MUON_META(muon::String))
-			{
-				MUON_CDELETE(value.get<muon::String*>());
-			}
 		}
 
 		Token& Token::operator=(const Token& token)
@@ -49,14 +45,7 @@ namespace hz
 				function = token.function;
 				line = token.line;
 				column = token.column;
-				if (token.value.getMeta() == MUON_META(muon::String))
-				{
-					value = MUON_CNEW(muon::String, *token.value.get<muon::String*>());
-				}
-				else
-				{
-					value = token.value;
-				}
+				value = token.value;
 			}
 			return *this;
 		}
