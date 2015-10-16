@@ -66,7 +66,7 @@ namespace hz
 			{
 				info.impl = MUON_CNEW(InfoImplLexical);
 				info.TokenList->clear();
-				INFO_IMPL->token.value = NULL;
+				INFO_IMPL->token.value.reset();
 				INFO_IMPL->token.type = S_INVALID;
 				INFO_IMPL->lineComment = false;
 				INFO_IMPL->multiLineComment = false;
@@ -654,7 +654,7 @@ namespace
 		{
 			//Manually revert current token
 			INFO_IMPL->token.type = hz::parser::S_INVALID;
-			INFO_IMPL->token.value = NULL;
+			INFO_IMPL->token.value.reset();
 			word = "";
 		}
 	}
@@ -670,7 +670,7 @@ namespace
 				{
 					INFO_IMPL->token.type = hz::parser::V_NIL;
 					INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
-					INFO_IMPL->token.value = NULL;
+					INFO_IMPL->token.value.reset();
 				}
 				else if (word == "true")
 				{
@@ -749,7 +749,7 @@ namespace
 			//Should warn there is an invalid Token
 		}
 		INFO_IMPL->token.type = hz::parser::S_INVALID;
-		INFO_IMPL->token.value = NULL;
+		INFO_IMPL->token.value.reset();
 		word = "";
 	}
 }
