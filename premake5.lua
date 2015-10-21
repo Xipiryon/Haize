@@ -27,9 +27,11 @@ solution "Haize"
 	startproject "HaizeExecutable"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
-	if not os.is("windows") then
+	if os.is("windows") then
+		implibdir "bin"
+	else
 		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..HaizeRoot.."/bin/lib/" }
+		linkoptions { "-Wl,-rpath,bin" }
 	end
 
 	-- If option exists, then override G_Install
@@ -41,12 +43,12 @@ solution "Haize"
 	end
 
 	includedirs {
-		HaizeRoot.."/include",
+		"include",
 		G_Install.Header,
 	}
 
 	libdirs {
-		HaizeRoot.."/bin/lib",
+		"bin",
 		G_Install.Lib
 	}
 
@@ -63,10 +65,10 @@ solution "Haize"
 
 	filter  "*DLL"
 		kind "SharedLib"
-		
+
 	filter "Debug*"
 		defines { "MUON_DEBUG"}
-		
+
 	filter "Release*"
 		defines { "MUON_RELEASE"}
 
@@ -79,11 +81,7 @@ solution "Haize"
 
 project "Haize"
 	language "C++"
-	targetdir(HaizeRoot.."/bin/lib")
-	
-	if os.is("windows") then
-		postbuildcommands { string.gsub("copy "..HaizeRoot.."/bin/lib/*.dll "..HaizeRoot.."/bin/", "/", "\\") }
-	end
+	targetdir "bin"
 
 	files {
 		HaizeRoot.."/src/**.cpp",
@@ -93,12 +91,12 @@ project "Haize"
 		links	{ "Muon-d" }
 	filter "Release*"
 		links { "Muon" }
-		
+
 	filter "*DLL"
 		defines { "HAIZE_EXPORTS" }
 
 
--- Console Application 
+-- Console Application
 -------------------------------------------
 
 project "HaizeExecutable"
@@ -113,7 +111,7 @@ project "HaizeExecutable"
 
 	filter "Debug*"
 		links	{ "Haize-d", "Muon-d" }
-		
+
 	filter "Release*"
 		links { "Haize", "Muon" }
 
@@ -128,6 +126,11 @@ newoption {
 	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
 }
 
+newoption {
+	trigger     = "unittests",
+	description = "Enable compilation of unit tests",
+}
+
 ------------------------------
 -- Actions
 ------------------------------
@@ -139,7 +142,7 @@ newaction {
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
 		local incDir = HaizeRoot.."/include/"
-		local libDir = HaizeRoot.."/bin/lib/"
+		local libDir = HaizeRoot.."/bin/"
 
 		-- Create required folders
 		local dirList = os.matchdirs(incDir.."**")
@@ -174,6 +177,7 @@ newaction {
 			exts[1] = ".lib"
 		else
 			exts[0] = ".so"
+			exts[1] = ".a"
 		end
 
 		-- Copy files
@@ -188,16 +192,15 @@ newaction {
 }
 
 if os.is("windows") then
-newaction {
-	trigger	 = "getlib",
-	description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
-	execute = function ()
-		print("** Retrieving files from: "..G_Install.Lib.." **")
+	newaction {
+		trigger	 = "getlib",
+		description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
+		execute = function ()
+			print("** Retrieving files from: "..G_Install.Lib.." **")
 
-		local libDir = G_Install.Lib
+			local libDir = G_Install.Lib
 
-		for _,dir in pairs({"", "/lib"}) do
-			local destDir = './bin'..dir
+			local destDir = "bin"
 
 			-- Create required folders
 			if(not os.isdir(destDir)) then
@@ -211,6 +214,5 @@ newaction {
 				if os.copyfile(fpath, destFile) then print("Copying "..fpath.." to "..destDir) end
 			end
 		end
-	end
-}
+	}
 end
