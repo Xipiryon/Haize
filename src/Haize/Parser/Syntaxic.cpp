@@ -27,6 +27,9 @@ namespace
 	bool initParse(hz::parser::Info&);
 	muon::u32 getLookUpRule(hz::parser::Info&);
 
+	bool applyShuntingYard(hz::parser::Info&);
+	bool createASTfromRPN(hz::parser::Info&);
+
 	enum OpAssociativity
 	{
 		ASSOC_LEFT,
@@ -322,6 +325,7 @@ namespace
 
 	muon::u32 getLookUpRule(hz::parser::Info& info)
 	{
+		/*
 		muon::u32 nextIndex = INFO_IMPL->readIndex + 1;
 		if (nextIndex >= info.TokenList->size())
 		{
@@ -338,20 +342,20 @@ namespace
 		using namespace hz::parser;
 
 		// IDENTIFIER
-		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, NT_BINOP, 4);
+		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, CATEGORY_BINOP, 4);
 		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, S_EOF, 26);
 
 		// CONSTANTS
-		HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, NT_BINOP, 4);
-		HAIZE_RULE(currCategory, nextCategory, NT_CONSTANT, S_EOF, 26);
+		HAIZE_RULE(currCategory, nextCategory, CATEGORY_CONSTANT, CATEGORY_BINOP, 4);
+		HAIZE_RULE(currCategory, nextCategory, CATEGORY_CONSTANT, S_EOF, 26);
 
 		// UNOP
 
 		// BINOP
-		HAIZE_RULE(currCategory, nextType, NT_BINOP, V_IDENTIFIER, 88);
-		HAIZE_RULE(currCategory, nextCategory, NT_BINOP, NT_CONSTANT, 89);
-		HAIZE_RULE(currCategory, nextType, NT_BINOP, NT_UNOP, 90);
-		HAIZE_RULE(currCategory, nextType, NT_BINOP, S_LPARENT, 92);
+		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, V_IDENTIFIER, 88);
+		HAIZE_RULE(currCategory, nextCategory, CATEGORY_BINOP, CATEGORY_CONSTANT, 89);
+		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, CATEGORY_UNOP, 90);
+		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, S_LPARENT, 92);
 
 		// (
 
@@ -401,7 +405,7 @@ namespace
 		// global
 
 		// EOF
-
+		// */
 		return INVALID_RULE;
 #undef HAIZE_RULE
 	}
@@ -412,91 +416,107 @@ namespace
 		bool parse = true;
 		while (parse)
 		{
-			muon::u32 rule = getLookUpRule(info);
-			switch (rule)
+			bool useShuntingYard = true;
+
+			// Create AST for expression with Shunting Yard Algorithm
+			// "a+b" -> "a b +" ->    +
+			//                       / \
+			//                      a   b
+			if(useShuntingYard)
 			{
-				// IDENTIFIER -> ...
-				// ... binop
-				case 4:
-				{
-					break;
-				}
-				// ... (
-				case 5:
-				{
-					break;
-				}
-				// ... )
-				case 6:
-				{
-					break;
-				}
-				// ... [
-				case 7:
-				{
-					break;
-				}
-				// ... ]
-				case 8:
-				{
-					break;
-				}
-				// ... ,
-				case 11:
-				{
-					break;
-				}
-				// ... ;
-				case 12:
-				{
-					break;
-				}
-				// ... in
-				case 16:
-				{
-					break;
-				}
-				// ... EOF
-				case 26:
-				{
-					parse = false;
-					break;
-				}
-
-				// CONSTANT -> ...
-
-				// UNOP -> ...
-
-				// BINOP -> ...
-				// ... identifier
-				case 88:
-				{
-					break;
-				}
-				// ... constant
-				case 89:
-				{
-					break;
-				}
-				// ... unop
-				case 90:
-				{
-					break;
-				}
-				// ... (
-				case 92:
-				{
-					break;
-				}
-
-				default:
-				{
-					log(muon::LOG_ERROR) << "Rule " << rule << " is not recognized!" << muon::endl;
-					return false;
-				}
-			};
-			++INFO_IMPL->readIndex;
+				parse = applyShuntingYard(info);
+			}
+			else
+			{
+				CONSUME(1);
+			}
+			parse &= (TOK_TYPE(0) != hz::parser::S_EOF);
 		}
 		return true;
+	}
+
+	bool applyShuntingYard(hz::parser::Info& info)
+	{
+		bool ret = true;
+		// While there are tokens to be read:
+		// 	Read a token.
+		// 	If the token is a number, then add it to the output queue.
+		// 	If the token is a function token, then push it onto the stack.
+		// 	If the token is a function argument separator (e.g., a comma):
+		// 		Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue. If no left parentheses are encountered, either the separator was misplaced or parentheses were mismatched.
+		// 	If the token is an operator, o1, then:
+		// 		while there is an operator token, o2, at the top of the operator stack, and either
+		// 			o1 is left-associative and its precedence is less than or equal to that of o2, or
+		// 			o1 is right associative, and has precedence less than that of o2,
+		// 			then pop o2 off the operator stack, onto the output queue;
+		// 		push o1 onto the operator stack.
+		// 	If the token is a left parenthesis (i.e. "("), then push it onto the stack.
+		// 	If the token is a right parenthesis (i.e. ")"):
+		// 		Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
+		// 		Pop the left parenthesis from the stack, but not onto the output queue.
+		// 		If the token at the top of the stack is a function token, pop it onto the output queue.
+		// 		If the stack runs out without finding a left parenthesis, then there are mismatched parentheses.
+		// 	When there are no more tokens to read:
+		// 		While there are still operator tokens in the stack:
+		// 		If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
+		// 		Pop the operator onto the output queue.
+		// Exit.
+		hz::parser::Token currToken;
+		currToken = TOK(0);
+
+		//TODO: Parenthesis : ( expr )
+		//TODO: Function call : foo ( args )
+		//TODO: Real end condition for SY algorithm
+		//TODO: Error
+		while(currToken.type != hz::parser::S_EOF && currToken.type != hz::parser::S_INVALID)
+		{
+			if(currToken.category == hz::parser::CATEGORY_CONSTANT
+				|| currToken.type == hz::parser::V_IDENTIFIER)
+			{
+				INFO_IMPL->stackValue.push_back(currToken);
+			}
+			else if (currToken.category == hz::parser::CATEGORY_BINOP)
+			{
+				const hz::parser::Token& op1 = currToken; //Just o1 & o2 syntax
+				hz::parser::Token op2;
+				bool popOp = !INFO_IMPL->stackOperator.empty();
+				while(popOp)
+				{
+					op2 = INFO_IMPL->stackOperator.back();
+					if( (g_OpAttribute[op1.type].associativity == ASSOC_LEFT && g_OpAttribute[op1.type].precedence <= g_OpAttribute[op2.type].precedence)
+						 || (g_OpAttribute[op1.type].associativity == ASSOC_RIGHT && g_OpAttribute[op1.type].precedence < g_OpAttribute[op2.type].precedence))
+					{
+						INFO_IMPL->stackValue.push_back(op2);
+						INFO_IMPL->stackOperator.pop_back();
+						popOp = !INFO_IMPL->stackOperator.empty();
+					}
+					else
+					{
+						popOp = false;
+					}
+				}
+				INFO_IMPL->stackOperator.push_back(op1);
+			}
+
+			CONSUME(1);
+			currToken = TOK(0);
+		}
+		// Empty operator queue
+		while(!INFO_IMPL->stackOperator.empty())
+		{
+			hz::parser::Token op(INFO_IMPL->stackOperator.back());
+			INFO_IMPL->stackValue.push_back(op);
+			INFO_IMPL->stackOperator.pop_back();
+		}
+
+		ret = createASTfromRPN(info);
+		return ret;
+	}
+
+	bool createASTfromRPN(hz::parser::Info& info)
+	{
+		bool ret = true;
+
+		return ret;
 	}
 }
