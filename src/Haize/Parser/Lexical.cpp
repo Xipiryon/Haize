@@ -688,6 +688,7 @@ namespace
 						 // Class and functions
 						 || word == "class"
 						 || word == "attr"
+						 || word == "ref"
 						 || word == "function"
 						 // Logic keyword
 						 || word == "if"
