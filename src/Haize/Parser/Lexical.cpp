@@ -669,19 +669,19 @@ namespace
 				if (word == "nil")
 				{
 					INFO_IMPL->token.type = hz::parser::V_NIL;
-					INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
+					INFO_IMPL->token.category = hz::parser::CATEGORY_CONSTANT;
 					INFO_IMPL->token.value.reset();
 				}
 				else if (word == "true")
 				{
 					INFO_IMPL->token.type = hz::parser::V_TRUE;
-					INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
+					INFO_IMPL->token.category = hz::parser::CATEGORY_CONSTANT;
 					INFO_IMPL->token.value = true;
 				}
 				else if (word == "false")
 				{
 					INFO_IMPL->token.type = hz::parser::V_FALSE;
-					INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
+					INFO_IMPL->token.category = hz::parser::CATEGORY_CONSTANT;
 					INFO_IMPL->token.value = false;
 				}
 				else if (word == "namespace"
@@ -716,12 +716,12 @@ namespace
 			}
 			else if (INFO_IMPL->token.type == hz::parser::V_STRING)
 			{
-				INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
+				INFO_IMPL->token.category = hz::parser::CATEGORY_CONSTANT;
 				INFO_IMPL->token.value = word;
 			}
 			else if (INFO_IMPL->token.type == hz::parser::V_NUMBER)
 			{
-				INFO_IMPL->token.category = hz::parser::NT_CONSTANT;
+				INFO_IMPL->token.category = hz::parser::CATEGORY_CONSTANT;
 				INFO_IMPL->token.value = INFO_IMPL->fvalue;
 				INFO_IMPL->fvalue = 0.0;
 				INFO_IMPL->fdenOffset = 1;
@@ -732,12 +732,12 @@ namespace
 					 || (INFO_IMPL->token.type >= hz::parser::E_BITWISE_OP_BEGIN && INFO_IMPL->token.type >= hz::parser::E_BITWISE_OP_END)
 					 )
 			{
-				INFO_IMPL->token.category = hz::parser::NT_BINOP;
+				INFO_IMPL->token.category = hz::parser::CATEGORY_BINOP;
 			}
 			else if (INFO_IMPL->token.type == hz::parser::MATH_INC
 					 || INFO_IMPL->token.type == hz::parser::MATH_DEC)
 			{
-				INFO_IMPL->token.category = hz::parser::NT_UNOP;
+				INFO_IMPL->token.category = hz::parser::CATEGORY_UNOP;
 			}
 
 			INFO_IMPL->token.line = INFO_IMPL->line;
