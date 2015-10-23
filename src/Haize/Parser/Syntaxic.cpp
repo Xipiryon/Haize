@@ -68,7 +68,7 @@ namespace hz
 			ASTNode*	node;
 
 			std::deque<Token> stackOperator;
-			std::deque<Token> stackValue;
+			std::deque<ASTNode*> stackValue;
 		};
 #define INFO_IMPL ((hz::parser::InfoImplSyntaxic*)info.impl)
 
@@ -473,7 +473,7 @@ namespace
 			if(currToken.category == hz::parser::CATEGORY_CONSTANT
 				|| currToken.type == hz::parser::V_IDENTIFIER)
 			{
-				INFO_IMPL->stackValue.push_back(currToken);
+				INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, currToken));
 			}
 			else if (currToken.category == hz::parser::CATEGORY_BINOP)
 			{
@@ -486,7 +486,7 @@ namespace
 					if( (g_OpAttribute[op1.type].associativity == ASSOC_LEFT && g_OpAttribute[op1.type].precedence <= g_OpAttribute[op2.type].precedence)
 						 || (g_OpAttribute[op1.type].associativity == ASSOC_RIGHT && g_OpAttribute[op1.type].precedence < g_OpAttribute[op2.type].precedence))
 					{
-						INFO_IMPL->stackValue.push_back(op2);
+						INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op2));
 						INFO_IMPL->stackOperator.pop_back();
 						popOp = !INFO_IMPL->stackOperator.empty();
 					}
@@ -501,11 +501,12 @@ namespace
 			CONSUME(1);
 			currToken = TOK(0);
 		}
+
 		// Empty operator queue
 		while(!INFO_IMPL->stackOperator.empty())
 		{
 			hz::parser::Token op(INFO_IMPL->stackOperator.back());
-			INFO_IMPL->stackValue.push_back(op);
+			INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op));
 			INFO_IMPL->stackOperator.pop_back();
 		}
 
@@ -516,7 +517,31 @@ namespace
 	bool createASTfromRPN(hz::parser::Info& info)
 	{
 		bool ret = true;
+		muon::u32 i = 0;
 
+		hz::parser::ASTNode* node = NULL;
+		while(i < INFO_IMPL->stackValue.size())
+		{
+			hz::parser::Token op = INFO_IMPL->stackValue[i]->token;
+			printf("Iterating: %s\n", hz::parser::TokenTypeStr[op.type]);
+			if(op.category == hz::parser::CATEGORY_BINOP)
+			{
+				// If we've less than 2 variable on the left, there is a problem
+				if(i < 2)
+				{
+					return false;
+				}
+				// Else, pop them, and add them as children
+				node = INFO_IMPL->stackValue[i];
+				node->addChild(INFO_IMPL->stackValue[i-2]);
+				node->addChild(INFO_IMPL->stackValue[i-1]);
+				INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin()+(--i)); // erase right
+				INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin()+(--i)); // erase left
+			}
+			++i;
+		}
+		//TODO: check there is only one operator left ?
+		info.ASTRoot->addChild(INFO_IMPL->stackValue.front());
 		return ret;
 	}
 }
