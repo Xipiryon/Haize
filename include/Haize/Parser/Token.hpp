@@ -222,8 +222,8 @@ namespace hz
 		struct HAIZE_API Token
 		{
 			Token();
+			Token(const Token&);
 			explicit Token(eTokenType);
-			explicit Token(const Token&);
 			~Token();
 			Token& operator=(const Token&);
 
