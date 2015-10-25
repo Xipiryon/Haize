@@ -206,6 +206,7 @@ namespace
 
 	//********************************************************
 	// Macro shortcuts
+#define TOK_DEBUG(T) do { muon::system::Log l("*Token*", muon::LOG_DEBUG); l() << hz::parser::TokenTypeStr[T.type] << " | " <<hz::parser::TokenTypeStr[T.category] << muon::endl; } while(false);
 
 #define TOK(Offset) ((INFO_IMPL->readIndex+Offset) < info.TokenList->size() ? (*info.TokenList)[INFO_IMPL->readIndex+Offset] : hz::parser::Token())
 #define TOK_TYPE(Offset) TOK(Offset).type
@@ -425,6 +426,10 @@ namespace
 			if(useShuntingYard)
 			{
 				parse = applyShuntingYard(info);
+				if(parse)
+				{
+					parse = createASTfromRPN(info);
+				}
 			}
 			else
 			{
@@ -438,6 +443,7 @@ namespace
 	bool applyShuntingYard(hz::parser::Info& info)
 	{
 		bool ret = true;
+		// Inspired by https://en.wikipedia.org/wiki/Shunting-yard_algorithm#The_algorithm_in_detail
 		// While there are tokens to be read:
 		// 	Read a token.
 		// 	If the token is a number, then add it to the output queue.
@@ -463,18 +469,21 @@ namespace
 		// Exit.
 		hz::parser::Token currToken;
 		currToken = TOK(0);
+		MUON_ASSERT_BREAK(INFO_IMPL->stackOperator.empty(), "Operator Stack is not empty!");
+		MUON_ASSERT_BREAK(INFO_IMPL->stackValue.empty(), "Value Stack is not empty!");
 
-		//TODO: Parenthesis : ( expr )
 		//TODO: Function call : foo ( args )
 		//TODO: Real end condition for SY algorithm
 		//TODO: Error
 		while(currToken.type != hz::parser::S_EOF && currToken.type != hz::parser::S_INVALID)
 		{
+			// ** Value **
 			if(currToken.category == hz::parser::CATEGORY_CONSTANT
 				|| currToken.type == hz::parser::V_IDENTIFIER)
 			{
 				INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, currToken));
 			}
+			// ** Operator **
 			else if (currToken.category == hz::parser::CATEGORY_BINOP)
 			{
 				const hz::parser::Token& op1 = currToken; //Just o1 & o2 syntax
@@ -497,9 +506,43 @@ namespace
 				}
 				INFO_IMPL->stackOperator.push_back(op1);
 			}
+			// ** Left Parenthesis **
+			else if (currToken.type == hz::parser::S_LPARENT)
+			{
+				INFO_IMPL->stackOperator.push_back(currToken);
+			}
+			// ** Right Parenthesis **
+			else if (currToken.type == hz::parser::S_RPARENT)
+			{
+				if(INFO_IMPL->stackOperator.empty())
+				{
+					ERR("Missing '('");
+					return false;
+				}
+				hz::parser::Token op = INFO_IMPL->stackOperator.back();
+				while(op.type != hz::parser::S_LPARENT)
+				{
+					INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op));
+					INFO_IMPL->stackOperator.pop_back();
+					if(INFO_IMPL->stackOperator.empty())
+					{
+						ERR("Missing '('");
+						return false;
+					}
+					op = INFO_IMPL->stackOperator.back();
+				}
+				INFO_IMPL->stackOperator.pop_back(); // Pop left parenthesis
+			}
 
 			CONSUME(1);
 			currToken = TOK(0);
+
+			//And of expression
+			if(currToken.type == hz::parser::S_SEPARATOR)
+			{
+				CONSUME(1);
+				break;
+			}
 		}
 
 		// Empty operator queue
@@ -510,7 +553,6 @@ namespace
 			INFO_IMPL->stackOperator.pop_back();
 		}
 
-		ret = createASTfromRPN(info);
 		return ret;
 	}
 
@@ -523,7 +565,6 @@ namespace
 		while(i < INFO_IMPL->stackValue.size())
 		{
 			hz::parser::Token op = INFO_IMPL->stackValue[i]->token;
-			printf("Iterating: %s\n", hz::parser::TokenTypeStr[op.type]);
 			if(op.category == hz::parser::CATEGORY_BINOP)
 			{
 				// If we've less than 2 variable on the left, there is a problem
@@ -541,7 +582,8 @@ namespace
 			++i;
 		}
 		//TODO: check there is only one operator left ?
-		info.ASTRoot->addChild(INFO_IMPL->stackValue.front());
+		info.ASTRoot->addChild(INFO_IMPL->stackValue.back());
+		INFO_IMPL->stackValue.pop_back();
 		return ret;
 	}
 }
