@@ -22,6 +22,7 @@ namespace
 	void displayASCII(hz::parser::ASTNode* node);
 
 	hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node);
+	bool throwError(hz::parser::Info&, const char*, const hz::parser::Token&);
 
 	void initPrecedenceAssoc(hz::parser::Info&);
 	bool initParse(hz::parser::Info&);
@@ -212,7 +213,14 @@ namespace
 #define CREATENODE(...) MUON_CNEW(hz::parser::ASTNode, __VA_ARGS__)
 #define DELETENODE(Node) MUON_CDELETE(Node)
 #define CONSUME(Count) consume(info, Count)
-#define ERR(Message) info.error.message = Message
+
+	bool throwError(hz::parser::Info& info, const char* message, const hz::parser::Token& token)
+	{
+		info.error.message = message;
+		info.error.line = token.line;
+		info.error.column = token.column;
+		return false;
+	}
 
 	// Functions helper
 	void consume(hz::parser::Info& info, muon::u32 count)
@@ -322,6 +330,7 @@ namespace
 	{
 		muon::system::Log log("Syntaxic");
 		bool parse = true;
+		bool error = false;
 		while (parse)
 		{
 			bool useShuntingYard = true;
@@ -342,9 +351,10 @@ namespace
 			{
 				CONSUME(1);
 			}
+			error = !parse;
 			parse &= (TOK_TYPE(0) != hz::parser::S_EOF);
 		}
-		return true;
+		return !error;
 	}
 
 	bool applyShuntingYard(hz::parser::Info& info)
@@ -399,8 +409,7 @@ namespace
 			{
 				if(INFO_IMPL->stackOperator.empty())
 				{
-					ERR("Missing '('");
-					return false;
+					return throwError(info, "Missing '('", currToken);
 				}
 				hz::parser::Token op = INFO_IMPL->stackOperator.back();
 				while(op.type != hz::parser::S_LPARENT)
@@ -409,8 +418,7 @@ namespace
 					INFO_IMPL->stackOperator.pop_back();
 					if(INFO_IMPL->stackOperator.empty())
 					{
-						ERR("Missing '('");
-						return false;
+						return throwError(info, "Missing '('", currToken);
 					}
 					op = INFO_IMPL->stackOperator.back();
 				}
@@ -432,6 +440,10 @@ namespace
 		while(!INFO_IMPL->stackOperator.empty())
 		{
 			hz::parser::Token op(INFO_IMPL->stackOperator.back());
+			if(op.type == hz::parser::S_LPARENT)
+			{
+				return throwError(info, "'(' does not have any closing ')'.", op);
+			}
 			INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op));
 			INFO_IMPL->stackOperator.pop_back();
 		}
