@@ -42,14 +42,7 @@ namespace
 		OpAssociativity associativity;
 	};
 
-	struct NodeOpAttribute
-	{
-		hz::parser::ASTNode* node;
-		OpAttribute attr;
-	};
-
 	std::map<hz::parser::eTokenType, OpAttribute> g_OpAttribute;
-	std::deque<NodeOpAttribute> g_NodeOpAttribute;
 
 	const muon::u32 INVALID_RULE = 0;
 }
@@ -318,49 +311,6 @@ namespace
 		g_OpAttribute[MATH_ASN_OR] = { precedence, ASSOC_RIGHT };
 		g_OpAttribute[MATH_ASN_XOR] = { precedence, ASSOC_RIGHT };
 		g_OpAttribute[MATH_ASN_NOT] = { precedence, ASSOC_RIGHT };
-	}
-
-	void pushNodePrecedence(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		g_NodeOpAttribute.push_back({ node, g_OpAttribute[node->token.type] });
-
-#if defined(MUON_DEBUG) && HAIZE_PARSE_PRINT
-		muon::system::Log log("NodeStack", muon::LOG_DEBUG);
-		log() << " + [";
-		for (auto it : g_NodeOpAttribute)
-		{
-			log << hz::parser::TokenTypeStr[it.node->token.type] << ":" << it.attr.precedence << ", ";
-		}
-		log << "]" << muon::endl;
-#endif
-	}
-
-	void popNodePrecedence(hz::parser::Info& info)
-	{
-		MUON_ASSERT(!g_NodeOpAttribute.empty(), "Operator Precedence Stack is empty!");
-		if (!g_NodeOpAttribute.empty())
-		{
-			g_NodeOpAttribute.pop_back();
-		}
-
-#if defined(MUON_DEBUG) && HAIZE_PARSE_PRINT
-		muon::system::Log log("NodeStack", muon::LOG_DEBUG);
-		log() << " - [";
-		for (auto it : g_NodeOpAttribute)
-		{
-			log << hz::parser::TokenTypeStr[it.node->token.type] << ":" << it.attr.precedence << ", ";
-		}
-		log << "]" << muon::endl;
-#endif
-	}
-
-	bool checkForLowerPrecOrDiffAssoc(hz::parser::Info& info, hz::parser::ASTNode* node)
-	{
-		const OpAttribute& op = g_OpAttribute[node->token.type];
-		const OpAttribute& opStack = g_NodeOpAttribute.back().attr;
-
-		return ((op.precedence < opStack.precedence)
-				|| (op.associativity == ASSOC_LEFT && opStack.associativity == ASSOC_RIGHT));
 	}
 
 	muon::u32 getLookUpRule(hz::parser::Info& info)
