@@ -315,89 +315,7 @@ namespace
 
 	muon::u32 getLookUpRule(hz::parser::Info& info)
 	{
-		/*
-		muon::u32 nextIndex = INFO_IMPL->readIndex + 1;
-		if (nextIndex >= info.TokenList->size())
-		{
-			MUON_ERROR("Trying to get next rule while there is no next Token!");
-			return INVALID_RULE;
-		}
-
-		hz::parser::eTokenType currType = (*info.TokenList)[INFO_IMPL->readIndex].type;
-		hz::parser::eTokenType currCategory = (*info.TokenList)[INFO_IMPL->readIndex].category;
-		hz::parser::eTokenType nextType = (*info.TokenList)[nextIndex].type;
-		hz::parser::eTokenType nextCategory = (*info.TokenList)[nextIndex].category;
-
-#define HAIZE_RULE(Curr, Next, lToken, rToken, Rule) if( (Curr == lToken) && (Next == rToken)) { return Rule; }
-		using namespace hz::parser;
-
-		// IDENTIFIER
-		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, CATEGORY_BINOP, 4);
-		HAIZE_RULE(currType, nextCategory, V_IDENTIFIER, S_EOF, 26);
-
-		// CONSTANTS
-		HAIZE_RULE(currCategory, nextCategory, CATEGORY_CONSTANT, CATEGORY_BINOP, 4);
-		HAIZE_RULE(currCategory, nextCategory, CATEGORY_CONSTANT, S_EOF, 26);
-
-		// UNOP
-
-		// BINOP
-		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, V_IDENTIFIER, 88);
-		HAIZE_RULE(currCategory, nextCategory, CATEGORY_BINOP, CATEGORY_CONSTANT, 89);
-		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, CATEGORY_UNOP, 90);
-		HAIZE_RULE(currCategory, nextType, CATEGORY_BINOP, S_LPARENT, 92);
-
-		// (
-
-		// )
-
-		// [
-
-		// ]
-
-		// {
-		// }
-
-		// ,
-
-		// ::
-
-		// SEPARATOR (; \n)
-
-		// if
-
-		// else
-
-		// for
-
-		// in
-
-		// while
-
-		// switch
-
-		// case
-
-		// default
-
-		// break
-
-		// continue
-
-		// namespace
-
-		// class
-
-		// function
-
-		// attr
-
-		// global
-
-		// EOF
-		// */
 		return INVALID_RULE;
-#undef HAIZE_RULE
 	}
 
 	bool initParse(hz::parser::Info& info)
@@ -433,37 +351,13 @@ namespace
 	{
 		bool ret = true;
 		// Inspired by https://en.wikipedia.org/wiki/Shunting-yard_algorithm#The_algorithm_in_detail
-		// While there are tokens to be read:
-		// 	Read a token.
-		// 	If the token is a number, then add it to the output queue.
-		// 	If the token is a function token, then push it onto the stack.
-		// 	If the token is a function argument separator (e.g., a comma):
-		// 		Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue. If no left parentheses are encountered, either the separator was misplaced or parentheses were mismatched.
-		// 	If the token is an operator, o1, then:
-		// 		while there is an operator token, o2, at the top of the operator stack, and either
-		// 			o1 is left-associative and its precedence is less than or equal to that of o2, or
-		// 			o1 is right associative, and has precedence less than that of o2,
-		// 			then pop o2 off the operator stack, onto the output queue;
-		// 		push o1 onto the operator stack.
-		// 	If the token is a left parenthesis (i.e. "("), then push it onto the stack.
-		// 	If the token is a right parenthesis (i.e. ")"):
-		// 		Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
-		// 		Pop the left parenthesis from the stack, but not onto the output queue.
-		// 		If the token at the top of the stack is a function token, pop it onto the output queue.
-		// 		If the stack runs out without finding a left parenthesis, then there are mismatched parentheses.
-		// 	When there are no more tokens to read:
-		// 		While there are still operator tokens in the stack:
-		// 		If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
-		// 		Pop the operator onto the output queue.
-		// Exit.
+
 		hz::parser::Token currToken;
 		currToken = TOK(0);
 		MUON_ASSERT_BREAK(INFO_IMPL->stackOperator.empty(), "Operator Stack is not empty!");
 		MUON_ASSERT_BREAK(INFO_IMPL->stackValue.empty(), "Value Stack is not empty!");
 
 		//TODO: Function call : foo ( args )
-		//TODO: Real end condition for SY algorithm
-		//TODO: Error
 		while(currToken.type != hz::parser::S_EOF && currToken.type != hz::parser::S_INVALID)
 		{
 			// ** Value **
