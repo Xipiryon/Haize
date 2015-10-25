@@ -252,33 +252,72 @@ namespace
 		// Precedence value reflect if an operator precedence is
 		// higher / lower than another.
 
-		g_OpAttribute[S_LBRACKET] = { 100, ASSOC_LEFT };
+		u32 precedence = 100;
+		g_OpAttribute[S_LBRACKET] = { precedence, ASSOC_LEFT };
 
-		g_OpAttribute[S_RESOLUTION] = { 50, ASSOC_LEFT };
-		g_OpAttribute[S_ACCESSOR] = { 30, ASSOC_RIGHT };
+		--precedence;
+		g_OpAttribute[S_RESOLUTION] = { precedence, ASSOC_LEFT };
 
-		g_OpAttribute[UNARY_PLUS] = { 25, ASSOC_RIGHT };
-		g_OpAttribute[UNARY_MINUS] = { 25, ASSOC_RIGHT };
-		g_OpAttribute[MATH_INC] = { 25, ASSOC_RIGHT };
-		g_OpAttribute[MATH_DEC] = { 25, ASSOC_RIGHT };
+		--precedence;
+		g_OpAttribute[S_ACCESSOR] = { precedence, ASSOC_RIGHT };
 
-		g_OpAttribute[MATH_MUL] = { 20, ASSOC_LEFT };
-		g_OpAttribute[MATH_DIV] = { 20, ASSOC_LEFT };
-		g_OpAttribute[MATH_MOD] = { 20, ASSOC_LEFT };
+		--precedence;
+		g_OpAttribute[UNARY_PLUS] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[UNARY_MINUS] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_INC] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_DEC] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[LOGIC_NOT] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[BITWISE_NOT] = { precedence, ASSOC_RIGHT };
 
-		g_OpAttribute[MATH_ADD] = { 15, ASSOC_LEFT };
-		g_OpAttribute[MATH_SUB] = { 15, ASSOC_LEFT };
+		--precedence;
+		g_OpAttribute[MATH_MUL] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[MATH_DIV] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[MATH_MOD] = { precedence, ASSOC_LEFT };
 
-		g_OpAttribute[MATH_ASN] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_ADD] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_SUB] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_MUL] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_DIV] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_MOD] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_AND] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_OR] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_XOR] = { 10, ASSOC_RIGHT };
-		g_OpAttribute[MATH_ASN_NOT] = { 10, ASSOC_RIGHT };
+		--precedence;
+		g_OpAttribute[MATH_ADD] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[MATH_SUB] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[BITWISE_LSH] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[BITWISE_RSH] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[LOGIC_GT] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[LOGIC_GET] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[LOGIC_LT] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[LOGIC_LET] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[LOGIC_EQ] = { precedence, ASSOC_LEFT };
+		g_OpAttribute[LOGIC_NEQ] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[BITWISE_AND] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[BITWISE_XOR] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[BITWISE_OR] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[LOGIC_AND] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[LOGIC_OR] = { precedence, ASSOC_LEFT };
+
+		--precedence;
+		g_OpAttribute[MATH_ASN] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_ADD] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_SUB] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_MUL] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_DIV] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_MOD] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_AND] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_OR] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_XOR] = { precedence, ASSOC_RIGHT };
+		g_OpAttribute[MATH_ASN_NOT] = { precedence, ASSOC_RIGHT };
 	}
 
 	void pushNodePrecedence(hz::parser::Info& info, hz::parser::ASTNode* node)
