@@ -14,7 +14,7 @@ namespace
 	using namespace muon;
 
 	//********************************************************
-	hz::parser::ASTNode* parseChunk(hz::parser::Info& info);
+	bool parseChunk(hz::parser::Info& info);
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info);
 
 	hz::parser::ASTNode* parseStmt(hz::parser::Info& info);
@@ -75,6 +75,7 @@ namespace hz
 			DONE,
 			RUNNING,
 			SKIPPING,
+			ERROR,
 		};
 
 		/*
@@ -236,7 +237,7 @@ namespace
 #define EXPECT(Offset, Type) TOK_TYPE(Offset) == hz::parser::Type
 #define EXPECTK(Offset, Name) ( TOK_TYPE(Offset) == hz::parser::S_KEYWORD ? (*VARIANT(Offset).get<muon::String*>() == Name) : false)
 
-#define CREATENODE(...) MUON_CNEW(hz::parser::ASTNode, __VA_ARGS__)
+#define CREATENODE(Token) MUON_CNEW(hz::parser::ASTNode, Token)
 #define DELETENODE(Node) MUON_CDELETE(Node)
 #define CONSUME(Count) consume(info, Count)
 
@@ -245,6 +246,7 @@ namespace
 		info.error.message = message;
 		info.error.line = token.line;
 		info.error.column = token.column;
+		INFO_IMPL->state = hz::parser::ERROR;
 		return false;
 	}
 
@@ -355,171 +357,18 @@ namespace
 	bool initParse(hz::parser::Info& info)
 	{
 		muon::system::Log log("Syntaxic");
-		bool parse = true;
-		bool error = false;
-		while (parse)
-		{
-			bool useShuntingYard = true;
-
-			// Create AST for expression with Shunting Yard Algorithm
-			// "a+b" -> "a b +" ->    +
-			//                       / \
-			//                      a   b
-			if(useShuntingYard)
-			{
-				parse = applyShuntingYard(info);
-				if(parse)
-				{
-					parse = createASTfromRPN(info);
-				}
-			}
-			else
-			{
-				CONSUME(1);
-			}
-			error = !parse;
-			parse &= (TOK_TYPE(0) != hz::parser::S_EOF);
-		}
-		return !error;
+		return parseChunk(info);
 	}
-
-	bool applyShuntingYard(hz::parser::Info& info)
-	{
-		bool ret = true;
-		// Inspired by https://en.wikipedia.org/wiki/Shunting-yard_algorithm#The_algorithm_in_detail
-
-		hz::parser::Token currToken;
-		currToken = TOK(0);
-		MUON_ASSERT_BREAK(INFO_IMPL->stackOperator.empty(), "Operator Stack is not empty!");
-		MUON_ASSERT_BREAK(INFO_IMPL->stackValue.empty(), "Value Stack is not empty!");
-
-		//TODO: Function call : foo ( args )
-		while(currToken.type != hz::parser::S_EOF && currToken.type != hz::parser::S_INVALID)
-		{
-			// ** Value **
-			if(currToken.category == hz::parser::CATEGORY_CONSTANT
-				|| currToken.type == hz::parser::V_IDENTIFIER)
-			{
-				INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, currToken));
-			}
-			// ** Operator **
-			else if (currToken.category == hz::parser::CATEGORY_BINOP)
-			{
-				const hz::parser::Token& op1 = currToken; //Just o1 & o2 syntax
-				hz::parser::Token op2;
-				bool popOp = !INFO_IMPL->stackOperator.empty();
-				while(popOp)
-				{
-					op2 = INFO_IMPL->stackOperator.back();
-					if( (g_OpAttribute[op1.type].associativity == ASSOC_LEFT && g_OpAttribute[op1.type].precedence <= g_OpAttribute[op2.type].precedence)
-						 || (g_OpAttribute[op1.type].associativity == ASSOC_RIGHT && g_OpAttribute[op1.type].precedence < g_OpAttribute[op2.type].precedence))
-					{
-						INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op2));
-						INFO_IMPL->stackOperator.pop_back();
-						popOp = !INFO_IMPL->stackOperator.empty();
-					}
-					else
-					{
-						popOp = false;
-					}
-				}
-				INFO_IMPL->stackOperator.push_back(op1);
-			}
-			// ** Left Parenthesis **
-			else if (currToken.type == hz::parser::S_LPARENT)
-			{
-				INFO_IMPL->stackOperator.push_back(currToken);
-			}
-			// ** Right Parenthesis **
-			else if (currToken.type == hz::parser::S_RPARENT)
-			{
-				if(INFO_IMPL->stackOperator.empty())
-				{
-					return throwError(info, "Missing '('", currToken);
-				}
-				hz::parser::Token op = INFO_IMPL->stackOperator.back();
-				while(op.type != hz::parser::S_LPARENT)
-				{
-					INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op));
-					INFO_IMPL->stackOperator.pop_back();
-					if(INFO_IMPL->stackOperator.empty())
-					{
-						return throwError(info, "Missing '('", currToken);
-					}
-					op = INFO_IMPL->stackOperator.back();
-				}
-				INFO_IMPL->stackOperator.pop_back(); // Pop left parenthesis
-			}
-
-			CONSUME(1);
-			currToken = TOK(0);
-
-			//And of expression
-			if(currToken.type == hz::parser::S_SEPARATOR)
-			{
-				CONSUME(1);
-				break;
-			}
-		}
-
-		// Empty operator queue
-		while(!INFO_IMPL->stackOperator.empty())
-		{
-			hz::parser::Token op(INFO_IMPL->stackOperator.back());
-			if(op.type == hz::parser::S_LPARENT)
-			{
-				return throwError(info, "'(' does not have any closing ')'.", op);
-			}
-			INFO_IMPL->stackValue.push_back(MUON_CNEW(hz::parser::ASTNode, op));
-			INFO_IMPL->stackOperator.pop_back();
-		}
-
-		return ret;
-	}
-
-	bool createASTfromRPN(hz::parser::Info& info)
-	{
-		bool ret = true;
-		muon::u32 i = 0;
-
-		hz::parser::ASTNode* node = NULL;
-		while(i < INFO_IMPL->stackValue.size())
-		{
-			hz::parser::Token op = INFO_IMPL->stackValue[i]->token;
-			if(op.category == hz::parser::CATEGORY_BINOP)
-			{
-				// If we've less than 2 variable on the left, there is a problem
-				if(i < 2)
-				{
-					return false;
-				}
-				// Else, pop them, and add them as children
-				node = INFO_IMPL->stackValue[i];
-				node->addChild(INFO_IMPL->stackValue[i-2]);
-				node->addChild(INFO_IMPL->stackValue[i-1]);
-				INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin()+(--i)); // erase right
-				INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin()+(--i)); // erase left
-			}
-			++i;
-		}
-		//TODO: check there is only one operator left ?
-		info.ASTRoot->addChild(INFO_IMPL->stackValue.back());
-		INFO_IMPL->stackValue.pop_back();
-		return ret;
-	}
-
 
 	//********************************************************
-	hz::parser::ASTNode* parseChunk(hz::parser::Info& info)
+	bool parseChunk(hz::parser::Info& info)
 	{
-		hz::parser::ASTNode* chunk = CREATENODE(hz::parser::NT_CHUNK);
 		hz::parser::ASTNode* block = NULL;
 		do
 		{
 			if (block = parseBlock(info))
 			{
-				CREATENODE(hz::parser::NT_CHUNK);
-				chunk->addChild(block);
+				info.ASTRoot->addChild(block);
 				continue;
 			}
 			switch (INFO_IMPL->state)
@@ -532,7 +381,7 @@ namespace
 			}
 		} while (block);
 		// If there is no error message, then we're ok
-		return chunk;
+		return (INFO_IMPL->state != hz::parser::ERROR);
 	}
 
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info)
@@ -557,8 +406,8 @@ namespace
 
 		if (EXPECTK(0, "return"))
 		{
+			auto ret = CREATENODE(TOK(0));
 			CONSUME(1);	// Eat the return token
-			auto ret = CREATENODE(hz::parser::NT_RETURN);
 			if (auto expr = parseExpr(info))
 			{
 				ret->addChild(expr);
@@ -585,7 +434,7 @@ namespace
 		muon::String errorMsg = "Unexpected symbol ";
 		errorMsg += hz::parser::TokenTypeStr[TOK_TYPE(0)];
 		//ERR(errorMsg.cStr());
-		return false;
+		return NULL;
 	}
 
 	hz::parser::ASTNode* parseExpr(hz::parser::Info& info)
@@ -661,8 +510,8 @@ namespace
 	{
 		if (EXPECT(0, MATH_ADD))
 		{
+			auto unary = CREATENODE(TOK(0));
 			CONSUME(1);
-			auto unary = CREATENODE(hz::parser::UNARY_PLUS);
 			if (auto expr = parseExpr(info))
 			{
 				unary->addChild(expr);
@@ -674,8 +523,8 @@ namespace
 
 		if (EXPECT(0, MATH_SUB))
 		{
+			auto unary = CREATENODE(TOK(0));
 			CONSUME(1);
-			auto unary = CREATENODE(hz::parser::UNARY_MINUS);
 			if (auto expr = parseExpr(info))
 			{
 				unary->addChild(expr);
@@ -707,7 +556,7 @@ namespace
 	{
 		if (TOK_TYPE(0) > hz::parser::E_MATH_OP_BEGIN && TOK_TYPE(0) < hz::parser::E_MATH_OP_END)
 		{
-			auto binop = CREATENODE(TOK_TYPE(0), hz::parser::TokenTypeStr[TOK_TYPE(0)]);
+			auto binop = CREATENODE(TOK(0));
 			CONSUME(1); // Eat the binop
 			return binop;
 		}
@@ -718,7 +567,7 @@ namespace
 	{
 		if (TOK_TYPE(0) > hz::parser::E_BITWISE_OP_BEGIN && TOK_TYPE(0) < hz::parser::E_BITWISE_OP_END)
 		{
-			auto binop = CREATENODE(TOK_TYPE(0), hz::parser::TokenTypeStr[TOK_TYPE(0)]);
+			auto binop = CREATENODE(TOK(0));
 			CONSUME(1); // Eat the binop
 			return binop;
 		}
@@ -729,7 +578,7 @@ namespace
 	{
 		if (TOK_TYPE(0) > hz::parser::E_LOGIC_OP_BEGIN && TOK_TYPE(0) < hz::parser::E_LOGIC_OP_END)
 		{
-			auto binop = CREATENODE(TOK_TYPE(0), hz::parser::TokenTypeStr[TOK_TYPE(0)]);
+			auto binop = CREATENODE(TOK(0));
 			CONSUME(1); // Eat the binop
 			return binop;
 		}
@@ -738,34 +587,35 @@ namespace
 
 	hz::parser::ASTNode* parseConstant(hz::parser::Info& info)
 	{
-		hz::parser::eTokenType nToken = TOK_TYPE(0);
+		const hz::parser::Token& token = TOK(0);
 		hz::parser::ASTNode* constant = NULL;
-		switch (nToken)
+		switch (token.type)
 		{
 			case hz::parser::V_NIL:
-				constant = CREATENODE(hz::parser::V_NIL);
+				constant = CREATENODE(token);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_TRUE:
-				constant = CREATENODE(hz::parser::V_TRUE);
+				constant = CREATENODE(token);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_FALSE:
-				constant = CREATENODE(hz::parser::V_FALSE);
+				constant = CREATENODE(token);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_NUMBER:
-				constant = CREATENODE(hz::parser::V_NUMBER);
-				INFO_IMPL->node->token.value = VARIANT(0);
+				constant = CREATENODE(token);
+				//INFO_IMPL->node->token.value = VARIANT(0);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_STRING:
-				constant = CREATENODE(hz::parser::V_STRING);
-				INFO_IMPL->node->token.value.set<muon::String*>(VARIANT(0).get<muon::String*>());
+				constant = CREATENODE(token);
+				//INFO_IMPL->node->token.value.set<muon::String*>(VARIANT(0).get<muon::String*>());
+				//INFO_IMPL->node->token.value = VARIANT(0);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
@@ -788,18 +638,18 @@ namespace
 		{
 			if (EXPECT(0, S_ACCESSOR))
 			{
-				auto token = TOK(1);
+				const hz::parser::Token& accessorToken = TOK(0);
+				hz::parser::ASTNode* accessorNode = CREATENODE(accessorToken);
 				CONSUME(1); // Eat the '.'
-				auto accessor = CREATENODE(hz::parser::S_ACCESSOR);
 				if (auto var = parseVariable(info))
 				{
-					accessor->addChild(lval);
-					accessor->addChild(var);
-					return accessor;
+					accessorNode->addChild(lval);
+					accessorNode->addChild(var);
+					return accessorNode;
 				}
 				DELETENODE(lval);
-				DELETENODE(accessor);
-				throwError(info, "Accessor fail", token);
+				DELETENODE(accessorNode);
+				throwError(info, "Accessor failed", accessorToken);
 				return NULL;
 			}
 		}
@@ -810,8 +660,7 @@ namespace
 	{
 		if (EXPECT(0, V_IDENTIFIER))
 		{
-			const hz::parser::Token& token = TOK(0);
-			auto lval = CREATENODE(token);
+			auto lval = CREATENODE(TOK(0));
 			CONSUME(1); // Eat the identifier
 			return lval;
 		}
