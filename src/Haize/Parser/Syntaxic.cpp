@@ -179,25 +179,26 @@ namespace
 
 	void displayASCII(hz::parser::ASTNode* node)
 	{
-		printf("%s \n", hz::parser::TokenTypeStr[node->token.type]);
+		static muon::system::Log log("ASCII", muon::LOG_DEBUG);
+		log() << hz::parser::TokenTypeStr[node->token.type] << muon::endl;
 		for (muon::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
 			if (i < node->children->size() - 1)
 			{
 #ifdef MUON_PLATFORM_WINDOWS
-				printf("%s |-", g_Depth);
+				log() << g_Depth << " |-" ;
 #else
-				printf("%s ├─", g_Depth);
+				log() << g_Depth << " ├─" ;
 #endif
 				pushASCII('|');
 			}
 			else // Last element
 			{
 #ifdef MUON_PLATFORM_WINDOWS
-				printf("%s `-", g_Depth);
+				log() << g_Depth << " `-";
 #else
-				printf("%s └─", g_Depth);
+				log() << g_Depth << " └─";
 #endif
 				pushASCII(' ');
 			}
@@ -235,7 +236,7 @@ namespace
 #define VARIANT(Offset) TOK(Offset).value
 
 #define EXPECT(Offset, Type) TOK_TYPE(Offset) == hz::parser::Type
-#define EXPECTK(Offset, Name) ( TOK_TYPE(Offset) == hz::parser::S_KEYWORD ? (*VARIANT(Offset).get<muon::String*>() == Name) : false)
+#define EXPECTK(Offset, Name) ( TOK_TYPE(Offset) == hz::parser::S_KEYWORD ? (VARIANT(Offset).get<muon::String>() == Name) : false)
 
 #define CREATENODE(Token) MUON_CNEW(hz::parser::ASTNode, Token)
 #define DELETENODE(Node) MUON_CDELETE(Node)
@@ -374,14 +375,16 @@ namespace
 			switch (INFO_IMPL->state)
 			{
 				case hz::parser::SKIPPING:
+				{
 					INFO_IMPL->state = hz::parser::RUNNING;
 					continue;
+				}
+				case hz::parser::ERROR:
+					return false;
 				case hz::parser::DONE:
-					break;
+					return true;
 			}
 		} while (block);
-		// If there is no error message, then we're ok
-		return (INFO_IMPL->state != hz::parser::ERROR);
 	}
 
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info)
