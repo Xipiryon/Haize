@@ -180,25 +180,25 @@ namespace
 	void displayASCII(hz::parser::ASTNode* node)
 	{
 		static muon::system::Log log("ASCII", muon::LOG_DEBUG);
-		log() << hz::parser::TokenTypeStr[node->token.type] << muon::endl;
+		log << hz::parser::TokenTypeStr[node->token.type] << muon::endl;
 		for (muon::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
 			if (i < node->children->size() - 1)
 			{
 #ifdef MUON_PLATFORM_WINDOWS
-				log() << g_Depth << " |-" ;
+				log() << g_Depth << " |- " ;
 #else
-				log() << g_Depth << " ├─" ;
+				log() << g_Depth << " ├─ " ;
 #endif
 				pushASCII('|');
 			}
 			else // Last element
 			{
 #ifdef MUON_PLATFORM_WINDOWS
-				log() << g_Depth << " `-";
+				log() << g_Depth << " `- ";
 #else
-				log() << g_Depth << " └─";
+				log() << g_Depth << " └─ ";
 #endif
 				pushASCII(' ');
 			}
