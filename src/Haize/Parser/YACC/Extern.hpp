@@ -2,7 +2,7 @@
 #define _YACC_EXTERN_INCLUDE
 
 // Functions definition
-extern void custom_yymain(const char* buffer);
+extern bool custom_yymain(const char* buffer);
 int processInput(char* buffer, size_t* numBytesRead, int maxBytesToRead);
 
 // Global internal variables

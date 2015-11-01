@@ -32,7 +32,7 @@ namespace hz
 	{
 	}
 
-	muon::Variant VMInstance::eval(const char* code)
+	bool VMInstance::eval(const char* code)
 	{
 		muon::system::Log log("VM", muon::LOG_DEBUG);
 		muon::Variant nil;
@@ -47,7 +47,10 @@ namespace hz
 			_info.ASTRoot->name = "NT_ROOT";
 			_info.ASTRoot->type = NT_ROOT;
 			g_parseInfo = &_info;
-			custom_yymain(code);
+			if(!custom_yymain(code))
+			{
+				return false;
+			}
 		}
 		totalTime += time.now();
 		log() << "AST Creation: " << time.now() << " seconds" << muon::endl;
@@ -58,7 +61,7 @@ namespace hz
 			if (!hz::parser::semantic::parse(_info))
 			{
 				printError(_info.error);
-				return nil;
+				return false;
 			}
 			hz::parser::semantic::display(_info);
 		}
@@ -85,7 +88,7 @@ namespace hz
 		return false;
 	}
 
-	muon::Variant VMInstance::execute(const ByteCode* buffer)
+	bool VMInstance::execute(const ByteCode* buffer)
 	{
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
@@ -224,12 +227,12 @@ namespace hz
 			++_stack;
 		} while (exec);
 
-		return _registers[ByteCode::RETURN_REG];
+		return true;
 	}
 
-	muon::Variant VMInstance::execute()
+	bool VMInstance::execute()
 	{
-		return muon::Variant();
+		return false;
 	}
 }
 

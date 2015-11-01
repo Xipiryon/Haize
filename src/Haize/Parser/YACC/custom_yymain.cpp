@@ -53,7 +53,7 @@ namespace
 	muon::String g_strArgument;
 }
 
-void custom_yymain(const char* buffer)
+bool custom_yymain(const char* buffer)
 {
 	g_readOffset = 0;
 	g_strArgument = buffer;
@@ -64,7 +64,7 @@ void custom_yymain(const char* buffer)
 	const char* file = "parse.syntaxic.gv";
 	if (!g_error)
 	{
-		muon::system::Log log("SYNTAXIC", muon::LOG_INFO);
+		muon::system::Log log("YACC", muon::LOG_INFO);
 		log() << "** Outputing AST to \"" << file << "\" file **" << muon::endl;
 
 		std::ofstream graphviz(file, std::ios::trunc);
@@ -89,12 +89,11 @@ void custom_yymain(const char* buffer)
 	}
 	else
 	{
-		muon::system::Log("AST", muon::LOG_ERROR) << "** An error occured: no \"" << file << "\" will be generated **" << muon::endl;
-#	ifdef MUON_PLATFORM_WINDOWS
-		::system("PAUSE");
-#	endif //MUON_PLATFORM_WINDOWS
+		muon::system::Log("YACC", muon::LOG_ERROR) << "** An error occured: no \"" << file << "\" will be generated **" << muon::endl;
+		return false;
 	}
 #endif //MUON_DEBUG
+	return true;
 }
 
 int processInput(char* buffer, size_t* numBytesRead, int maxBytesToRead )

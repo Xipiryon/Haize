@@ -40,17 +40,17 @@ namespace hz
 		/*!
 		*
 		*/
-		muon::Variant execute(const ByteCode* instr);
+		bool execute(const ByteCode* instr);
 
 		/*!
 		*
 		*/
-		muon::Variant execute();
+		bool execute();
 
 		/*!
 		*
 		*/
-		muon::Variant eval(const char* str);
+		bool eval(const char* str);
 
 		const parser::Info& getInfo() const
 		{
