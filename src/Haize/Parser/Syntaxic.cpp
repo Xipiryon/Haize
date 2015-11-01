@@ -384,7 +384,8 @@ namespace
 				case hz::parser::DONE:
 					return true;
 			}
-		} while (block);
+		} while (block || INFO_IMPL->state == hz::parser::RUNNING);
+		return false;
 	}
 
 	hz::parser::ASTNode* parseBlock(hz::parser::Info& info)
@@ -611,14 +612,13 @@ namespace
 				break;
 			case hz::parser::V_NUMBER:
 				constant = CREATENODE(token);
-				//INFO_IMPL->node->token.value = VARIANT(0);
+				constant->token.value = VARIANT(0);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
 			case hz::parser::V_STRING:
 				constant = CREATENODE(token);
-				//INFO_IMPL->node->token.value.set<muon::String*>(VARIANT(0).get<muon::String*>());
-				//INFO_IMPL->node->token.value = VARIANT(0);
+				constant->token.value = VARIANT(0);
 				constant->token.line = TOK(0).line;
 				constant->token.column = TOK(0).column;
 				break;
