@@ -28,10 +28,10 @@ solution "Haize"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
 	if os.is("windows") then
-		implibdir "bin"
+		implibdir "lib"
 	else
 		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,bin" }
+		linkoptions { "-Wl,-rpath,lib" }
 	end
 
 	-- If option exists, then override G_Install
@@ -48,17 +48,18 @@ solution "Haize"
 	}
 
 	libdirs {
-		"bin",
+		"lib",
 		G_Install.Lib
 	}
 
 	filter "Debug*"
 		targetsuffix "-d"
+		optimize "Debug"
 		flags	{ "Symbols" }
 
 	filter "Release*"
 		optimize "Speed"
-		flags	{ "LinkTimeOptimization", "NoRTTI" }
+		flags	{ "LinkTimeOptimization" }
 
 	filter  "*Lib"
 		kind "StaticLib"
@@ -81,7 +82,11 @@ solution "Haize"
 
 project "Haize"
 	language "C++"
-	targetdir "bin"
+	targetdir "lib"
+
+	if os.is("windows") then
+		postbuildcommands { string.gsub("copy lib/*.dll bin/", "/", "\\") }
+	end
 
 	files {
 		HaizeRoot.."/src/**.cpp",
@@ -142,7 +147,7 @@ newaction {
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
 		local incDir = HaizeRoot.."/include/"
-		local libDir = HaizeRoot.."/bin/"
+		local libDir = HaizeRoot.."/lib/"
 
 		-- Create required folders
 		local dirList = os.matchdirs(incDir.."**")
@@ -194,7 +199,7 @@ newaction {
 if os.is("windows") then
 	newaction {
 		trigger	 = "getlib",
-		description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
+		description = "Retrieve libraries from 'basedir' and put them in bin/",
 		execute = function ()
 			print("** Retrieving files from: "..G_Install.Lib.." **")
 
