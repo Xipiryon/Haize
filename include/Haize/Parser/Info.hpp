@@ -4,7 +4,6 @@
 #include <deque>
 #include "Haize/Core/Define.hpp"
 #include "Haize/VM/ByteCode.hpp"
-#include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
 namespace hz
@@ -39,7 +38,6 @@ namespace hz
 			InfoImpl* impl;
 
 			InfoError error;
-			std::vector<Token>* TokenList;
 			ASTNode* ASTRoot;
 			ByteCode* IRCode;
 			muon::u32 IRCodeSize;

@@ -19,6 +19,29 @@ if not G_Install.Lib then G_Install.Lib = G_Install.Root.."lib" end
 
 HaizeRoot = os.getcwd()
 
+-- Generate Lex/Yacc files
+function generateParserFiles(executeOsCommand)
+	local parserPath = "src/Haize/Parser/YACC/"
+	if os.is("windows") then
+		lex = "flex.exe"
+		yacc = "bison.exe"
+	else -- Unix
+		lex = "flex"
+		yacc = "bison"
+	end
+	local generatedPath = parserPath.."generated/"
+	if(not os.isdir(generatedPath)) then
+		if os.mkdir(generatedPath) then print("Creating "..generatedPath) end
+	end
+
+	local lexCmd = lex.." -o "..generatedPath.."flex.haize.cpp "..parserPath.."flex.haize.ll"
+	local yaccCmd = yacc.." -v -d -o "..generatedPath.."yacc.haize.cpp "..parserPath.."yacc.haize.yy"
+	print("Executing: "..lexCmd)
+	os.execute(lexCmd)
+	print("Executing: "..yaccCmd)
+	os.execute(yaccCmd)
+end
+
 ------------------------------
 -- Solution
 ------------------------------
@@ -27,11 +50,9 @@ solution "Haize"
 	startproject "HaizeExecutable"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
-	if os.is("windows") then
-		implibdir "lib"
-	else
+	if not os.is("windows") then
 		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,lib" }
+		linkoptions { "-Wl,-rpath,"..HaizeRoot.."/bin/lib/" }
 	end
 
 	-- If option exists, then override G_Install
@@ -43,33 +64,32 @@ solution "Haize"
 	end
 
 	includedirs {
-		"include",
+		HaizeRoot.."/include",
 		G_Install.Header,
 	}
 
 	libdirs {
-		"lib",
+		HaizeRoot.."/bin/lib",
 		G_Install.Lib
 	}
 
 	filter "Debug*"
 		targetsuffix "-d"
-		optimize "Debug"
 		flags	{ "Symbols" }
 
 	filter "Release*"
 		optimize "Speed"
-		flags	{ "LinkTimeOptimization" }
+		flags	{ "LinkTimeOptimization", "NoRTTI" }
 
 	filter  "*Lib"
 		kind "StaticLib"
 
 	filter  "*DLL"
 		kind "SharedLib"
-
+		
 	filter "Debug*"
 		defines { "MUON_DEBUG"}
-
+		
 	filter "Release*"
 		defines { "MUON_RELEASE"}
 
@@ -82,26 +102,30 @@ solution "Haize"
 
 project "Haize"
 	language "C++"
-	targetdir "lib"
-
+	targetdir(HaizeRoot.."/bin/lib")
+	
 	if os.is("windows") then
-		postbuildcommands { string.gsub("copy lib/*.dll bin/", "/", "\\") }
+		postbuildcommands { string.gsub("copy "..HaizeRoot.."/bin/lib/*.dll "..HaizeRoot.."/bin/", "/", "\\") }
 	end
 
 	files {
 		HaizeRoot.."/src/**.cpp",
 		HaizeRoot.."/include/**.hpp",
+		-- Flex/Bison and related files
+		HaizeRoot.."/src/Haize/Parser/**.hpp",
+		HaizeRoot.."/src/Haize/Parser/YACC/yacc.haize.yy",
+		HaizeRoot.."/src/Haize/Parser/YACC/flex.haize.ll",
 	}
 	filter "Debug*"
 		links	{ "Muon-d" }
 	filter "Release*"
 		links { "Muon" }
-
+		
 	filter "*DLL"
 		defines { "HAIZE_EXPORTS" }
 
 
--- Console Application
+-- Console Application 
 -------------------------------------------
 
 project "HaizeExecutable"
@@ -116,7 +140,7 @@ project "HaizeExecutable"
 
 	filter "Debug*"
 		links	{ "Haize-d", "Muon-d" }
-
+		
 	filter "Release*"
 		links { "Haize", "Muon" }
 
@@ -131,14 +155,17 @@ newoption {
 	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
 }
 
-newoption {
-	trigger     = "unittests",
-	description = "Enable compilation of unit tests",
-}
-
 ------------------------------
 -- Actions
 ------------------------------
+
+newaction {
+	trigger = "genparser",
+	description = "Generate Flex & Bison files",
+	execute = function() 
+		generateParserFiles();
+	end
+}
 
 newaction {
 	trigger	 = "install",
@@ -147,7 +174,7 @@ newaction {
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
 		local incDir = HaizeRoot.."/include/"
-		local libDir = HaizeRoot.."/lib/"
+		local libDir = HaizeRoot.."/bin/lib/"
 
 		-- Create required folders
 		local dirList = os.matchdirs(incDir.."**")
@@ -182,7 +209,6 @@ newaction {
 			exts[1] = ".lib"
 		else
 			exts[0] = ".so"
-			exts[1] = ".a"
 		end
 
 		-- Copy files
@@ -197,15 +223,16 @@ newaction {
 }
 
 if os.is("windows") then
-	newaction {
-		trigger	 = "getlib",
-		description = "Retrieve libraries from 'basedir' and put them in bin/",
-		execute = function ()
-			print("** Retrieving files from: "..G_Install.Lib.." **")
+newaction {
+	trigger	 = "getlib",
+	description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
+	execute = function ()
+		print("** Retrieving files from: "..G_Install.Lib.." **")
 
-			local libDir = G_Install.Lib
+		local libDir = G_Install.Lib
 
-			local destDir = "bin"
+		for _,dir in pairs({"", "/lib"}) do
+			local destDir = './bin'..dir
 
 			-- Create required folders
 			if(not os.isdir(destDir)) then
@@ -219,5 +246,6 @@ if os.is("windows") then
 				if os.copyfile(fpath, destFile) then print("Copying "..fpath.." to "..destDir) end
 			end
 		end
-	}
+	end
+}
 end

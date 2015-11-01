@@ -5,14 +5,12 @@
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
 #include "Haize/VM/OpCode.hpp"
-#include "Haize/Parser/Lexical.hpp"
-#include "Haize/Parser/Syntaxic.hpp"
 #include "Haize/Parser/Semantic.hpp"
 #include "Haize/Parser/Info.hpp"
 
 //Require the include to the parser folder, relative to this one
-//#include "./Parser/YACC/generated/yacc.haize.hpp"
-//#include "./Parser/YACC/Extern.hpp"
+#include "./Parser/YACC/generated/yacc.haize.hpp"
+#include "./Parser/YACC/Extern.hpp"
 
 #include "Haize/VM.hpp"
 
@@ -43,31 +41,16 @@ namespace hz
 		muon::system::Time time;
 		muon::f32 totalTime = 0;
 
-		// Lexical
+		// Lexical & Syntaxic
 		time.start();
 		{
-			if (!hz::parser::lexical::parse(_info, code))
-			{
-				printError(_info.error);
-				return nil;
-			}
-			hz::parser::lexical::display(_info);
+			_info.ASTRoot->name = "NT_ROOT";
+			_info.ASTRoot->type = NT_ROOT;
+			g_parseInfo = &_info;
+			custom_yymain(code);
 		}
 		totalTime += time.now();
-		log() << "Lexical parse: " << time.now() << " seconds" << muon::endl;
-
-		// Syntaxic
-		time.start();
-		{
-			if (!hz::parser::syntaxic::parse(_info))
-			{
-				printError(_info.error);
-				return nil;
-			}
-			hz::parser::syntaxic::display(_info);
-		}
-		totalTime += time.now();
-		log() << "Syntaxic parse: " << time.now() << " seconds" << muon::endl;
+		log() << "AST Creation: " << time.now() << " seconds" << muon::endl;
 
 		// Semantic
 		time.start();

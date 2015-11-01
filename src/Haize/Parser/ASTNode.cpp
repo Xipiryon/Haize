@@ -10,23 +10,15 @@ namespace hz
 	{
 		ASTNode::ASTNode()
 			: name(NULL)
-			, token(S_INVALID)
+			, type(0)
 			, children(MUON_CNEW(ASTNodeList))
 			, parent(NULL)
 		{
 		}
 
-		ASTNode::ASTNode(eTokenType type_, const char* name_)
+		ASTNode::ASTNode(muon::u32 type_, const char* name_)
 			: name(name_)
-			, token(type_)
-			, children(MUON_CNEW(ASTNodeList))
-			, parent(NULL)
-		{
-		}
-
-		ASTNode::ASTNode(const Token& token_)
-			: name(TokenTypeStr[token_.type])
-			, token(token_)
+			, type(type_)
 			, children(MUON_CNEW(ASTNodeList))
 			, parent(NULL)
 		{
@@ -41,19 +33,12 @@ namespace hz
 			delete children;
 		}
 
-		ASTNode* ASTNode::addChild(eTokenType type, const char* name)
+		ASTNode* ASTNode::addChild(muon::u32 type, const char* name)
 		{
 			ASTNode* node = MUON_CNEW(ASTNode, type, name);
 			node->parent = this;
 			this->children->push_back(node);
 			return node;
-		}
-
-		ASTNode* ASTNode::addChild(const Token& token)
-		{
-			ASTNode* c = addChild(token.type, TokenTypeStr[token.type]);
-			c->token = token;
-			return c;
 		}
 
 		ASTNode* ASTNode::addChild(ASTNode* child)

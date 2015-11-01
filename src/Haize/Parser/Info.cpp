@@ -10,7 +10,6 @@ namespace hz
 	{
 		Info::Info()
 			: impl(NULL)
-			, TokenList(MUON_CNEW(std::vector<Token>))
 			, ASTRoot(MUON_CNEW(ASTNode))
 			, IRCode(NULL)
 			, IRCodeSize(0)
@@ -24,7 +23,6 @@ namespace hz
 
 		Info::~Info()
 		{
-			MUON_CDELETE(TokenList);
 			MUON_CDELETE(ASTRoot);
 		}
 	}
