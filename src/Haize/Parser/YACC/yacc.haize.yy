@@ -129,7 +129,7 @@ arg_list
 func_call
 	: IDENTIFIER S_LPARENT arg_list S_RPARENT		{	$$ = HZ_NEW(NT_FUNC_CALL);
 														auto id = HZ_NEW(IDENTIFIER);
-														id->value = $1;
+														id->value = *$1;
 														$$->addChild(id);
 														$$->addChild($3);
 													}
@@ -139,12 +139,12 @@ param_list
 	: /* */								{ $$ = HZ_NEW(NT_EMPTY); }
 	| IDENTIFIER						{	$$ = HZ_NEW(NT_ARG_LIST);
 											auto node = HZ_NEW(IDENTIFIER);
-											node->value = $1;
+											node->value = *$1;
 											$$->addChild(node);
 										}
 	| param_list S_COMMA IDENTIFIER		{	$$ = $1;
 											auto node = HZ_NEW(IDENTIFIER);
-											node->value = $3;
+											node->value = *$3;
 											$$->addChild(node);
 										}
 	;
@@ -155,7 +155,7 @@ param_decl
 
 func_decl
 	: FUNCTION IDENTIFIER param_decl block_empty END	{	$$ = HZ_NEW(NT_FUNC_DECL);
-															$$->addChild(IDENTIFIER, "IDENTIFIER")->value = $2;
+															$$->addChild(IDENTIFIER, "IDENTIFIER")->value = *$2;
 															$$->addChild($3);
 															$$->addChild($4);
 														}
@@ -164,15 +164,15 @@ func_decl
 attr_decl
 	: ATTR IDENTIFIER		{	$$ = HZ_NEW(NT_ATTR_DECL);
 								auto node = HZ_NEW(IDENTIFIER);
-								node->value = $2;
+								node->value = *$2;
 								$$->addChild(node);
 							}
 	| ATTR IDENTIFIER IDENTIFIER		{	$$ = HZ_NEW(NT_ATTR_DECL);
 											auto type = HZ_NEW(IDENTIFIER);
-											type->value = $2;
+											type->value = *$2;
 											$$->addChild(type);
 											auto node = HZ_NEW(IDENTIFIER);
-											node->value = $2;
+											node->value = *$2;
 											type->addChild(node);
 										}
 	;
@@ -192,7 +192,7 @@ class_body_decl
 class_decl
 	: CLASS IDENTIFIER class_body_decl END		{	$$ = HZ_NEW(NT_CLASS_DECL);
 													auto id = HZ_NEW(IDENTIFIER);
-													id->value = $2;
+													id->value = *$2;
 													$$->addChild(id);
 													$$->addChild($3);
 												}
@@ -266,6 +266,6 @@ variable
 	;
 
 variable_lval
-	: IDENTIFIER			{ $$ = HZ_NEW(IDENTIFIER); $$->value = $1; }
+	: IDENTIFIER			{ $$ = HZ_NEW(IDENTIFIER); $$->value = *$1; }
 	| func_call				{ $$ = $1; }
 	;
