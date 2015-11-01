@@ -110,7 +110,6 @@ stmt_decl
 expr
 	: subexpr						{ $$ = $1; }
 	| expr binop_all subexpr			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
 	;
 
 subexpr
@@ -118,6 +117,7 @@ subexpr
 	| variable								{ $$ = $1; }
 	| MATH_ADD expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = true; $$->addChild($2); }
 	| MATH_SUB expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = false; $$->addChild($2); }
+	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
 	;
 
 arg_list
