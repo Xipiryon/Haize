@@ -85,7 +85,7 @@ program
 	;
 
 chunk
-	: block				{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
+	: block				{ if ($1 != NULL) { $$->addChild($1); } }
 	| chunk block		{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
 	;
 
