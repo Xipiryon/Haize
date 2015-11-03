@@ -159,23 +159,23 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 {HexNumber}	{
 	yylval.integer = utils::hex2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	HZ_TOK(V_INTEGER);
 }
 
 {OctNumber}	{
 	yylval.integer = utils::oct2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	HZ_TOK(V_INTEGER);
 }
 
 {BinNumber}	{
 	yylval.integer = utils::bin2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	HZ_TOK(V_INTEGER);
 }
 
-{Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(V_NUMBER); }
-{Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(V_NUMBER); }
+{Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(V_INTEGER); }
+{Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(V_FLOATING); }
 {Identifer}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT); }
 
 <INITIAL>{

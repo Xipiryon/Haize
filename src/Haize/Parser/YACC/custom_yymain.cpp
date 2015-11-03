@@ -37,8 +37,11 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 			case V_FALSE:
 				graphviz << "\\n'" << (node->value.get<bool>() ? "true" : "false") << "'";
 				break;
-			case V_NUMBER:
-				graphviz << "\\n'" << node->value.get<float>() << "'";
+			case V_INTEGER:
+				graphviz << "\\n'" << node->value.get<muon::u32>() << "'";
+				break;
+			case V_FLOATING:
+				graphviz << "\\n'" << node->value.get<muon::f32>() << "'";
 				break;
 			case V_NIL:
 				graphviz << "\\n'nil'";

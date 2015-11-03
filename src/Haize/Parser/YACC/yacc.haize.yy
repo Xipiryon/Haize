@@ -56,8 +56,8 @@
 
 %token <string> V_IDENT
 %token <string> V_STRING
-%token <floating> V_NUMBER
-%token <integer> V_TRUE V_FALSE V_NIL
+%token <floating> V_FLOATING
+%token <integer> V_TRUE V_FALSE V_NIL V_INTEGER
 
 %token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN
 %token <node> CLASS ATTR FUNCTION RETURN
@@ -263,11 +263,12 @@ conditional_block
 	;
 
 constant
-	: V_NUMBER	{ $$ = HZ_NEW(V_NUMBER); $$->value = $1; }
-	| V_STRING	{ $$ = HZ_NEW(V_STRING); $$->value = *$1; }
-	| V_TRUE		{ $$ = HZ_NEW(V_TRUE); $$->value = $1; }
-	| V_FALSE		{ $$ = HZ_NEW(V_FALSE); $$->value = $1; }
-	| V_NIL		{ $$ = HZ_NEW(V_NIL); $$->value = $1; }
+	: V_INTEGER		{ $$ = HZ_NEW(V_INTEGER); $$->value.set<muon::u32>($1); }
+	| V_FLOATING	{ $$ = HZ_NEW(V_FLOATING); $$->value.set<muon::f32>($1); }
+	| V_STRING		{ $$ = HZ_NEW(V_STRING); $$->value = *$1; }
+	| V_TRUE		{ $$ = HZ_NEW(V_TRUE); $$->value = true; }
+	| V_FALSE		{ $$ = HZ_NEW(V_FALSE); $$->value = false; }
+	| V_NIL			{ $$ = HZ_NEW(V_NIL); $$->value.reset(); }
 	;
 
 variable
