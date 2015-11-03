@@ -30,7 +30,7 @@ namespace muon
 // so we can send either a file or a buffer, instead of relying upon the
 // standard input.
 #undef YY_INPUT
-#define YY_INPUT(b,r,s) processInput(b,&r,s)
+#define YY_INPUT(b,r,s) processInput(b,(int*)&r,s)
 
 // We'll use a define, because it's shorter
 #define HZ_CHAR g_charCount += yyleng
