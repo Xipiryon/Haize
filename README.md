@@ -1,10 +1,13 @@
 Haize
 ====================
 
+C++ Script Language highly WIP.
+
 [![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize)](http://ci.louis-schnellbach.com/job/Haize/)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xleek/haize/branch/master)
 
-C++ Script Language highly WIP.
+[![CppCheck](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult/graph)](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult)
+[![Valgrind](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/graph)](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/)
 
 How to compile
 ====================
