@@ -6,7 +6,7 @@
 #include <Muon/String.hpp>
 #include "Haize/Parser/Info.hpp"
 #include "Extern.hpp"
-#include "./generated/yacc.haize.hpp"
+#include "generated/yacc.haize.hpp"
 
 hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::parser::ASTNode* node)
 {
