@@ -120,25 +120,25 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 %%
 
 [ \t]		{ HZ_CHAR; }
-{NewLine}	{ ++g_lineCount; g_charCount = 0; HZ_TOK(S_NEWLINE); }
-{Separator}	{ HZ_CHAR; HZ_TOK(S_NEWLINE); }
+{NewLine}	{ ++g_lineCount; g_charCount = 0; }
+{Separator}	{ HZ_CHAR; HZ_TOK(S_SEPARATOR); }
 
 
 <INITIAL>{
 	\/\*			{ BEGIN(MultiLineComment); }
 }
 <MultiLineComment>{
-	\*\/			{ BEGIN(INITIAL); HZ_TOK(S_NEWLINE); }
+	\*\/			{ BEGIN(INITIAL); }
 	[^*\r\n]		{ }
 	"*"				{ ++g_charCount; }
 	{NewLine}		{ ++g_lineCount; g_charCount = 0; }
 }
-{LineComment}	{ ++g_lineCount; g_charCount = 0; HZ_TOK(S_NEWLINE); }
+{LineComment}	{ ++g_lineCount; g_charCount = 0; }
 
 
-"true"		{ HZ_CHAR; yylval.integer = 1; HZ_TOK(TRUE); }
-"false"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(FALSE); }
-"nil"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(NIL); }
+"true"		{ HZ_CHAR; yylval.integer = 1; HZ_TOK(V_TRUE); }
+"false"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_FALSE); }
+"nil"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_NIL); }
 
 "if"		{ HZ_CHAR; HZ_TOK(IF); }
 "else"		{ HZ_CHAR; HZ_TOK(ELSE); }
@@ -150,6 +150,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "in"		{ HZ_CHAR; HZ_TOK(IN); }
 "end"		{ HZ_CHAR; HZ_TOK(END); }
 
+"namespace"	{ HZ_CHAR; HZ_TOK(NAMESPACE); }
 "class"		{ HZ_CHAR; HZ_TOK(CLASS); }
 "attr"		{ HZ_CHAR; HZ_TOK(ATTR); }
 "function"	{ HZ_CHAR; HZ_TOK(FUNCTION); }
@@ -158,24 +159,24 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 {HexNumber}	{
 	yylval.integer = utils::hex2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(NUMBER);
+	HZ_TOK(V_NUMBER);
 }
 
 {OctNumber}	{
 	yylval.integer = utils::oct2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(NUMBER);
+	HZ_TOK(V_NUMBER);
 }
 
 {BinNumber}	{
 	yylval.integer = utils::bin2int(yytext);
 	HZ_CHAR;
-	HZ_TOK(NUMBER);
+	HZ_TOK(V_NUMBER);
 }
 
-{Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(NUMBER); }
-{Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(NUMBER); }
-{Identifer}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(IDENTIFIER); }
+{Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(V_NUMBER); }
+{Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(V_NUMBER); }
+{Identifer}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT); }
 
 <INITIAL>{
 	\"			{ BEGIN(StringBlock); }
@@ -184,7 +185,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 	\"				{	BEGIN(INITIAL);
 						yylval.string = MUON_CNEW(muon::String, g_strBuffer);
 						g_strBuffer.clear();
-						HZ_TOK(STRING);
+						HZ_TOK(V_STRING);
 					}
 	[^"\n]+			{ g_strBuffer += yytext;}
 	{NewLine}		{ g_strBuffer += yytext; ++g_lineCount; g_charCount = 0; }
@@ -195,8 +196,8 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 ","		{ HZ_CHAR; HZ_TOK(S_COMMA); }
 "("		{ HZ_CHAR; HZ_TOK(S_LPARENT); }
 ")"		{ HZ_CHAR; HZ_TOK(S_RPARENT); }
-"{"		{ HZ_CHAR; HZ_TOK(S_LCBRACE); }
-"}"		{ HZ_CHAR; HZ_TOK(S_RCBRACE); }
+"{"		{ HZ_CHAR; HZ_TOK(S_LBRACE); }
+"}"		{ HZ_CHAR; HZ_TOK(S_RBRACE); }
 "["		{ HZ_CHAR; HZ_TOK(S_LBRACKET); }
 "]"		{ HZ_CHAR; HZ_TOK(S_RBRACKET); }
 

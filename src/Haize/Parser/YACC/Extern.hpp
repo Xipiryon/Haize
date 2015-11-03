@@ -3,7 +3,7 @@
 
 // Functions definition
 extern bool custom_yymain(const char* buffer);
-int processInput(char* buffer, size_t* numBytesRead, int maxBytesToRead);
+int processInput(char* buffer, int* numBytesRead, int maxBytesToRead);
 
 // Global internal variables
 namespace hz

@@ -51,21 +51,23 @@
 %token <node> NT_FUNC_CALL NT_FUNC_DECL NT_ARG_LIST
 %token <node> NT_STMT
 
-%token S_LPARENT S_RPARENT S_LCBRACE S_RCBRACE S_LBRACKET S_RBRACKET
-%token <node> S_COMMA S_NEWLINE
+%token S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
+%token <node> S_COMMA S_SEPARATOR S_NEWLINE
 
-%token <string> IDENTIFIER
-%token <string> STRING
-%token <floating> NUMBER
-%token <integer> TRUE FALSE NIL
+%token <string> V_IDENT
+%token <string> V_STRING
+%token <floating> V_NUMBER
+%token <integer> V_TRUE V_FALSE V_NIL
 
 %token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN
 %token <node> CLASS ATTR FUNCTION RETURN
+%token <node> NAMESPACE
 
 /*
 * Declares our customs non terminal tokens
 */
-%type <node> block block_empty chunk stmt_decl expr subexpr
+%type <node> block block_empty chunk chunk_empty stmt_decl expr subexpr
+%type <node> namespace_decl
 %type <node> param_list param_decl func_decl func_call arg_list
 %type <node> attr_decl class_body class_body_decl class_decl
 %type <node> expr_asn_op binop_all expr_bin_op expr_cmp_op expr_bit_op
@@ -79,8 +81,7 @@
 %%
 
 program
-	: /* Empty script is valid, though useless */
-	| chunk				{ g_parseInfo->ASTRoot->addChild($1); }
+	: chunk		{ g_parseInfo->ASTRoot->addChild($1); }
 	;
 
 chunk
@@ -88,10 +89,18 @@ chunk
 	| chunk block		{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
 	;
 
+chunk_empty
+	: block_empty			{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
+	| chunk block			{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
+	;
+
 block
 	: stmt_decl			{ if($1 == NULL) { $$ = NULL; } else { $$ = HZ_NEW(NT_STMT); $$->addChild($1); } }
 	| func_decl			{ $$ = $1; }
 	| class_decl		{ $$ = $1; }
+	| namespace_decl	{ $$ = $1; }
+	| conditional_block 		{ $$ = $1; }
+	| RETURN expr S_SEPARATOR	{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
 	;
 
 block_empty
@@ -99,17 +108,18 @@ block_empty
 	| block				{ $$ = $1; }
 	;
 
+namespace_decl
+	: NAMESPACE V_IDENT S_LBRACE chunk_empty S_RBRACE	{ $$ = HZ_NEW(NAMESPACE); $$->value = *$2; $$->addChild($4); }
+	;
+
 stmt_decl
-	: S_NEWLINE									{ $$ = NULL; }
-	| expr S_NEWLINE							{ $$ = $1; }
-	| RETURN expr S_NEWLINE						{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
-	| conditional_block S_NEWLINE				{ $$ = $1; }
-	| variable expr_asn_op expr S_NEWLINE		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	: expr S_SEPARATOR							{ $$ = $1; }
+	| variable expr_asn_op expr S_SEPARATOR		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	;
 
 expr
 	: subexpr						{ $$ = $1; }
-	| expr binop_all subexpr			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr binop_all subexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	;
 
 subexpr
@@ -117,7 +127,7 @@ subexpr
 	| variable								{ $$ = $1; }
 	| MATH_ADD expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = true; $$->addChild($2); }
 	| MATH_SUB expr %prec UNARY_SIGN		{ $$ = HZ_NEW(UNARY_SIGN); $$->value = false; $$->addChild($2); }
-	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	| S_LPARENT expr S_RPARENT				{ $$ = $2; }
 	;
 
 arg_list
@@ -127,8 +137,8 @@ arg_list
 	;
 
 func_call
-	: IDENTIFIER S_LPARENT arg_list S_RPARENT		{	$$ = HZ_NEW(NT_FUNC_CALL);
-														auto id = HZ_NEW(IDENTIFIER);
+	: V_IDENT S_LPARENT arg_list S_RPARENT		{	$$ = HZ_NEW(NT_FUNC_CALL);
+														auto id = HZ_NEW(V_IDENT);
 														id->value = *$1;
 														$$->addChild(id);
 														$$->addChild($3);
@@ -137,13 +147,13 @@ func_call
 
 param_list
 	: /* */								{ $$ = HZ_NEW(NT_EMPTY); }
-	| IDENTIFIER						{	$$ = HZ_NEW(NT_ARG_LIST);
-											auto node = HZ_NEW(IDENTIFIER);
+	| V_IDENT						{	$$ = HZ_NEW(NT_ARG_LIST);
+											auto node = HZ_NEW(V_IDENT);
 											node->value = *$1;
 											$$->addChild(node);
 										}
-	| param_list S_COMMA IDENTIFIER		{	$$ = $1;
-											auto node = HZ_NEW(IDENTIFIER);
+	| param_list S_COMMA V_IDENT		{	$$ = $1;
+											auto node = HZ_NEW(V_IDENT);
 											node->value = *$3;
 											$$->addChild(node);
 										}
@@ -154,24 +164,25 @@ param_decl
 	;
 
 func_decl
-	: FUNCTION IDENTIFIER param_decl block_empty END	{	$$ = HZ_NEW(NT_FUNC_DECL);
-															$$->addChild(IDENTIFIER, "IDENTIFIER")->value = *$2;
-															$$->addChild($3);
-															$$->addChild($4);
-														}
+	: FUNCTION V_IDENT param_decl S_LBRACE block_empty S_RBRACE
+		{	$$ = HZ_NEW(NT_FUNC_DECL);
+			$$->addChild(V_IDENT, "V_IDENT")->value = *$2;
+			$$->addChild($3);
+			$$->addChild($5);
+		}
 	;
 
 attr_decl
-	: ATTR IDENTIFIER		{	$$ = HZ_NEW(NT_ATTR_DECL);
-								auto node = HZ_NEW(IDENTIFIER);
+	: ATTR V_IDENT		{	$$ = HZ_NEW(NT_ATTR_DECL);
+								auto node = HZ_NEW(V_IDENT);
 								node->value = *$2;
 								$$->addChild(node);
 							}
-	| ATTR IDENTIFIER IDENTIFIER		{	$$ = HZ_NEW(NT_ATTR_DECL);
-											auto type = HZ_NEW(IDENTIFIER);
+	| ATTR V_IDENT V_IDENT		{	$$ = HZ_NEW(NT_ATTR_DECL);
+											auto type = HZ_NEW(V_IDENT);
 											type->value = *$2;
 											$$->addChild(type);
-											auto node = HZ_NEW(IDENTIFIER);
+											auto node = HZ_NEW(V_IDENT);
 											node->value = *$2;
 											type->addChild(node);
 										}
@@ -190,12 +201,11 @@ class_body_decl
 	;
 
 class_decl
-	: CLASS IDENTIFIER class_body_decl END		{	$$ = HZ_NEW(NT_CLASS_DECL);
-													auto id = HZ_NEW(IDENTIFIER);
-													id->value = *$2;
-													$$->addChild(id);
-													$$->addChild($3);
-												}
+	: CLASS V_IDENT S_LBRACE class_body_decl S_RBRACE
+		{	$$ = HZ_NEW(NT_CLASS_DECL);
+			$$->addChild(V_IDENT, "V_IDENT")->value = *$2;
+			$$->addChild($4);
+		}
 	;
 
 expr_asn_op
@@ -253,11 +263,11 @@ conditional_block
 	;
 
 constant
-	: NUMBER	{ $$ = HZ_NEW(NUMBER); $$->value = $1; }
-	| STRING	{ $$ = HZ_NEW(STRING); $$->value = *$1; }
-	| TRUE		{ $$ = HZ_NEW(TRUE); $$->value = $1; }
-	| FALSE		{ $$ = HZ_NEW(FALSE); $$->value = $1; }
-	| NIL		{ $$ = HZ_NEW(NIL); $$->value = $1; }
+	: V_NUMBER	{ $$ = HZ_NEW(V_NUMBER); $$->value = $1; }
+	| V_STRING	{ $$ = HZ_NEW(V_STRING); $$->value = *$1; }
+	| V_TRUE		{ $$ = HZ_NEW(V_TRUE); $$->value = $1; }
+	| V_FALSE		{ $$ = HZ_NEW(V_FALSE); $$->value = $1; }
+	| V_NIL		{ $$ = HZ_NEW(V_NIL); $$->value = $1; }
 	;
 
 variable
@@ -266,6 +276,6 @@ variable
 	;
 
 variable_lval
-	: IDENTIFIER			{ $$ = HZ_NEW(IDENTIFIER); $$->value = *$1; }
+	: V_IDENT			{ $$ = HZ_NEW(V_IDENT); $$->value = *$1; }
 	| func_call				{ $$ = $1; }
 	;

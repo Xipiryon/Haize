@@ -17,11 +17,11 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 		muon::String str;
 		switch(node->type)
 		{
-			case IDENTIFIER:
+			case V_IDENT:
 				str = node->value.get<muon::String>();
 				graphviz << "\\n'" << str.cStr() << "'";
 				break;
-			case STRING:
+			case V_STRING:
 			{
 				str = node->value.get<muon::String>();
 				str = str.replace("\n", "\\n");
@@ -33,14 +33,14 @@ hz::parser::ASTNode* displayRecursive(std::ostream& graphviz, muon::u32 id, hz::
 			case UNARY_SIGN:
 				graphviz << "\\n'" << (node->value.get<bool>() ? "pos" : "neg") << "'";
 				break;
-			case TRUE:
-			case FALSE:
+			case V_TRUE:
+			case V_FALSE:
 				graphviz << "\\n'" << (node->value.get<bool>() ? "true" : "false") << "'";
 				break;
-			case NUMBER:
+			case V_NUMBER:
 				graphviz << "\\n'" << node->value.get<float>() << "'";
 				break;
-			case NIL:
+			case V_NIL:
 				graphviz << "\\n'nil'";
 				break;
 			default:
@@ -106,7 +106,7 @@ bool custom_yymain(const char* buffer)
 	return true;
 }
 
-int processInput(char* buffer, size_t* numBytesRead, int maxBytesToRead )
+int processInput(char* buffer, int* numBytesRead, int maxBytesToRead )
 {
 	int numBytesToRead = maxBytesToRead;
 	int bytesRemaining = g_strArgument.size() - g_readOffset;
