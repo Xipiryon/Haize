@@ -47,17 +47,17 @@ namespace utils
 		for(; i < len; ++i)
 		{
 			val <<= 4;
-			if(str[i] >= '0' || str[i] <= '9')
+			if(str[i] >= '0' && str[i] <= '9')
 			{
 				val |= str[i] - '0';
 			}
-			else if(str[i] >= 'a' || str[i] <= 'f')
+			else if(str[i] >= 'a' && str[i] <= 'f')
 			{
-				val |= str[i] - 'a';
+				val |= str[i] - 'a' + 10;
 			}
 			else
 			{
-				val |= str[i] - 'A';
+				val |= str[i] - 'A' + 10;
 			}
 		}
 		return val;
