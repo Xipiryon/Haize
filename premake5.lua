@@ -86,10 +86,10 @@ solution "Haize"
 
 	filter  "*DLL"
 		kind "SharedLib"
-		
+
 	filter "Debug*"
 		defines { "MUON_DEBUG"}
-		
+
 	filter "Release*"
 		defines { "MUON_RELEASE"}
 
@@ -103,7 +103,7 @@ solution "Haize"
 project "Haize"
 	language "C++"
 	targetdir(HaizeRoot.."/bin/lib")
-	
+
 	if os.is("windows") then
 		postbuildcommands { string.gsub("copy "..HaizeRoot.."/bin/lib/*.dll "..HaizeRoot.."/bin/", "/", "\\") }
 	end
@@ -120,12 +120,12 @@ project "Haize"
 		links	{ "Muon-d" }
 	filter "Release*"
 		links { "Muon" }
-		
+
 	filter "*DLL"
 		defines { "HAIZE_EXPORTS" }
 
 
--- Console Application 
+-- Console Application
 -------------------------------------------
 
 project "HaizeExecutable"
@@ -140,10 +140,32 @@ project "HaizeExecutable"
 
 	filter "Debug*"
 		links	{ "Haize-d", "Muon-d" }
-		
+
 	filter "Release*"
 		links { "Haize", "Muon" }
 
+-- Unit Tests
+-------------------------------------------
+
+if _OPTIONS["unittests"] then
+
+	project "UnitTests"
+		language "C++"
+		targetname "UnitTests"
+		targetdir "bin"
+		kind "ConsoleApp"
+
+		files	{
+			HaizeRoot.."/unittests/main.cpp"
+		}
+
+		filter "Debug*"
+			links	{ "Haize-d", "Muon-d" }
+
+		filter "Release*"
+			links { "Haize", "Muon" }
+
+end
 
 ------------------------------
 -- Options
@@ -155,6 +177,10 @@ newoption {
 	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
 }
 
+newoption {
+	trigger     = "unittests",
+	description = "Enable compilation of unit tests",
+}
 ------------------------------
 -- Actions
 ------------------------------
@@ -162,7 +188,7 @@ newoption {
 newaction {
 	trigger = "genparser",
 	description = "Generate Flex & Bison files",
-	execute = function() 
+	execute = function()
 		generateParserFiles();
 	end
 }
