@@ -11,6 +11,8 @@
 
 void leave(int code)
 {
+	muon::system::Log::close();
+
 #ifdef MUON_PLATFORM_WINDOWS
 	::system("PAUSE");
 #endif
