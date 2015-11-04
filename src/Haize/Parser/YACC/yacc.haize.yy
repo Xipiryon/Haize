@@ -45,10 +45,11 @@
 
 /*
 * Non-Terminal or Syntaxic-only Token
+* NT_ROOT is used inside cpp code
 */
-%token <node> NT_ROOT NT_BLOCK NT_CHUNK NT_EMPTY NT_EOF
-%token <node> NT_CLASS_DECL NT_CLASS_BODY NT_ATTR_DECL
-%token <node> NT_FUNC_CALL NT_FUNC_DECL NT_ARG_LIST
+%token <node> NT_ROOT NT_EMPTY
+%token <node> NT_STRUCT_BODY NT_ATTR_DECL
+%token <node> NT_FUNC_CALL NT_ARG_LIST
 %token <node> NT_STMT
 
 %token S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
@@ -59,9 +60,8 @@
 %token <floating> V_FLOATING
 %token <integer> V_TRUE V_FALSE V_NIL V_INTEGER
 
-%token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN
-%token <node> CLASS ATTR FUNCTION RETURN
-%token <node> NAMESPACE
+%token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN RETURN
+%token <node> K_NAMESPACE K_STRUCT K_ATTR K_FUNCTION
 
 /*
 * Declares our customs non terminal tokens
@@ -69,7 +69,7 @@
 %type <node> block block_empty chunk chunk_empty stmt_decl expr subexpr
 %type <node> namespace_decl
 %type <node> param_list param_decl func_decl func_call arg_list
-%type <node> attr_decl class_body class_body_decl class_decl
+%type <node> attr_decl struct_body struct_body_decl struct_decl
 %type <node> expr_asn_op binop_all expr_bin_op expr_cmp_op expr_bit_op
 %type <node> conditional_block
 %type <node> constant variable variable_lval
@@ -90,14 +90,14 @@ chunk
 	;
 
 chunk_empty
-	: block_empty			{ $$ = HZ_NEW(NT_BLOCK); if ($1 != NULL) { $$->addChild($1); } }
+	: block_empty			{ $$ = ($1 != NULL ? $1 : HZ_NEW(NT_EMPTY)); }
 	| chunk block			{ $$ = $1; if($2 != NULL) { $$->addChild($2); } }
 	;
 
 block
 	: stmt_decl			{ if($1 == NULL) { $$ = NULL; } else { $$ = HZ_NEW(NT_STMT); $$->addChild($1); } }
 	| func_decl			{ $$ = $1; }
-	| class_decl		{ $$ = $1; }
+	| struct_decl		{ $$ = $1; }
 	| namespace_decl	{ $$ = $1; }
 	| conditional_block 		{ $$ = $1; }
 	| RETURN expr S_SEPARATOR	{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
@@ -109,7 +109,7 @@ block_empty
 	;
 
 namespace_decl
-	: NAMESPACE V_IDENT S_LBRACE chunk_empty S_RBRACE	{ $$ = HZ_NEW(NAMESPACE); $$->value = *$2; $$->addChild($4); }
+	: K_NAMESPACE V_IDENT S_LBRACE chunk_empty S_RBRACE	{ $$ = HZ_NEW(K_NAMESPACE); $$->value = *$2; $$->addChild($4); }
 	;
 
 stmt_decl
@@ -137,26 +137,29 @@ arg_list
 	;
 
 func_call
-	: V_IDENT S_LPARENT arg_list S_RPARENT		{	$$ = HZ_NEW(NT_FUNC_CALL);
-														auto id = HZ_NEW(V_IDENT);
-														id->value = *$1;
-														$$->addChild(id);
-														$$->addChild($3);
-													}
+	: V_IDENT S_LPARENT arg_list S_RPARENT
+		{	$$ = HZ_NEW(NT_FUNC_CALL);
+			auto id = HZ_NEW(V_IDENT);
+			id->value = *$1;
+			$$->addChild(id);
+			$$->addChild($3);
+		}
 	;
 
 param_list
-	: /* */								{ $$ = HZ_NEW(NT_EMPTY); }
-	| V_IDENT						{	$$ = HZ_NEW(NT_ARG_LIST);
-											auto node = HZ_NEW(V_IDENT);
-											node->value = *$1;
-											$$->addChild(node);
-										}
-	| param_list S_COMMA V_IDENT		{	$$ = $1;
-											auto node = HZ_NEW(V_IDENT);
-											node->value = *$3;
-											$$->addChild(node);
-										}
+	: /* */		{ $$ = HZ_NEW(NT_EMPTY); }
+	| V_IDENT
+		{	$$ = HZ_NEW(NT_ARG_LIST);
+			auto node = HZ_NEW(V_IDENT);
+			node->value = *$1;
+			$$->addChild(node);
+		}
+	| param_list S_COMMA V_IDENT
+		{	$$ = $1;
+			auto node = HZ_NEW(V_IDENT);
+			node->value = *$3;
+			$$->addChild(node);
+		}
 	;
 
 param_decl
@@ -164,8 +167,8 @@ param_decl
 	;
 
 func_decl
-	: FUNCTION V_IDENT param_decl S_LBRACE block_empty S_RBRACE
-		{	$$ = HZ_NEW(NT_FUNC_DECL);
+	: K_FUNCTION V_IDENT param_decl S_LBRACE block_empty S_RBRACE
+		{	$$ = HZ_NEW(K_FUNCTION);
 			$$->addChild(V_IDENT, "V_IDENT")->value = *$2;
 			$$->addChild($3);
 			$$->addChild($5);
@@ -173,36 +176,38 @@ func_decl
 	;
 
 attr_decl
-	: ATTR V_IDENT		{	$$ = HZ_NEW(NT_ATTR_DECL);
-								auto node = HZ_NEW(V_IDENT);
-								node->value = *$2;
-								$$->addChild(node);
-							}
-	| ATTR V_IDENT V_IDENT		{	$$ = HZ_NEW(NT_ATTR_DECL);
-											auto type = HZ_NEW(V_IDENT);
-											type->value = *$2;
-											$$->addChild(type);
-											auto node = HZ_NEW(V_IDENT);
-											node->value = *$2;
-											type->addChild(node);
-										}
+	: K_ATTR V_IDENT
+		{	$$ = HZ_NEW(NT_ATTR_DECL);
+			auto node = HZ_NEW(V_IDENT);
+			node->value = *$2;
+			$$->addChild(node);
+		}
+	| K_ATTR V_IDENT V_IDENT
+		{	$$ = HZ_NEW(NT_ATTR_DECL);
+			auto type = HZ_NEW(V_IDENT);
+			type->value = *$2;
+			$$->addChild(type);
+			auto node = HZ_NEW(V_IDENT);
+			node->value = *$2;
+			type->addChild(node);
+		}
 	;
 
-class_body
-	: attr_decl				{ $$ = HZ_NEW(NT_CLASS_BODY); $$->addChild($1); }
-	| func_decl				{ $$ = HZ_NEW(NT_CLASS_BODY); $$->addChild($1); }
-	| class_body attr_decl	{ $$ = $1; $$->addChild($2); }
-	| class_body func_decl	{ $$ = $1; $$->addChild($2); }
+struct_body
+	: attr_decl				{ $$ = HZ_NEW(NT_STRUCT_BODY); $$->addChild($1); }
+	| func_decl				{ $$ = HZ_NEW(NT_STRUCT_BODY); $$->addChild($1); }
+	| struct_body attr_decl	{ $$ = $1; $$->addChild($2); }
+	| struct_body func_decl	{ $$ = $1; $$->addChild($2); }
 	;
 
-class_body_decl
+struct_body_decl
 	: /* E */			{ $$ = HZ_NEW(NT_EMPTY); }
-	| class_body		{ $$ = $1; }
+	| struct_body		{ $$ = $1; }
 	;
 
-class_decl
-	: CLASS V_IDENT S_LBRACE class_body_decl S_RBRACE
-		{	$$ = HZ_NEW(NT_CLASS_DECL);
+struct_decl
+	: K_STRUCT V_IDENT S_LBRACE struct_body_decl S_RBRACE
+		{	$$ = HZ_NEW(K_STRUCT);
 			$$->addChild(V_IDENT, "V_IDENT")->value = *$2;
 			$$->addChild($4);
 		}

@@ -19,7 +19,7 @@ namespace hz
 
 namespace muon
 {
-	class String;
+	struct String;
 }
 
 // And as this file will be generated, it will be in the same folder
@@ -149,12 +149,12 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "do"		{ HZ_CHAR; HZ_TOK(DO); }
 "in"		{ HZ_CHAR; HZ_TOK(IN); }
 "end"		{ HZ_CHAR; HZ_TOK(END); }
-
-"namespace"	{ HZ_CHAR; HZ_TOK(NAMESPACE); }
-"class"		{ HZ_CHAR; HZ_TOK(CLASS); }
-"attr"		{ HZ_CHAR; HZ_TOK(ATTR); }
-"function"	{ HZ_CHAR; HZ_TOK(FUNCTION); }
 "return"	{ HZ_CHAR; HZ_TOK(RETURN); }
+
+"namespace"	{ HZ_CHAR; HZ_TOK(K_NAMESPACE); }
+"struct"	{ HZ_CHAR; HZ_TOK(K_STRUCT); }
+"attr"		{ HZ_CHAR; HZ_TOK(K_ATTR); }
+"function"	{ HZ_CHAR; HZ_TOK(K_FUNCTION); }
 
 {HexNumber}	{
 	yylval.integer = utils::hex2int(yytext);
