@@ -65,15 +65,17 @@ int main(int argc, char** argv)
 
 	// Eval some scripts
 	{
+		// The eval line must be set this way, so we have correct line ending
+		const char* eval = MUON_STR(
+// declare a variable
+a = 0;
+// declare function
+function foo(a) { print(a); }
+foo(a);
+return 64;
+		);
 
-		HAIZE_TITLE(" ** Evaluating Script **");
-		const char* eval =
-		" // declare a variable "
-		"a = 0;"
-		" // declare function "
-		"function foo(a) { print(a); }"
-		"foo(a);"
-		"return 64;";
+		HAIZE_TITLE(" ** Evaluating Script: \"" << eval << "\" **");
 		HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
