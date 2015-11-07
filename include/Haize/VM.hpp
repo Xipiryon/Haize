@@ -16,6 +16,13 @@ namespace hz
 	/*!
 	*
 	*/
+	class HAIZE_API Context
+	{
+	};
+
+	/*!
+	*
+	*/
 	class HAIZE_API VMInstance
 	{
 	public:
