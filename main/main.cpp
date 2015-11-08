@@ -171,7 +171,7 @@ bool parseArguments(int argc, char** argv)
 
 void executeProgram()
 {
-	muon::system::Log log("HAIZE", muon::LOG_INFO);
+	muon::system::Log log("Haize", muon::LOG_INFO);
 	hz::VMInstance vm;
 
 	if(g_Interactive)
