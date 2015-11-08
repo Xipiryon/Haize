@@ -110,24 +110,8 @@ bool parseArguments(int argc, char** argv)
 			if (++i < argc)
 			{
 				g_Filename = argv[i];
-				std::ifstream file(g_Filename.cStr());
-				if (!file)
-				{
-					log(muon::LOG_ERROR) << "Couldn't load: " << g_Filename << muon::endl;
-					return false;
-				}
-				if (!file.eof())
-				{
-					file.seekg(0, std::ios::end);
-					muon::u64 length = (muon::u64)file.tellg();
-					file.seekg(0, std::ios::beg);
-					log(muon::LOG_INFO) << "Reading " << length << " bytes from \"" << g_Filename << "\"..." << muon::endl;
-					g_Buffer = (char*)malloc(sizeof(char) * (size_t)length);
-					file.read(g_Buffer, length);
-					log(muon::LOG_INFO) << "... done !" << muon::endl;
-					validArgument = true;
-					g_LoadFile = true;
-				}
+				g_LoadFile = true;
+				validArgument = true;
 			}
 			else
 			{
@@ -208,19 +192,32 @@ void executeProgram()
 	else if (g_LoadFile)
 	{
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
-		if(vm.eval(g_Buffer))
+		if (!vm.load(g_Filename.cStr()))
 		{
-			if (g_ExportBytecode)
-			{
-				muon::String outputFilename = g_Filename + "c";
-				log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
-				std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-				file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
-				file.close();
-			}
+			log(muon::LOG_ERROR) << "Couldn't load " << g_Filename << "!" << muon::endl;
+			return;
 		}
 
-		free(g_Buffer);
+		if (!vm.compile("RuntimeEval"))
+		{
+			log(muon::LOG_ERROR) << "Couldn't compile " << g_Filename << "!" << muon::endl;
+			return;
+		}
+
+		if (!vm.execute())
+		{
+			log(muon::LOG_ERROR) << "Couldn't execute " << g_Filename << "!" << muon::endl;
+			return;
+		}
+
+		if (g_ExportBytecode)
+		{
+			muon::String outputFilename = g_Filename + "c";
+			log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
+			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
+			file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+			file.close();
+		}
 		return;
 	}
 	// BYTECODE LOAD FILE

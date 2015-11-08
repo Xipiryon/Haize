@@ -32,7 +32,7 @@ namespace hz
 		/*!
 		*
 		*/
-		bool load(const std::istream& str);
+		bool load(std::istream& file);
 
 		/*!
 		*
@@ -61,16 +61,18 @@ namespace hz
 
 		const parser::Info& getInfo() const
 		{
-			return _info;
+			return m_info;
 		}
 
 	private:
-		parser::Info _info;
+		parser::Info m_info;
 
-		ByteCode _instr;
-		muon::u32 _stack;
-		SymbolTable _symbols;
-		muon::Variant _registers[ByteCode::INVALID_REG];
+		ByteCode m_instr;
+		muon::u32 m_stack;
+		SymbolTable m_symbols;
+		muon::Variant m_registers[ByteCode::INVALID_REG];
+
+		char* m_loadBuffer;
 	};
 }
 #endif
