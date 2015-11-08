@@ -21,9 +21,9 @@ namespace hz
 		typedef std::unordered_map<muon::String, muon::u8> HashMapRegistry;
 		typedef std::unordered_map<muon::String, SymbolTable*> HashMapNamespace;
 
-		HashMapRegistry* _registers;
-		HashMapNamespace* _namespaces;
-		muon::u8 _registerId;
+		HashMapRegistry* m_registers;
+		HashMapNamespace* m_namespaces;
+		muon::u8 m_registerId;
 	};
 }
 

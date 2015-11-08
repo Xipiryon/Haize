@@ -7,40 +7,40 @@
 namespace hz
 {
 	SymbolTable::SymbolTable()
-		: _registers(MUON_CNEW(HashMapRegistry))
-		, _namespaces(MUON_CNEW(HashMapNamespace))
-		, _registerId(ByteCode::USABLE_REG)
+		: m_registers(MUON_CNEW(HashMapRegistry))
+		, m_namespaces(MUON_CNEW(HashMapNamespace))
+		, m_registerId(ByteCode::USABLE_REG)
 	{
 	}
 
 	SymbolTable::~SymbolTable()
 	{
-		MUON_CDELETE(_registers);
-		for (auto it = _namespaces->begin(); it != _namespaces->end(); ++it)
+		MUON_CDELETE(m_registers);
+		for (auto it = m_namespaces->begin(); it != m_namespaces->end(); ++it)
 		{
 			MUON_CDELETE(it->second);
 		}
-		MUON_CDELETE(_namespaces);
+		MUON_CDELETE(m_namespaces);
 	}
 
 	muon::u8 SymbolTable::checkOrCreateRegister(const muon::String& identifier)
 	{
-		if (_registerId == hz::ByteCode::INVALID_REG)
+		if (m_registerId == hz::ByteCode::INVALID_REG)
 		{
-			muon::system::Log log("SYMBOLTABLE", muon::LOG_ERROR);
+			muon::system::Log log("SymbolTable", muon::LOG_ERROR);
 			log() << "Maximum number of internal registers reached!" << muon::endl;
 			log() << "  This indicates that a block have 254 register used!" << muon::endl;
 			log() << "  Previous register will be used. Value may be overwritten." << muon::endl;
-			_registerId = ByteCode::USABLE_REG;
+			m_registerId = ByteCode::USABLE_REG;
 		}
 
-		auto it = _registers->find(identifier);
-		if (it != _registers->end())
+		auto it = m_registers->find(identifier);
+		if (it != m_registers->end())
 		{
 			return it->second;
 		}
-		(*_registers)[identifier] = _registerId++;
-		return (*_registers)[identifier];
+		(*m_registers)[identifier] = m_registerId++;
+		return (*m_registers)[identifier];
 	}
 	
 	void SymbolTable::freeRegister(const muon::String& identifier)
