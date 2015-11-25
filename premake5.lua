@@ -17,7 +17,11 @@ end
 if not G_Install.Header then G_Install.Header = G_Install.Root.."include" end
 if not G_Install.Lib then G_Install.Lib = G_Install.Root.."lib" end
 
-HaizeRoot = os.getcwd()
+ProjectRoot = os.getcwd()
+
+if SolutionRoot == nil then
+	SolutionRoot = ProjectRoot
+end
 
 -- Generate Lex/Yacc files
 function generateParserFiles(executeOsCommand)
@@ -46,30 +50,14 @@ end
 -- Solution
 ------------------------------
 
-solution "Haize"
-	startproject "HaizeExecutable"
-	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
-
-	if not os.is("windows") then
-		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..HaizeRoot.."/bin/lib/" }
-	end
-
-	-- If option exists, then override G_Install
-	if _OPTIONS["basedir"] then
-		G_Install.Root = _OPTIONS["basedir"]
-		G_Install.Header = _OPTIONS["basedir"].."/include"
-		G_Install.Lib = _OPTIONS["basedir"].."/lib"
-		print("Install directory has been overwritten to '"..G_Install.Root.."'")
-	end
-
+function prepareConfiguration()
 	includedirs {
-		HaizeRoot.."/include",
+		ProjectRoot.."/include",
 		G_Install.Header,
 	}
 
 	libdirs {
-		HaizeRoot.."/bin/lib",
+		ProjectRoot.."/bin/lib",
 		G_Install.Lib
 	}
 
@@ -92,79 +80,35 @@ solution "Haize"
 
 	filter "Release*"
 		defines { "MUON_RELEASE"}
+end
+
+solution "Haize"
+	startproject "HaizeExecutable"
+	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
+
+	if not os.is("windows") then
+		buildoptions { "--std=c++11" }
+		linkoptions { "-Wl,-rpath,"..ProjectRoot.."/bin/lib/" }
+	end
+
+	-- If option exists, then override G_Install
+	if _OPTIONS["basedir"] then
+		G_Install.Root = _OPTIONS["basedir"]
+		G_Install.Header = _OPTIONS["basedir"].."/include"
+		G_Install.Lib = _OPTIONS["basedir"].."/lib"
+		print("Install directory has been overwritten to '"..G_Install.Root.."'")
+	end
+
+	prepareConfiguration()
 
 ------------------------------
 -- Project
 ------------------------------
 
--- Library
--------------------------------------------
-
-project "Haize"
-	language "C++"
-	targetdir(HaizeRoot.."/bin/lib")
-
-	if os.is("windows") then
-		postbuildcommands { string.gsub("copy "..HaizeRoot.."/bin/lib/*.dll "..HaizeRoot.."/bin/", "/", "\\") }
-	end
-
-	files {
-		HaizeRoot.."/src/**.cpp",
-		HaizeRoot.."/include/**.hpp",
-		-- Flex/Bison and related files
-		HaizeRoot.."/src/Haize/Parser/**.hpp",
-		HaizeRoot.."/src/Haize/Parser/YACC/yacc.haize.yy",
-		HaizeRoot.."/src/Haize/Parser/YACC/flex.haize.ll",
-	}
-	filter "Debug*"
-		links	{ "Muon-d" }
-	filter "Release*"
-		links { "Muon" }
-
-	filter "*DLL"
-		defines { "HAIZE_EXPORTS" }
-
-
--- Console Application
--------------------------------------------
-
-project "HaizeExecutable"
-	language "C++"
-	targetname "Haize"
-	targetdir "bin"
-	kind "ConsoleApp"
-
-	files	{
-		HaizeRoot.."/main/main.cpp"
-	}
-
-	filter "Debug*"
-		links	{ "Haize-d", "Muon-d" }
-
-	filter "Release*"
-		links { "Haize", "Muon" }
-
--- Unit Tests
--------------------------------------------
-
+include("project_lib")
+include("project_exe")
 if _OPTIONS["unittests"] then
-
-	project "UnitTests"
-		language "C++"
-		targetname "UnitTests"
-		targetdir "bin"
-		kind "ConsoleApp"
-
-		files	{
-			HaizeRoot.."/unittests/main.cpp"
-		}
-
-		filter "Debug*"
-			links	{ "Haize-d", "Muon-d" }
-
-		filter "Release*"
-			links { "Haize", "Muon" }
-
+	include("project_unittests")
 end
 
 ------------------------------
@@ -199,8 +143,8 @@ newaction {
 	execute = function ()
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
-		local incDir = HaizeRoot.."/include/"
-		local libDir = HaizeRoot.."/bin/lib/"
+		local incDir = ProjectRoot.."/include/"
+		local libDir = ProjectRoot.."/bin/lib/"
 
 		-- Create required folders
 		local dirList = os.matchdirs(incDir.."**")
