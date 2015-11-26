@@ -78,7 +78,10 @@ solution "Haize"
 ------------------------------
 -- Project
 ------------------------------
+-- Muon
+include("extern/Muon/project_Lib")
 
+-- Haize
 include("project_Lib")
 include("project_Exe")
 if _OPTIONS["unittests"] then
