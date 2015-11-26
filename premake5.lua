@@ -27,7 +27,23 @@ end
 -- Solution
 ------------------------------
 
-function prepareConfiguration()
+solution "Haize"
+	startproject "HaizeExecutable"
+	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
+
+	if not os.is("windows") then
+		buildoptions { "--std=c++11" }
+		linkoptions { "-Wl,-rpath,"..ProjectRoot.."/bin/lib/" }
+	end
+
+	-- If option exists, then override G_Install
+	if _OPTIONS["basedir"] then
+		G_Install.Root = _OPTIONS["basedir"]
+		G_Install.Header = _OPTIONS["basedir"].."/include"
+		G_Install.Lib = _OPTIONS["basedir"].."/lib"
+		print("Install directory has been overwritten to '"..G_Install.Root.."'")
+	end
+
 	includedirs {
 		ProjectRoot.."/include",
 		G_Install.Header,
@@ -58,26 +74,6 @@ function prepareConfiguration()
 
 	filter "Release*"
 		defines { "MUON_RELEASE"}
-end
-
-solution "Haize"
-	startproject "HaizeExecutable"
-	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
-
-	if not os.is("windows") then
-		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..ProjectRoot.."/bin/lib/" }
-	end
-
-	-- If option exists, then override G_Install
-	if _OPTIONS["basedir"] then
-		G_Install.Root = _OPTIONS["basedir"]
-		G_Install.Header = _OPTIONS["basedir"].."/include"
-		G_Install.Lib = _OPTIONS["basedir"].."/lib"
-		print("Install directory has been overwritten to '"..G_Install.Root.."'")
-	end
-
-	prepareConfiguration()
 
 ------------------------------
 -- Project
