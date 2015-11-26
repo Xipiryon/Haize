@@ -2,7 +2,7 @@
 project "HaizeExecutable"
 	language "C++"
 	targetname "Haize"
-	targetdir (SolutionRoot.."bin")
+	targetdir (SolutionRoot.."/bin")
 	kind "ConsoleApp"
 
 	files	{
