@@ -83,10 +83,10 @@ solution "Haize"
 -- Project
 ------------------------------
 
-include("project_lib")
-include("project_exe")
+include("project_Lib")
+include("project_Exe")
 if _OPTIONS["unittests"] then
-	include("project_unittests")
+	include("project_UnitTests")
 end
 
 ------------------------------
