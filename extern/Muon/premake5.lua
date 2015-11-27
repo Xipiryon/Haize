@@ -17,8 +17,11 @@ end
 if not G_Install.Header then G_Install.Header = G_Install.Root.."include" end
 if not G_Install.Lib then G_Install.Lib = G_Install.Root.."lib" end
 
-MuonRoot = os.getcwd()
+ProjectRoot = os.getcwd()
 
+if SolutionRoot == nil then
+	SolutionRoot = ProjectRoot
+end
 ------------------------------
 -- Solution
 ------------------------------
@@ -46,12 +49,12 @@ solution "Muon"
 	end
 
 	includedirs {
-		"include",
+		ProjectRoot.."include",
 		G_Install.Header,
 	}
 
 	libdirs {
-		"bin",
+		ProjectRoot.."bin",
 		G_Install.Lib
 	}
 
@@ -75,43 +78,12 @@ solution "Muon"
 -- Project
 ------------------------------
 
--- Library
--------------------------------------------
-
-project "Muon"
-
-	language "C++"
-	targetdir "bin"
-
-	files {
-       MuonRoot.."/src/**.cpp",
-       MuonRoot.."/include/**.hpp",
-    }
-
-	filter  "*DLL"
-		defines { "MUON_EXPORTS" }
-
-
--- Unit Tests
--------------------------------------------
+include("project_Lib")
 
 if _OPTIONS["unittests"] then
-
-	project "UnitTests"
-		language "C++"
-		targetname "UnitTests"
-		targetdir "bin"
-		kind "ConsoleApp"
-
-		files	{
-			MuonRoot.."/unittests/main.cpp"
-		}
-
-		filter "Debug*"
-			links	{ "Muon-d" }
-		filter "Release*"
-			links { "Muon" }
+	include("project_UnitTests")
 end
+
 ------------------------------
 -- Options
 ------------------------------
@@ -137,8 +109,8 @@ newaction {
 	execute = function ()
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
-		local incDir = MuonRoot.."/include/"
-		local libDir = MuonRoot.."/bin/"
+		local incDir = ProjectRoot.."/include/"
+		local libDir = ProjectRoot.."/bin/"
 
 		-- HEADER
 		-- Create required folders
