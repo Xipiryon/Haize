@@ -1,12 +1,12 @@
 
+-- Library
+-------------------------------------------
+
 project "Haize"
+	local ProjectRoot = os.getcwd()
+
 	language "C++"
 	targetdir (SolutionRoot.."/bin/lib")
-
-	if os.is("windows") then
-		-- Because on Windows, you can't start a program if .dll are not in the same folder...
-		postbuildcommands { string.gsub("copy "..ProjectRoot.."/bin/lib/*.dll "..ProjectRoot.."/bin/", "/", "\\") }
-	end
 
 	files {
 		ProjectRoot.."/src/**.cpp",
