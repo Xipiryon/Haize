@@ -4,7 +4,7 @@
 
 project "Muon"
 	local ProjectRoot = os.getcwd()
-	
+
 	language "C++"
 	targetdir (SolutionRoot.."/bin/lib")
 
