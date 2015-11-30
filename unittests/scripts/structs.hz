@@ -1,0 +1,13 @@
+
+struct MyClass
+{
+	attr i
+	attr j
+
+
+	function foo()
+	{
+		print("foo")
+		//print("I: {0}, J: {1}", i, j)
+	}
+}
