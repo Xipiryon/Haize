@@ -52,7 +52,9 @@ solution "Haize"
 	startproject "HaizeExecutable"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
-	if not os.is("windows") then
+	if os.is("windows") then
+		implibdir "bin/lib"
+	else
 		buildoptions { "--std=c++11" }
 		linkoptions { "-Wl,-rpath,"..SolutionRoot.."/bin/lib/" }
 	end
