@@ -44,6 +44,7 @@ solution "Haize"
 
 	includedirs {
 		SolutionRoot.."/include",
+		SolutionRoot.."/extern/Muon/include",
 		G_Install.Header,
 	}
 
