@@ -140,16 +140,15 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "false"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_FALSE); }
 "nil"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_NIL); }
 
-"if"		{ HZ_CHAR; HZ_TOK(IF); }
-"else"		{ HZ_CHAR; HZ_TOK(ELSE); }
-"elseif"	{ HZ_CHAR; HZ_TOK(ELSEIF); }
-"then"		{ HZ_CHAR; HZ_TOK(THEN); }
-"for"		{ HZ_CHAR; HZ_TOK(FOR); }
-"while"		{ HZ_CHAR; HZ_TOK(WHILE); }
-"do"		{ HZ_CHAR; HZ_TOK(DO); }
-"in"		{ HZ_CHAR; HZ_TOK(IN); }
-"end"		{ HZ_CHAR; HZ_TOK(END); }
-"return"	{ HZ_CHAR; HZ_TOK(RETURN); }
+"if"		{ HZ_CHAR; HZ_TOK(K_IF); }
+"else"		{ HZ_CHAR; HZ_TOK(K_ELSE); }
+"for"		{ HZ_CHAR; HZ_TOK(K_FOR); }
+"while"		{ HZ_CHAR; HZ_TOK(K_WHILE); }
+"do"		{ HZ_CHAR; HZ_TOK(K_DO); }
+"in"		{ HZ_CHAR; HZ_TOK(K_IN); }
+"return"	{ HZ_CHAR; HZ_TOK(K_RETURN); }
+
+"global"	{ HZ_CHAR; HZ_TOK(K_GLOBAL); }
 
 "namespace"	{ HZ_CHAR; HZ_TOK(K_NAMESPACE); }
 "struct"	{ HZ_CHAR; HZ_TOK(K_STRUCT); }

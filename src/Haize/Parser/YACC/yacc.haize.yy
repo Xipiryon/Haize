@@ -60,8 +60,8 @@
 %token <floating> V_FLOATING
 %token <integer> V_TRUE V_FALSE V_NIL V_INTEGER
 
-%token <node> IF THEN ELSE ELSEIF END FOR WHILE DO IN RETURN
-%token <node> K_NAMESPACE K_STRUCT K_ATTR K_FUNCTION
+%token <node> K_IF K_THEN K_ELSE K_FOR K_WHILE K_DO K_IN K_RETURN
+%token <node> K_GLOBAL K_NAMESPACE K_STRUCT K_ATTR K_FUNCTION
 
 /*
 * Declares our customs non terminal tokens
@@ -100,7 +100,7 @@ block
 	| struct_decl		{ $$ = $1; }
 	| namespace_decl	{ $$ = $1; }
 	| conditional_block 		{ $$ = $1; }
-	| RETURN expr S_SEPARATOR	{ $$ = HZ_NEW(RETURN); $$->addChild($2); }
+	| K_RETURN expr S_SEPARATOR	{ $$ = HZ_NEW(K_RETURN); $$->addChild($2); }
 	;
 
 block_empty
@@ -264,7 +264,7 @@ expr_bit_op
 	;
 
 conditional_block
-	: IF expr THEN block_empty END			{ $$ = HZ_NEW(IF); $$->addChild($2); $$->addChild($4); }
+	: K_IF S_LPARENT expr S_RPARENT S_LBRACE block_empty S_RBRACE		{ $$ = HZ_NEW(K_IF); $$->addChild($3); $$->addChild($6); }
 	;
 
 constant
