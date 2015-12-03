@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
+#include <fstream>
+
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
 #include "Haize/VM/OpCode.hpp"
@@ -26,19 +28,21 @@ namespace
 namespace hz
 {
 	VMInstance::VMInstance()
-		: _stack(0)
+		: m_stack(0)
+		, m_loadBuffer(NULL)
 	{
 	}
 
 	VMInstance::~VMInstance()
 	{
+		free(m_loadBuffer);
 	}
 
 	bool VMInstance::eval(const char* code)
 	{
 		muon::system::Log log("VM", muon::LOG_DEBUG);
 		muon::Variant nil;
-		_info.error.section = "#RunTimeEval#";
+		m_info.error.section = "#RunTimeEval#";
 
 		muon::system::Time time;
 		muon::f32 totalTime = 0;
@@ -72,29 +76,40 @@ namespace hz
 		// Semantic
 		time.start();
 		{
-			if (!hz::parser::semantic::parse(_info))
+			if (!hz::parser::semantic::parse(m_info))
 			{
-				printError(_info.error);
+				printError(m_info.error);
 				return false;
 			}
-			hz::parser::semantic::display(_info);
+			hz::parser::semantic::display(m_info);
 		}
 		totalTime += time.now();
 		log() << "ByteCode Creation: " << time.now() << " seconds" << muon::endl;
 		log() << "** Total Parse Time: " << totalTime << " seconds **" << muon::endl;
 
 		// Execution
-		return execute(_info.IRCode);
+		return execute(m_info.IRCode);
 	}
 
-	bool VMInstance::load(const std::istream& filename)
+	bool VMInstance::load(std::istream& file)
 	{
+		if (file && !file.eof())
+		{
+			file.seekg(0, std::ios::end);
+			muon::u64 length = (muon::u64)file.tellg();
+			file.seekg(0, std::ios::beg);
+			muon::u32 bufferSize = (m_loadBuffer ? strlen(m_loadBuffer) : 0);
+			m_loadBuffer = (char*)realloc(m_loadBuffer, bufferSize + sizeof(char) * (size_t)length);
+			file.read(m_loadBuffer, length);
+			return true;
+		}
 		return false;
 	}
 
 	bool VMInstance::load(const char* filename)
 	{
-		return false;
+		std::ifstream file(filename);
+		return load(file);
 	}
 
 	bool VMInstance::compile(const muon::String& module)
@@ -111,14 +126,14 @@ namespace hz
 #else
 #	define DEBUG_CASE(Case) case Case:
 #endif
-		_stack = 0;
+		m_stack = 0;
 		muon::u32 reg[3] = { 0, 0, 0 };
 
 		bool exec = true;
 		do
 		{
-			_instr = *(buffer + _stack);
-			eOpCode opCode = _instr.opCode();
+			m_instr = *(buffer + m_stack);
+			eOpCode opCode = m_instr.opCode();
 			switch (opCode)
 			{
 				DEBUG_CASE(SYS_MOV)
@@ -129,11 +144,11 @@ namespace hz
 
 				DEBUG_CASE(SYS_SETRAW)
 				{
-					muon::u64 type = _instr.argG();
-					muon::u8 dest = _instr.res();
-					muon::RawPointer rawData = muon::RawPointer(buffer + _stack + 1);
+					muon::u64 type = m_instr.argG();
+					muon::u8 dest = m_instr.res();
+					muon::RawPointer rawData = muon::RawPointer(buffer + m_stack + 1);
 					//_registers[dest].set(rawData);
-					_stack += 2;
+					m_stack += 2;
 					break;
 				}
 
@@ -143,7 +158,7 @@ namespace hz
 				DEBUG_CASE(MATH_MUL)
 				DEBUG_CASE(MATH_DIV)
 				{
-					arithmetic(*this, opCode, _instr.res(), _instr.arg1(), _instr.arg2());
+					arithmetic(*this, opCode, m_instr.res(), m_instr.arg1(), m_instr.arg2());
 					break;
 				}
 				DEBUG_CASE(MATH_MOD)
@@ -152,7 +167,7 @@ namespace hz
 				}
 				DEBUG_CASE(MATH_ASN)
 				{
-					_registers[_instr.res()] = _registers[_instr.argG()];
+					m_registers[m_instr.res()] = m_registers[m_instr.argG()];
 					break;
 				}
 
@@ -217,7 +232,7 @@ namespace hz
 				}
 				DEBUG_CASE(SYS_RETURN)
 				{
-					_registers[_instr.res()] = _registers[_instr.argG()];
+					m_registers[m_instr.res()] = m_registers[m_instr.argG()];
 					break;
 				}
 				DEBUG_CASE(SYS_CALL)
@@ -238,7 +253,7 @@ namespace hz
 					log(muon::LOG_ERROR) << "Nothing to do for OpCode: " << opCode << muon::endl;
 				}
 			}
-			++_stack;
+			++m_stack;
 		} while (exec);
 
 		return true;
