@@ -34,7 +34,7 @@ namespace hz
 	{
 	}
 
-	muon::Variant VMInstance::eval(const char* code)
+	bool VMInstance::eval(const char* code)
 	{
 		muon::system::Log log("VM", muon::LOG_DEBUG);
 		muon::Variant nil;
@@ -49,7 +49,7 @@ namespace hz
 			if (!hz::parser::lexical::parse(_info, code))
 			{
 				printError(_info.error);
-				return nil;
+				return false;
 			}
 			hz::parser::lexical::display(_info);
 		}
@@ -62,7 +62,7 @@ namespace hz
 			if (!hz::parser::syntaxic::parse(_info))
 			{
 				printError(_info.error);
-				return nil;
+				return false;
 			}
 			hz::parser::syntaxic::display(_info);
 		}
@@ -75,7 +75,7 @@ namespace hz
 			if (!hz::parser::semantic::parse(_info))
 			{
 				printError(_info.error);
-				return nil;
+				return false;
 			}
 			hz::parser::semantic::display(_info);
 		}
@@ -102,7 +102,7 @@ namespace hz
 		return false;
 	}
 
-	muon::Variant VMInstance::execute(const ByteCode* buffer)
+	bool VMInstance::execute(const ByteCode* buffer)
 	{
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
@@ -241,12 +241,12 @@ namespace hz
 			++_stack;
 		} while (exec);
 
-		return _registers[ByteCode::RETURN_REG];
+		return true;
 	}
 
-	muon::Variant VMInstance::execute()
+	bool VMInstance::execute()
 	{
-		return muon::Variant();
+		return false;
 	}
 }
 

@@ -187,17 +187,17 @@ void executeProgram()
 	}
 	else if(g_Evaluate)
 	{
-
 		log() << "> Parsing \"" << g_Expr << "\"" << muon::endl;
-		//log() << "> Returned " << hz::eval(vm, g_Expr.cStr()) << muon::endl;
-
-		if(g_ExportBytecode)
+		if (vm.eval(g_Expr.cStr()))
 		{
-			muon::String outputFilename = "eval.bytecode";
-			log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
-			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-			file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
-			file.close();
+			if (g_ExportBytecode)
+			{
+				muon::String outputFilename = "eval.bytecode";
+				log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
+				std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
+				file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+				file.close();
+			}
 		}
 
 		return;
@@ -206,16 +206,16 @@ void executeProgram()
 	else if (g_LoadFile)
 	{
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
-		vm.eval(g_Buffer);
-		//log() << "> Returned " << hz::eval(vm, g_Buffer) << muon::endl;
-
-		if(g_ExportBytecode)
+		if(vm.eval(g_Buffer))
 		{
-			muon::String outputFilename = g_Filename+"c";
-			log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
-			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-			file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
-			file.close();
+			if (g_ExportBytecode)
+			{
+				muon::String outputFilename = g_Filename + "c";
+				log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
+				std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
+				file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+				file.close();
+			}
 		}
 
 		free(g_Buffer);
@@ -225,8 +225,7 @@ void executeProgram()
 	else if (g_LoadBytecode)
 	{
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
-		//log() << "> Returned " << hz::execute(vm, (const hz::ByteCode*)g_Buffer) << muon::endl;
-
+		// TODO
 		free(g_Buffer);
 		return;
 	}
