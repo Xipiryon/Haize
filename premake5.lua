@@ -82,7 +82,7 @@ solution "Haize"
 
 project "Haize"
 	language "C++"
-	targetdir "lib"
+	targetdir(HaizeRoot.."/bin/lib")
 
 	if os.is("windows") then
 		postbuildcommands { string.gsub("copy lib/*.dll bin/", "/", "\\") }
@@ -120,6 +120,28 @@ project "HaizeExecutable"
 	filter "Release*"
 		links { "Haize", "Muon" }
 
+-- Unit Tests
+-------------------------------------------
+
+if _OPTIONS["unittests"] then
+
+	project "UnitTests"
+		language "C++"
+		targetname "UnitTests"
+		targetdir "bin"
+		kind "ConsoleApp"
+
+		files	{
+			HaizeRoot.."/unittests/main.cpp"
+		}
+
+		filter "Debug*"
+			links	{ "Haize-d", "Muon-d" }
+
+		filter "Release*"
+			links { "Haize", "Muon" }
+
+end
 
 ------------------------------
 -- Options
