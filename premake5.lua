@@ -17,10 +17,8 @@ end
 if not G_Install.Header then G_Install.Header = G_Install.Root.."include" end
 if not G_Install.Lib then G_Install.Lib = G_Install.Root.."lib" end
 
-ProjectRoot = os.getcwd()
-
 if SolutionRoot == nil then
-	SolutionRoot = ProjectRoot
+	SolutionRoot = os.getcwd()
 end
 
 ------------------------------
@@ -33,7 +31,7 @@ solution "Haize"
 
 	if not os.is("windows") then
 		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..ProjectRoot.."/bin/lib/" }
+		linkoptions { "-Wl,-rpath,"..SolutionRoot.."/bin/lib/" }
 	end
 
 	-- If option exists, then override G_Install
@@ -45,12 +43,12 @@ solution "Haize"
 	end
 
 	includedirs {
-		ProjectRoot.."/include",
+		SolutionRoot.."/include",
 		G_Install.Header,
 	}
 
 	libdirs {
-		ProjectRoot.."/bin/lib",
+		SolutionRoot.."/bin/lib",
 		G_Install.Lib
 	}
 
@@ -113,8 +111,8 @@ newaction {
 	execute = function ()
 		print("** Installing Header files in: "..G_Install.Header.." **")
 
-		local incDir = ProjectRoot.."/include/"
-		local libDir = ProjectRoot.."/bin/lib/"
+		local incDir = SolutionRoot.."/include/"
+		local libDir = SolutionRoot.."/bin/lib/"
 
 		-- Create required folders
 		local dirList = os.matchdirs(incDir.."**")
