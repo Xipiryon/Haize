@@ -77,8 +77,6 @@ solution "Haize"
 ------------------------------
 -- Project
 ------------------------------
--- Muon
-include("extern/Muon/project_Lib")
 
 -- Haize
 include("project_Lib")
