@@ -50,12 +50,12 @@ namespace hz
 		// Lexical
 		time.start();
 		{
-			if (!hz::parser::lexical::parse(_info, code))
+			if (!hz::parser::lexical::parse(m_info, code))
 			{
-				printError(_info.error);
+				printError(m_info.error);
 				return false;
 			}
-			hz::parser::lexical::display(_info);
+			hz::parser::lexical::display(m_info);
 		}
 		totalTime += time.now();
 		log() << "Lexical parse: " << time.now() << " seconds" << muon::endl;
@@ -63,12 +63,12 @@ namespace hz
 		// Syntaxic
 		time.start();
 		{
-			if (!hz::parser::syntaxic::parse(_info))
+			if (!hz::parser::syntaxic::parse(m_info))
 			{
-				printError(_info.error);
+				printError(m_info.error);
 				return false;
 			}
-			hz::parser::syntaxic::display(_info);
+			hz::parser::syntaxic::display(m_info);
 		}
 		totalTime += time.now();
 		log() << "Syntaxic parse: " << time.now() << " seconds" << muon::endl;
