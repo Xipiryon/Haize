@@ -29,9 +29,12 @@ solution "Haize"
 	startproject "HaizeExecutable"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
-	if not os.is("windows") then
-		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..SolutionRoot.."/bin/lib/" }
+	if os.is("windows") then
+		implibdir "bin/lib"
+		buildoptions { "/GR-" }
+	else
+		buildoptions { "--std=c++11 -fno-rtti" }
+		linkoptions { "-Wl,-rpath,bin/lib" }
 	end
 
 	-- If option exists, then override G_Install
