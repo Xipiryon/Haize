@@ -3,11 +3,11 @@ Haize
 
 C++ Script Language highly WIP.
 
-[![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize)](http://ci.louis-schnellbach.com/job/Haize/)
+[![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize/master)](http://ci.louis-schnellbach.com/job/Haize/branch/master)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xleek/haize/branch/master)
 
-[![CppCheck](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult/graph)](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult)
-[![Valgrind](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/graph)](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/)
+[![CppCheck](http://ci.louis-schnellbach.com/job/Haize/branch/master/cppcheckResult/graph)](http://ci.louis-schnellbach.com/job/Haize/branch/master/cppcheckResult)
+[![Valgrind](http://ci.louis-schnellbach.com/job/Haize/branch/master/valgrindResult/graph)](http://ci.louis-schnellbach.com/job/Haize/branch/master/valgrindResult/)
 
 How to compile
 ====================
