@@ -2,7 +2,10 @@
 #include <fstream>
 
 #include <Muon/System/Log.hpp>
+#include <Muon/System/Time.hpp>
 #include "Haize/VM.hpp"
+
+#include "tinyxml2.h"
 
 namespace
 {
@@ -47,17 +50,30 @@ int main(int argc, char** argv)
 		mainLog() << "\t: " << argv[i] << muon::endl;
 	}
 
+	// Required variables
+	muon::system::Time clockTest;
+	muon::String title;
 	muon::u32 errorCount = 0;
+	muon::u32 totalTests = 0;
+	tinyxml2::XMLDocument xmlDoc;
+	tinyxml2::XMLElement* xmlRoot = xmlDoc.NewElement("testsuite");
 
-#define HAIZE_TITLE(msg) mainLog() << msg << muon::endl
+#define HAIZE_TITLE(msg) do { mainLog() << msg << muon::endl; title = msg; } while(false);
+#define HAIZE_NODE_BEGIN(cond)	++totalTests; tinyxml2::XMLElement* xmlNode = xmlDoc.NewElement("testcase"); \
+									xmlNode->SetAttribute("name", #cond); \
+									xmlNode->SetAttribute("classname", title.cStr()); \
+									xmlNode->SetAttribute("time", clockTest.now()*1000);
+#define HAIZE_NODE_ERR(err)		++errorCount; tinyxml2::XMLElement* xmlErr = xmlDoc.NewElement("failure"); xmlErr->SetText(err); xmlNode->InsertEndChild(xmlErr);
+#define HAIZE_NODE_END			xmlRoot->InsertEndChild(xmlNode); clockTest.start();
 #if defined(MUON_PLATFORM_WINDOWS)
-#	define HAIZE_CHECK(cond, err, ...) if(!(cond)) {++errorCount; MUON_ERROR("\t-> " err, __VA_ARGS__);}
+#	define HAIZE_CHECK(cond, err, ...)  do { HAIZE_NODE_BEGIN(cond) if(!(cond)) { HAIZE_NODE_ERR(err); MUON_ERROR("\t-> " err, __VA_ARGS__);} HAIZE_NODE_END } while(false);
 #else
-#	define HAIZE_CHECK(cond, err, args...) if(!(cond)) {++errorCount; MUON_ERROR("\t-> " err, ##args);}
+#	define HAIZE_CHECK(cond, err, args...) do { HAIZE_NODE_BEGIN(cond) if(!(cond)) { HAIZE_NODE_ERR(err); MUON_ERROR("\t-> " err, ##args);} HAIZE_NODE_END } while(false);
 #endif
 
 	// ***************
 	// BEGIN UNIT TEST
+	clockTest.start();
 
 	hz::VMInstance vm;
 	muon::String file;
@@ -75,30 +91,24 @@ int main(int argc, char** argv)
 			return 64;
 		);
 
-		HAIZE_TITLE(" ** Evaluating Script: \"" << eval << "\" **");
+		HAIZE_TITLE(muon::String::join("Evaluating Script: \"", eval, "\""));
 		HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
 	// Expression
 	{
 		file = "unittests/scripts/expressions.hz";
-		HAIZE_TITLE(" ** File loading: " << file << " **");
-		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file!");
-
-	}
-
-	// Function
-	{
-		file = "unittests/scripts/functions.hz";
-		HAIZE_TITLE(" ** File loading: " << file << " **");
-		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file!");
-
+		HAIZE_TITLE("Checking 'Expression' script");
+		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file\"%s\"!", file.cStr());
 	}
 
 	// END UNIT TEST
 	// ***************
-
 	mainLog(errorCount == 0 ? muon::LOG_INFO : muon::LOG_ERROR) << "Error Count: " << errorCount << muon::endl;
+
+	xmlRoot->SetAttribute("tests", totalTests);
+	xmlDoc.InsertFirstChild(xmlRoot);
+	xmlDoc.SaveFile("unittests.xml");
 
 	muon::system::Log::close();
 
