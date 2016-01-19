@@ -42,12 +42,11 @@ solution "Haize"
 		G_Install.Root = _OPTIONS["basedir"]
 		G_Install.Header = _OPTIONS["basedir"].."/include"
 		G_Install.Lib = _OPTIONS["basedir"].."/lib"
-		print("Install directory has been overwritten to '"..G_Install.Root.."'")
+		print("Base directory has been overwritten to '"..G_Install.Root.."'")
 	end
 
 	includedirs {
 		SolutionRoot.."/include",
-		SolutionRoot.."/extern/Muon/include",
 		G_Install.Header,
 	}
 
