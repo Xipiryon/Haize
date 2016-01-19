@@ -41,7 +41,7 @@ solution "Haize"
 	if _OPTIONS["basedir"] then
 		G_Install.Root = _OPTIONS["basedir"]
 		G_Install.Header = _OPTIONS["basedir"].."/include"
-		G_Install.Lib = _OPTIONS["basedir"].."/lib"
+		G_Install.Lib = _OPTIONS["basedir"].."/bin/lib"
 		print("Base directory has been overwritten to '"..G_Install.Root.."'")
 	end
 
