@@ -191,6 +191,7 @@ void executeProgram()
 	// LOAD FILE
 	else if (g_LoadFile)
 	{
+		muon::String module = "RuntimeEval";
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
 		if (!vm.load(g_Filename.cStr()))
 		{
@@ -198,13 +199,13 @@ void executeProgram()
 			return;
 		}
 
-		if (!vm.compile("RuntimeEval"))
+		if (!vm.compile(module))
 		{
 			log(muon::LOG_ERROR) << "Couldn't compile " << g_Filename << "!" << muon::endl;
 			return;
 		}
 
-		if (!vm.execute())
+		if (!vm.execute(module))
 		{
 			log(muon::LOG_ERROR) << "Couldn't execute " << g_Filename << "!" << muon::endl;
 			return;

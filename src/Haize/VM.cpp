@@ -31,11 +31,14 @@ namespace hz
 		: m_stack(0)
 		, m_loadBuffer(NULL)
 	{
+		typedef std::map<muon::String, ByteCode*> ByteCodeModuleMap;
+		m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 	}
 
 	VMInstance::~VMInstance()
 	{
 		free(m_loadBuffer);
+		MUON_DELETE(m_byteCodeModules);
 	}
 
 	bool VMInstance::eval(const char* code)
@@ -44,6 +47,7 @@ namespace hz
 		muon::Variant nil;
 		m_info.error.section = "#RunTimeEval#";
 
+#if defined(MUON_DEBUG)
 		muon::system::Time time;
 		muon::f32 totalTime = 0;
 
@@ -86,9 +90,17 @@ namespace hz
 		totalTime += time.now();
 		log() << "ByteCode Creation: " << time.now() << " seconds" << muon::endl;
 		log() << "** Total Parse Time: " << totalTime << " seconds **" << muon::endl;
-
+#else
+		if(!(hz::parser::lexical::parse(m_info, code)
+			&& hz::parser::syntaxic::parse(m_info)
+			&& hz::parser::semantic::parse(m_info)))
+		{
+			printError(m_info.error);
+			return false;
+		}
+#endif
 		// Execution
-		return execute(m_info.IRCode);
+		return run(m_info.IRCode);
 	}
 
 	bool VMInstance::load(std::istream& file)
@@ -117,7 +129,28 @@ namespace hz
 		return false;
 	}
 
-	bool VMInstance::execute(const ByteCode* buffer)
+	bool VMInstance::compile(const char* module)
+	{
+		return false;
+	}
+
+	bool VMInstance::execute(const muon::String& module)
+	{
+		return execute(module.cStr());
+	}
+
+
+	bool VMInstance::execute(const char* module)
+	{
+		auto it = m_byteCodeModules->find(module);
+		if(it != m_byteCodeModules->end())
+		{
+			return run(it->second);
+		}
+		return false;
+	}
+
+	bool VMInstance::run(const ByteCode* buffer)
 	{
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
@@ -257,11 +290,6 @@ namespace hz
 		} while (exec);
 
 		return true;
-	}
-
-	bool VMInstance::execute()
-	{
-		return false;
 	}
 }
 

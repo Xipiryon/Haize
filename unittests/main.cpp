@@ -77,6 +77,7 @@ int main(int argc, char** argv)
 
 	hz::VMInstance vm;
 	muon::String file;
+	muon::String module;
 	char buffer[FileContentBuffer];
 
 	// Eval some scripts
@@ -91,15 +92,18 @@ int main(int argc, char** argv)
 			return 64;
 		);
 
-		HAIZE_TITLE(muon::String::join("Evaluating Script: \"", eval, "\""));
-		HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
+		//HAIZE_TITLE(muon::String::join("Evaluating Script: \"", eval, "\""));
+		//HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
 	// Expression
 	{
+		module = "Expr";
 		file = "unittests/scripts/expressions.hz";
 		HAIZE_TITLE("Checking 'Expression' script");
-		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file\"%s\"!", file.cStr());
+		HAIZE_CHECK(vm.load(file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
+		HAIZE_CHECK(vm.compile(module), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		HAIZE_CHECK(vm.execute(module), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
 	}
 
 	// END UNIT TEST
