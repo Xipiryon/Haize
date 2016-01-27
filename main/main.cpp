@@ -7,7 +7,7 @@
 
 #include <Muon/Core/Define.hpp>
 #include <Muon/System/Log.hpp>
-#include "Haize/VM.hpp"
+#include "Haize/Engine.hpp"
 
 void leave(int code)
 {
@@ -156,7 +156,7 @@ bool parseArguments(int argc, char** argv)
 void executeProgram()
 {
 	muon::system::Log log("Haize", muon::LOG_INFO);
-	hz::VMInstance vm;
+	hz::Engine vm;
 
 	if(g_Interactive)
 	{
@@ -181,7 +181,7 @@ void executeProgram()
 				muon::String outputFilename = "eval.bytecode";
 				log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
 				std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-				file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+				//file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
 				file.close();
 			}
 		}
@@ -193,19 +193,19 @@ void executeProgram()
 	{
 		muon::String module = "RuntimeEval";
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
-		if (!vm.load(g_Filename.cStr()))
+		if (!vm.load(module.cStr(), g_Filename.cStr()))
 		{
 			log(muon::LOG_ERROR) << "Couldn't load " << g_Filename << "!" << muon::endl;
 			return;
 		}
 
-		if (!vm.compile(module))
+		if (!vm.compile(module.cStr()))
 		{
 			log(muon::LOG_ERROR) << "Couldn't compile " << g_Filename << "!" << muon::endl;
 			return;
 		}
 
-		if (!vm.execute(module))
+		if (!vm.execute(module.cStr()))
 		{
 			log(muon::LOG_ERROR) << "Couldn't execute " << g_Filename << "!" << muon::endl;
 			return;
@@ -216,7 +216,7 @@ void executeProgram()
 			muon::String outputFilename = g_Filename + "c";
 			log() << "Outputting to \"" << outputFilename << "\"" << muon::endl;
 			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-			file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+			//file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
 			file.close();
 		}
 		return;

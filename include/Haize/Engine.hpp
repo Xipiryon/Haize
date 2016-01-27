@@ -1,10 +1,9 @@
 
-#ifndef _HAIZE_VIRTUALMACHINE_INCLUDED
-#define _HAIZE_VIRTUALMACHINE_INCLUDED
+#ifndef _HAIZE_ENGINE_INCLUDED
+#define _HAIZE_ENGINE_INCLUDED
 
 #include <unordered_map>
 #include <Muon/Variant.hpp>
-#include "Haize/Parser/Info.hpp"
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
 
@@ -18,45 +17,44 @@ namespace hz
 	*/
 	class HAIZE_API Context
 	{
+	public:
+
+	private:
+		ByteCode m_instr;
+		muon::u32 m_stack;
+		SymbolTable m_symbols;
+		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
+
+		char* m_loadBuffer;
 	};
 
 	/*!
 	*
 	*/
-	class HAIZE_API VMInstance
+	class HAIZE_API Engine
 	{
 	public:
-		VMInstance();
-		~VMInstance();
+		Engine();
+		~Engine();
 
 		/*!
 		* @brief Read the content of the sstream
 		* @param stream Stream to read
 		* @note Only one file can be loaded at a time
 		*/
-		bool load(std::istream& stream);
+		bool load(const char* module, std::istream& stream);
 
 		/*!
 		* @brief Load a file located at path
 		* @param file File to load
 		* @note Only one file can be loaded at a time
 		*/
-		bool load(const char* file);
-
-		/*!
-		*
-		*/
-		bool compile(const muon::String& module);
+		bool load(const char* module, const char* file);
 
 		/*!
 		*
 		*/
 		bool compile(const char* module);
-
-		/*!
-		*
-		*/
-		bool execute(const muon::String& module);
 
 		/*!
 		*
@@ -73,21 +71,11 @@ namespace hz
 		*/
 		bool run(const ByteCode* instr);
 
-		const parser::Info& getInfo() const
-		{
-			return m_info;
-		}
-
 	private:
-		parser::Info m_info;
 
-		ByteCode m_instr;
-		muon::u32 m_stack;
-		SymbolTable m_symbols;
-		muon::Variant m_registers[ByteCode::INVALID_REG];
+		typedef std::map<muon::String, Context> ModuleContextMap;
 
-		char* m_loadBuffer;
-		std::map<muon::String, ByteCode*>* m_byteCodeModules;
+		ModuleContextMap m_moduleContext;
 	};
 }
 #endif

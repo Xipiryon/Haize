@@ -3,7 +3,7 @@
 
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
-#include "Haize/VM.hpp"
+#include "Haize/Engine.hpp"
 
 #include "tinyxml2.h"
 
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	// BEGIN UNIT TEST
 	clockTest.start();
 
-	hz::VMInstance vm;
+	hz::Engine vm;
 	muon::String file;
 	muon::String module;
 	char buffer[FileContentBuffer];
@@ -101,9 +101,9 @@ int main(int argc, char** argv)
 		module = "Expr";
 		file = "unittests/scripts/expressions.hz";
 		HAIZE_TITLE("Checking 'Expression' script");
-		HAIZE_CHECK(vm.load(file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
-		HAIZE_CHECK(vm.compile(module), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
-		HAIZE_CHECK(vm.execute(module), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		HAIZE_CHECK(vm.load(module.cStr(), file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
+		HAIZE_CHECK(vm.compile(module.cStr()), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		HAIZE_CHECK(vm.execute(module.cStr()), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
 	}
 
 	// END UNIT TEST

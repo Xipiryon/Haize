@@ -8,9 +8,10 @@ namespace hz
 {
 	struct HAIZE_API ByteCode
 	{
-		static const muon::u8 INVALID_REG = -1;
-		static const muon::u8 RETURN_REG = 0;
-		static const muon::u8 USABLE_REG = 1;
+		static const muon::u8 REG_INVALID = 		0x00;			//!< Invalid register index
+		static const muon::u8 REG_RETURN = 			0x01;			//!< Special register used for return value
+		static const muon::u8 REG_USABLE = 			0xFE;			//!< Every other usable register
+		static const muon::u8 REG_MAX_AVAILABLE = 	REG_USABLE-1;	//!< Max register index value available
 
 		eOpCode opCode() const;
 		muon::u8 res() const;

@@ -7,42 +7,34 @@
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
 #include "Haize/VM/OpCode.hpp"
-#include "Haize/Parser/Lexical.hpp"
-#include "Haize/Parser/Syntaxic.hpp"
-#include "Haize/Parser/Semantic.hpp"
-#include "Haize/Parser/Info.hpp"
 
-//Require the include to the parser folder, relative to this one
-//#include "./Parser/YACC/generated/yacc.haize.hpp"
-//#include "./Parser/YACC/Extern.hpp"
-
-#include "Haize/VM.hpp"
+#include "Haize/Engine.hpp"
 
 namespace
 {
 	using namespace muon;
-	void arithmetic(hz::VMInstance&, hz::eOpCode, muon::u32, muon::u32, muon::u32);
-	void printError(hz::parser::InfoError& error);
+	void arithmetic(hz::Engine&, hz::eOpCode, muon::u32, muon::u32, muon::u32);
+	//void printError(hz::parser::InfoError& error);
 }
 
 namespace hz
 {
-	VMInstance::VMInstance()
-		: m_stack(0)
-		, m_loadBuffer(NULL)
+	Engine::Engine()
+	//	: m_stack(0)
+	//	, m_loadBuffer(NULL)
 	{
-		typedef std::map<muon::String, ByteCode*> ByteCodeModuleMap;
-		m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
+	//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 	}
 
-	VMInstance::~VMInstance()
+	Engine::~Engine()
 	{
-		free(m_loadBuffer);
-		MUON_DELETE(m_byteCodeModules);
+	//	free(m_loadBuffer);
+	//	MUON_DELETE(m_byteCodeModules);
 	}
 
-	bool VMInstance::eval(const char* code)
+	bool Engine::eval(const char* code)
 	{
+		/*
 		muon::system::Log log("VM", muon::LOG_DEBUG);
 		muon::Variant nil;
 		m_info.error.section = "#RunTimeEval#";
@@ -101,10 +93,13 @@ namespace hz
 #endif
 		// Execution
 		return run(m_info.IRCode);
+		//*/
+		return false;
 	}
 
-	bool VMInstance::load(std::istream& file)
+	bool Engine::load(const char* module, std::istream& file)
 	{
+		/*
 		if (file && !file.eof())
 		{
 			file.seekg(0, std::ios::end);
@@ -115,43 +110,36 @@ namespace hz
 			file.read(m_loadBuffer, length);
 			return true;
 		}
+		//*/
 		return false;
 	}
 
-	bool VMInstance::load(const char* filename)
+	bool Engine::load(const char* module, const char* filename)
 	{
 		std::ifstream file(filename);
-		return load(file);
+		return load(module, file);
 	}
 
-	bool VMInstance::compile(const muon::String& module)
+	bool Engine::compile(const char* module)
 	{
 		return false;
 	}
 
-	bool VMInstance::compile(const char* module)
+	bool Engine::execute(const char* module)
 	{
-		return false;
-	}
-
-	bool VMInstance::execute(const muon::String& module)
-	{
-		return execute(module.cStr());
-	}
-
-
-	bool VMInstance::execute(const char* module)
-	{
+		/*
 		auto it = m_byteCodeModules->find(module);
 		if(it != m_byteCodeModules->end())
 		{
 			return run(it->second);
 		}
+		//*/
 		return false;
 	}
 
-	bool VMInstance::run(const ByteCode* buffer)
+	bool Engine::run(const ByteCode* buffer)
 	{
+		/*
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
 #	define DEBUG_CASE(Case) case Case:
@@ -288,7 +276,7 @@ namespace hz
 			}
 			++m_stack;
 		} while (exec);
-
+		//*/
 		return true;
 	}
 }
@@ -296,7 +284,7 @@ namespace hz
 namespace
 {
 #define VM_REG(Id) (*registers)[Id]
-	void arithmetic(hz::VMInstance& vm, hz::eOpCode op, muon::u32 rA, muon::u32 rB, muon::u32 rC)
+	void arithmetic(hz::Engine& vm, hz::eOpCode op, muon::u32 rA, muon::u32 rB, muon::u32 rC)
 	{
 		/*
 		muon::f64 left = hz::boxed::getFloating(REG(rB));
@@ -313,7 +301,7 @@ namespace
 		//*/
 	}
 #undef VM_REG
-
+	/*
 	void printError(hz::parser::InfoError& error)
 	{
 		muon::system::Log log("VM", muon::LOG_ERROR);
@@ -321,4 +309,5 @@ namespace
 		log() << "Function: " << error.function << " @ " << error.line << ":" << error.column << muon::endl;
 		log() << "Message: \"" << error.message << "\"" << muon::endl;
 	}
+	//*/
 }
