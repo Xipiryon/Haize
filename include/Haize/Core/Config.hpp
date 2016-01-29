@@ -1,5 +1,5 @@
-#ifndef _HAIZE_CONFIG_INCLUDE
-#define _HAIZE_CONFIG_INCLUDE
+#ifndef INCLUDE_HAIZE_CONFIG_INCLUDE
+#define INCLUDE_HAIZE_CONFIG_INCLUDE
 
 #include "Haize/Core/Define.hpp"
 

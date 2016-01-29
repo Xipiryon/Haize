@@ -1,81 +1,33 @@
 
-#ifndef _HAIZE_ENGINE_INCLUDED
-#define _HAIZE_ENGINE_INCLUDED
+#ifndef INCLUDE_HAIZE_ENGINE_INCLUDED
+#define INCLUDE_HAIZE_ENGINE_INCLUDED
 
 #include <unordered_map>
+#include <Muon/Helper/Singleton.hpp>
 #include <Muon/Variant.hpp>
-#include "Haize/VM/ByteCode.hpp"
-#include "Haize/VM/SymbolTable.hpp"
+#include "Haize/Context.hpp"
 
 /*!
-*
+* @brief Haize namespace
 */
 namespace hz
 {
 	/*!
-	*
+	* @brief Main class of the API
+	* Use the Engine to manipulate Context.
 	*/
-	class HAIZE_API Context
+	class HAIZE_API Engine: public muon::helper::Singleton<Engine>
 	{
-	public:
-
-	private:
-		ByteCode m_instr;
-		muon::u32 m_stack;
-		SymbolTable m_symbols;
-		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
-
-		char* m_loadBuffer;
-	};
-
-	/*!
-	*
-	*/
-	class HAIZE_API Engine
-	{
-	public:
+		friend class muon::helper::Singleton<Engine>;
 		Engine();
+	public:
 		~Engine();
 
-		/*!
-		* @brief Read the content of the sstream
-		* @param stream Stream to read
-		* @note Only one file can be loaded at a time
-		*/
-		bool load(const char* module, std::istream& stream);
-
-		/*!
-		* @brief Load a file located at path
-		* @param file File to load
-		* @note Only one file can be loaded at a time
-		*/
-		bool load(const char* module, const char* file);
-
-		/*!
-		*
-		*/
-		bool compile(const char* module);
-
-		/*!
-		*
-		*/
-		bool execute(const char* module);
-
-		/*!
-		*
-		*/
-		bool eval(const char* str);
-
-		/*!
-		*
-		*/
-		bool run(const ByteCode* instr);
 
 	private:
-
 		typedef std::map<muon::String, Context> ModuleContextMap;
 
-		ModuleContextMap m_moduleContext;
+		ModuleContextMap* m_moduleContext;
 	};
 }
 #endif

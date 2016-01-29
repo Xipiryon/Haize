@@ -1,5 +1,5 @@
-#ifndef _HAIZE_BYTECODE_INCLUDE
-#define _HAIZE_BYTECODE_INCLUDE
+#ifndef INCLUDE_HAIZE_BYTECODE_INCLUDE
+#define INCLUDE_HAIZE_BYTECODE_INCLUDE
 
 #include <Muon/Core/Typedef.hpp>
 #include "Haize/VM/OpCode.hpp"

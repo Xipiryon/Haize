@@ -1,5 +1,5 @@
-#ifndef _HAIZE_DEFINE_H_INCLUDED
-#define _HAIZE_DEFINE_H_INCLUDED
+#ifndef INCLUDE_HAIZE_DEFINE_H_INCLUDED
+#define INCLUDE_HAIZE_DEFINE_H_INCLUDED
 
 #include <Muon/Core/Define.hpp>
 #include <Muon/Core/Typedef.hpp>
