@@ -3,11 +3,6 @@
 
 #include "Haize/Core/Define.hpp"
 
-namespace hz
-{
-	static const muon::i8 GC_CHECK_ALIVE_IN_ROW = 5;
-}
-
 #define HAIZE_VERSION_MAJOR		0
 #define HAIZE_VERSION_MINOR		0
 #define HAIZE_VERSION_REVISION	0
