@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 {
 	if(!muon::meta::MetaDatabase::isInstantiated())
 	{
-		muon::meta::MetaDatabase::instantiate();
+		muon::meta::MetaDatabase::createInstance();
 	}
 	muon::system::Log::registerDefaultLogImpl();
 	muon::system::Log mainLog("Main", muon::LOG_INFO);
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	// BEGIN UNIT TEST
 	clockTest.start();
 
-	hz::Engine vm;
+	hz::Engine& vm = hz::Engine::getInstance();
 	muon::String file;
 	muon::String module;
 	char buffer[FileContentBuffer];

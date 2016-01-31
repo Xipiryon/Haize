@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 {
 	if(!muon::meta::MetaDatabase::isInstantiated())
 	{
-		muon::meta::MetaDatabase::instantiate();
+		muon::meta::MetaDatabase::createInstance();
 	}
 	muon::system::Log::registerDefaultLogImpl();
 	muon::system::Log log("", muon::LOG_INFO);
