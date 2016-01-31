@@ -23,9 +23,36 @@ namespace hz
 		~Engine();
 	public:
 
+		/*!
+		* @brief Create a new Context
+		* This will create a new context.
+		* If a context already exists with this name, it will be returned instead
+		* @param name Context name
+		* @return Created Context (or the one associated with the given name)
+		*/
+		Context* createContext(const char* name);
+
+		/*!
+		* @brief Return a Context
+		* Return the Context matching the name parameter.
+		* Will return NULL if no Context exists.
+		* @param name Context name
+		* @return Context pointer if it exists, NULL otherwhise
+		*/
+		Context* getContext(const char* name);
+
+		/*!
+		* @brief Remove a Context
+		* Clear all the memory used by the specified Context.
+		* If there is no context associated with the given name,
+		* then the function will return false.
+		* @param name Context name
+		* @return True if Context correctly removed, false otherwhise
+		*/
+		bool removeContext(const char* name);
 
 	private:
-		typedef std::map<muon::String, Context> ModuleContextMap;
+		typedef std::map<muon::String, Context*> ModuleContextMap;
 
 		ModuleContextMap* m_moduleContext;
 	};

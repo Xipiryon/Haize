@@ -74,6 +74,7 @@ int main(int argc, char** argv)
 
 bool parseArguments(int argc, char** argv)
 {
+#if 0
 	muon::system::Log log("Main", muon::LOG_INFO);
 	bool validArgument = false;
 
@@ -151,12 +152,17 @@ bool parseArguments(int argc, char** argv)
 	}
 
 	return validArgument;
+#else
+	return false;
+#endif
 }
 
 void executeProgram()
 {
+#if 0
 	muon::system::Log log("Haize", muon::LOG_INFO);
-	hz::Engine vm;
+	hz::Engine& vm = hz::Engine::createInstance();
+	hz::Context* context = vm.createContext("Default");
 
 	if(g_Interactive)
 	{
@@ -174,7 +180,7 @@ void executeProgram()
 	else if(g_Evaluate)
 	{
 		log() << "> Parsing \"" << g_Expr << "\"" << muon::endl;
-		if (vm.eval(g_Expr.cStr()))
+		if (context->eval(g_Expr.cStr()))
 		{
 			if (g_ExportBytecode)
 			{
@@ -193,19 +199,19 @@ void executeProgram()
 	{
 		muon::String module = "RuntimeEval";
 		log() << "> Parsing \"" << g_Filename << "\"" << muon::endl;
-		if (!vm.load(module.cStr(), g_Filename.cStr()))
+		if (!context->load(g_Filename.cStr()))
 		{
 			log(muon::LOG_ERROR) << "Couldn't load " << g_Filename << "!" << muon::endl;
 			return;
 		}
 
-		if (!vm.compile(module.cStr()))
+		if (!context->compile())
 		{
 			log(muon::LOG_ERROR) << "Couldn't compile " << g_Filename << "!" << muon::endl;
 			return;
 		}
 
-		if (!vm.execute(module.cStr()))
+		if (!context->execute())
 		{
 			log(muon::LOG_ERROR) << "Couldn't execute " << g_Filename << "!" << muon::endl;
 			return;
@@ -229,4 +235,5 @@ void executeProgram()
 		free(g_Buffer);
 		return;
 	}
+#endif
 }

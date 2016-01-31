@@ -20,8 +20,9 @@ namespace
 
 namespace hz
 {
-	Context::Context()
-	//	: m_stack(0)
+	Context::Context(const char* name)
+		: m_name(name)
+	//	, m_stack(0)
 	//	, m_loadBuffer(NULL)
 	{
 	//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
@@ -32,6 +33,19 @@ namespace hz
 	//	free(m_loadBuffer);
 	//	MUON_DELETE(m_byteCodeModules);
 	}
+
+	//==================================
+	//			CONTEXT ATTRIBUTE
+	//==================================
+
+	const char* Context::getName() const
+	{
+		return m_name.cStr();
+	}
+
+	//==================================
+	//			COMPILATION
+	//==================================
 
 	bool Context::eval(const char* code)
 	{
@@ -98,7 +112,7 @@ namespace hz
 		return false;
 	}
 
-	bool Context::load(const char* module, std::istream& file)
+	bool Context::load(std::istream& file)
 	{
 		/*
 		if (file && !file.eof())
@@ -115,18 +129,26 @@ namespace hz
 		return false;
 	}
 
-	bool Context::load(const char* module, const char* filename)
+	bool Context::load(const char* filename)
 	{
 		std::ifstream file(filename);
-		return load(module, file);
+		return load(file);
 	}
 
-	bool Context::compile(const char* module)
+	bool Context::compile()
 	{
 		return false;
 	}
 
-	bool Context::execute(const char* module)
+	//==================================
+	//			EXECUTION FLOW
+	//==================================
+
+	//==================================
+	//			EXECUTION
+	//==================================
+
+	bool Context::execute()
 	{
 		/*
 		auto it = m_byteCodeModules->find(module);

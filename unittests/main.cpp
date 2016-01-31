@@ -100,10 +100,12 @@ int main(int argc, char** argv)
 	{
 		module = "Expr";
 		file = "unittests/scripts/expressions.hz";
+
+		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Expression' script");
-		HAIZE_CHECK(vm.load(module.cStr(), file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
-		HAIZE_CHECK(vm.compile(module.cStr()), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
-		HAIZE_CHECK(vm.execute(module.cStr()), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		HAIZE_CHECK(context->load(file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
+		HAIZE_CHECK(context->compile(), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		HAIZE_CHECK(context->execute(), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
 	}
 
 	// END UNIT TEST
