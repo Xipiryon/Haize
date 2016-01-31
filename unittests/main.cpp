@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	// BEGIN UNIT TEST
 	clockTest.start();
 
-	hz::Engine& vm = hz::Engine::getInstance();
+	hz::Engine& vm = hz::Engine::createInstance();
 	muon::String file;
 	muon::String module;
 	char buffer[FileContentBuffer];
