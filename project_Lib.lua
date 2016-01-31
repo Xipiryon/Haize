@@ -2,19 +2,16 @@
 -- Library
 -------------------------------------------
 
-project "Haize"
+project "HaizeLibrary"
 	local ProjectRoot = os.getcwd()
 
 	language "C++"
+	targetname "Haize"
 	targetdir (SolutionRoot.."/bin/lib")
 
 	files {
 		ProjectRoot.."/src/**.cpp",
 		ProjectRoot.."/include/**.hpp",
-		-- Flex/Bison and related files
-		ProjectRoot.."/src/Haize/Parser/**.hpp",
-		ProjectRoot.."/src/Haize/Parser/YACC/yacc.haize.yy",
-		ProjectRoot.."/src/Haize/Parser/YACC/flex.haize.ll",
 	}
 	filter "Debug*"
 		links	{ "Muon-d" }

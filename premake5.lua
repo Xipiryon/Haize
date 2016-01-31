@@ -26,7 +26,7 @@ end
 ------------------------------
 
 solution "Haize"
-	startproject "HaizeExecutable"
+	startproject "Haize"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
 	if os.is("windows") then
