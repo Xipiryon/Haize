@@ -47,7 +47,43 @@ namespace hz
 	//			COMPILATION
 	//==================================
 
-	bool Context::eval(const char* code)
+	eLoadState Context::load(std::istream& file)
+	{
+		/*
+		if (file && !file.eof())
+		{
+			file.seekg(0, std::ios::end);
+			muon::u64 length = (muon::u64)file.tellg();
+			file.seekg(0, std::ios::beg);
+			muon::u32 bufferSize = (m_loadBuffer ? strlen(m_loadBuffer) : 0);
+			m_loadBuffer = (char*)realloc(m_loadBuffer, bufferSize + sizeof(char) * (size_t)length);
+			file.read(m_loadBuffer, length);
+			return true;
+		}
+		//*/
+		return LOAD_ERROR;
+	}
+
+	eLoadState Context::load(const char* filename)
+	{
+		std::ifstream file(filename);
+		return load(file);
+	}
+
+	eCompilationState Context::compile()
+	{
+		return COMPILATION_ERROR;
+	}
+
+	//==================================
+	//			EXECUTION FLOW
+	//==================================
+
+	//==================================
+	//			EXECUTION
+	//==================================
+
+	eExecutationState Context::eval(const char* code, bool storeCode /* = false*/)
 	{
 		/*
 		muon::system::Log log("VM", muon::LOG_DEBUG);
@@ -109,46 +145,10 @@ namespace hz
 		// Execution
 		return run(m_info.IRCode);
 		//*/
-		return false;
+		return EXECUTION_ERROR;
 	}
 
-	bool Context::load(std::istream& file)
-	{
-		/*
-		if (file && !file.eof())
-		{
-			file.seekg(0, std::ios::end);
-			muon::u64 length = (muon::u64)file.tellg();
-			file.seekg(0, std::ios::beg);
-			muon::u32 bufferSize = (m_loadBuffer ? strlen(m_loadBuffer) : 0);
-			m_loadBuffer = (char*)realloc(m_loadBuffer, bufferSize + sizeof(char) * (size_t)length);
-			file.read(m_loadBuffer, length);
-			return true;
-		}
-		//*/
-		return false;
-	}
-
-	bool Context::load(const char* filename)
-	{
-		std::ifstream file(filename);
-		return load(file);
-	}
-
-	bool Context::compile()
-	{
-		return false;
-	}
-
-	//==================================
-	//			EXECUTION FLOW
-	//==================================
-
-	//==================================
-	//			EXECUTION
-	//==================================
-
-	bool Context::execute()
+	eExecutationState Context::execute()
 	{
 		/*
 		auto it = m_byteCodeModules->find(module);
@@ -157,10 +157,10 @@ namespace hz
 			return run(it->second);
 		}
 		//*/
-		return false;
+		return EXECUTION_ERROR;
 	}
 
-	bool Context::run(const ByteCode* buffer)
+	eExecutationState Context::run(const ByteCode* buffer)
 	{
 		/*
 		muon::system::Log log("VM");
@@ -300,7 +300,7 @@ namespace hz
 			++m_stack;
 		} while (exec);
 		//*/
-		return true;
+		return EXECUTION_ERROR;
 	}
 }
 
