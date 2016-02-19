@@ -22,6 +22,9 @@ namespace hz
 {
 	Context::Context(const char* name)
 		: m_name(name)
+		, m_lastLoadState(LOAD_ERROR)
+		, m_lastCompilationState(COMPILATION_ERROR)
+		, m_lastExecutionState(EXECUTION_ERROR)
 	//	, m_stack(0)
 	//	, m_loadBuffer(NULL)
 	{
@@ -61,7 +64,8 @@ namespace hz
 			return true;
 		}
 		//*/
-		return LOAD_ERROR;
+		m_lastLoadState = LOAD_ERROR;
+		return m_lastLoadState;
 	}
 
 	eLoadState Context::load(const char* filename)
@@ -72,7 +76,8 @@ namespace hz
 
 	eCompilationState Context::compile()
 	{
-		return COMPILATION_ERROR;
+		m_lastCompilationState = COMPILATION_ERROR;
+		return m_lastCompilationState;
 	}
 
 	//==================================
@@ -145,7 +150,8 @@ namespace hz
 		// Execution
 		return run(m_info.IRCode);
 		//*/
-		return EXECUTION_ERROR;
+		m_lastExecutionState = EXECUTION_ERROR;
+		return m_lastExecutionState;
 	}
 
 	eExecutationState Context::execute()
@@ -157,7 +163,8 @@ namespace hz
 			return run(it->second);
 		}
 		//*/
-		return EXECUTION_ERROR;
+		m_lastExecutionState = EXECUTION_ERROR;
+		return m_lastExecutionState;
 	}
 
 	eExecutationState Context::run(const ByteCode* buffer)

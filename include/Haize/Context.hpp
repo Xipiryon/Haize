@@ -10,22 +10,49 @@ namespace hz
 {
 	class Engine;
 
+	/*!
+	*
+	*/
 	enum eLoadState
 	{
 		LOAD_SUCCESS,
 		LOAD_ERROR,
 	};
 
+	/*!
+	*
+	*/
 	enum eCompilationState
 	{
 		COMPILATION_SUCCESS,
 		COMPILATION_ERROR,
 	};
 
+	/*!
+	*
+	*/
 	enum eExecutationState
 	{
 		EXECUTION_SUCCESS,
 		EXECUTION_ERROR,
+	};
+
+	static const char* s_eLoadStateStr[] =
+	{
+		"LOAD_SUCCESS",
+		"LOAD_ERROR",
+	};
+
+	static const char* s_eCompilationStateStr[] =
+	{
+		"COMPILATION_SUCCESS",
+		"COMPILATION_ERROR",
+	};
+
+	static const char* s_eExecutationStateStr[] =
+	{
+		"EXECUTION_SUCCESS",
+		"EXECUTION_ERROR",
 	};
 
 	/*!
@@ -35,7 +62,6 @@ namespace hz
 	class HAIZE_API Context
 	{
 		friend class Engine;
-		friend class muon::memory::DefaultAllocator;
 		Context(const char* name);
 	public:
 		~Context();
@@ -99,6 +125,10 @@ namespace hz
 
 	private:
 		muon::String m_name;
+
+		eLoadState m_lastLoadState;
+		eCompilationState m_lastCompilationState;
+		eExecutationState m_lastExecutionState;
 
 		ByteCode m_instr;
 		muon::u32 m_stack;
