@@ -103,9 +103,16 @@ int main(int argc, char** argv)
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Expression' script");
-		HAIZE_CHECK(context->load(file.cStr()), "Couldn't load file \"%s\"!", file.cStr());
-		HAIZE_CHECK(context->compile(), "Couldn't compile content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
-		HAIZE_CHECK(context->execute(), "Couldn't execute content of \"%s\" in module \"%s\"!", file.cStr(), module.cStr());
+		muon::u32 state;
+
+		state = context->load(file.cStr());
+		HAIZE_CHECK(state == hz::LOAD_SUCCESS, "Couldn't load file \"%s\" -> State: \"%s\"", file.cStr(), hz::s_eLoadStateStr[state]);
+
+		state = context->compile();
+		HAIZE_CHECK(state == hz::COMPILATION_SUCCESS, "Couldn't compile content of \"%s\" in module \"%s\" -> State: \"%s\"", file.cStr(), module.cStr(), hz::s_eCompilationStateStr[state]);
+
+		state = context->execute();
+		HAIZE_CHECK(state == hz::EXECUTION_SUCCESS, "Couldn't execute content of \"%s\" in module \"%s\" -> State: \"%s\"", file.cStr(), module.cStr(), hz::s_eExecutationStateStr[state]);
 	}
 
 	// END UNIT TEST
