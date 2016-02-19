@@ -37,15 +37,15 @@ Example with Visual Studio 2013:
 6) Run the `premake5.exe install` command. _(Depending on where you want to install, you may require administrator rights)_
 
 If you've pulled a new version of the project, it is recommanded to regenerate the solution using premake and rebuild.
-Unless major changes in Muon, you should not have the need to rebuild & reinstall the library.
+Unless major changes, you should not have the need to rebuild & reinstall the library.
 
 Note
 ====================
 
-* The `premake5 install` command will install header and libraries (.dll, .lib, .so, ...) files 
+* The `premake5 install` command will install header and libraries (.dll, .lib, .so, ...) files
 	* On Windows, they're installed under the C:\Premake folder
 	* On Unix, they're installed under the /usr/local/ folder _(and may require the use of `sudo` )_
-	
+
 License
 ====================
 This project is licenced under the Creative Commons - Attribution & Share Alike licence
