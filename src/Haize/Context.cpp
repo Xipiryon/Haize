@@ -68,14 +68,20 @@ namespace hz
 		return m_lastLoadState;
 	}
 
-	eLoadState Context::load(const char* filename)
+	eLoadState Context::load(const muon::String& filename)
 	{
-		std::ifstream file(filename);
+		std::ifstream file(filename.cStr());
 		return load(file);
 	}
 
 	eCompilationState Context::compile()
 	{
+		if (m_lastLoadState != LOAD_SUCCESS)
+		{
+			m_lastCompilationState = COMPILATION_ERROR;
+			return m_lastCompilationState;
+		}
+
 		m_lastCompilationState = COMPILATION_ERROR;
 		return m_lastCompilationState;
 	}
@@ -83,6 +89,40 @@ namespace hz
 	//==================================
 	//			EXECUTION FLOW
 	//==================================
+
+	ePreparationState Context::prepare(const muon::String& func)
+	{
+		if (m_lastCompilationState != COMPILATION_SUCCESS)
+		{
+			m_lastPreparationState = PREPARATION_ERROR;
+			return m_lastPreparationState;
+		}
+		
+		/*
+
+		// */
+
+		m_lastPreparationState = PREPARATION_ERROR;
+		return m_lastPreparationState;
+	}
+
+	eExecutationState Context::execute()
+	{
+		if (m_lastPreparationState != PREPARATION_SUCCESS)
+		{
+			m_lastExecutionState = EXECUTION_ERROR;
+			return m_lastExecutionState;
+		}
+		/*
+		auto it = m_byteCodeModules->find(module);
+		if(it != m_byteCodeModules->end())
+		{
+			return run(it->second);
+		}
+		//*/
+		m_lastExecutionState = EXECUTION_ERROR;
+		return m_lastExecutionState;
+	}
 
 	//==================================
 	//			EXECUTION
@@ -149,19 +189,6 @@ namespace hz
 #endif
 		// Execution
 		return run(m_info.IRCode);
-		//*/
-		m_lastExecutionState = EXECUTION_ERROR;
-		return m_lastExecutionState;
-	}
-
-	eExecutationState Context::execute()
-	{
-		/*
-		auto it = m_byteCodeModules->find(module);
-		if(it != m_byteCodeModules->end())
-		{
-			return run(it->second);
-		}
 		//*/
 		m_lastExecutionState = EXECUTION_ERROR;
 		return m_lastExecutionState;

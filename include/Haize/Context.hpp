@@ -31,6 +31,15 @@ namespace hz
 	/*!
 	*
 	*/
+	enum ePreparationState
+	{
+		PREPARATION_SUCCESS,
+		PREPARATION_ERROR,
+	};
+
+	/*!
+	*
+	*/
 	enum eExecutationState
 	{
 		EXECUTION_SUCCESS,
@@ -49,6 +58,12 @@ namespace hz
 		"COMPILATION_ERROR",
 	};
 
+	static const char* s_ePreparationStateStr[] =
+	{
+		"PREPARATION_SUCCESS",
+		"PREPARATION_ERROR",
+	};
+
 	static const char* s_eExecutationStateStr[] =
 	{
 		"EXECUTION_SUCCESS",
@@ -58,6 +73,19 @@ namespace hz
 	/*!
 	* @brief Script execution entry point
 	* Context are used both for compilation and execution.
+	* The whole process follow the given order
+	* 1. Loading files
+	*	-# There is no "include" in the language
+	*	-# If 'A.hz' requires 'B.hz', you will have to load both (order doesn't matter)
+	* 2. Compilation
+	*	-# When every files are loaded, compilation will translates text code
+	*		into intermediate representation
+	*	-# If 'A.hz' requires 'B.hz', but 'B.hz' is not (at least) loaded, compiling 'A.hz' will fail
+	* 3. Preparation
+	*	-# Push variables / functions on the stack
+	*	-# Indicate the entry point of the Context
+	* 4. Execution
+	*	-# Start executing intermediate code
 	*/
 	class HAIZE_API Context
 	{
@@ -75,28 +103,31 @@ namespace hz
 		/*!
 		* @brief Read the content of the sstream
 		* @param stream Stream to read
-		* @note Only one file can be loaded at a time
 		*/
 		eLoadState load(std::istream& stream);
 
 		/*!
 		* @brief Load a file located at path
 		* @param file File to load
-		* @note Only one file can be loaded at a time
 		*/
-		eLoadState load(const char* file);
+		eLoadState load(const muon::String& file);
 
 		/*!
-		*
+		* @brief 
 		*/
 		eCompilationState compile();
 
 		/*!
-		*
+		* @brief Prepare a function to call
+		* Only function can be executed, there is no "free code" 
+		* like in Lua or Python, a file that contains only code will not
+		* be loaded
+		* @param func Function name to be loaded, with prefixed namespace (ex: "namespace::function")
 		*/
-		eExecutationState prepare();
+		ePreparationState prepare(const muon::String& func);
 
 		/*!
+		* @brief Start executing the prepared function
 		*
 		*/
 		eExecutationState execute();
@@ -128,6 +159,7 @@ namespace hz
 
 		eLoadState m_lastLoadState;
 		eCompilationState m_lastCompilationState;
+		ePreparationState m_lastPreparationState;
 		eExecutationState m_lastExecutionState;
 
 		ByteCode m_instr;
