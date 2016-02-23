@@ -19,7 +19,8 @@ project "UnitTests"
 	files	{
 		ProjectRoot.."/unittests/main.cpp",
 		ProjectRoot.."/unittests/tinyxml2.cpp",
-		ProjectRoot.."/unittests/tinyxml2.h"
+		ProjectRoot.."/unittests/tinyxml2.h",
+		ProjectRoot.."/unittests/**.hz"
 	}
 
 	filter "Debug*"
