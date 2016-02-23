@@ -7,20 +7,20 @@
 namespace hz
 {
 	SymbolTable::SymbolTable()
-		: m_registers(MUON_CNEW(HashMapRegistry))
-		, m_namespaces(MUON_CNEW(HashMapNamespace))
+		: m_registers(MUON_NEW(HashMapRegistry))
+		, m_namespaces(MUON_NEW(HashMapNamespace))
 		, m_registerId(ByteCode::REG_USABLE)
 	{
 	}
 
 	SymbolTable::~SymbolTable()
 	{
-		MUON_CDELETE(m_registers);
+		MUON_DELETE(m_registers);
 		for (auto it = m_namespaces->begin(); it != m_namespaces->end(); ++it)
 		{
-			MUON_CDELETE(it->second);
+			MUON_DELETE(it->second);
 		}
-		MUON_CDELETE(m_namespaces);
+		MUON_DELETE(m_namespaces);
 	}
 
 	muon::u8 SymbolTable::checkOrCreateRegister(const muon::String& identifier)

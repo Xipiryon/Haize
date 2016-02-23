@@ -5,7 +5,7 @@ namespace hz
 {
 	Engine::Engine()
 	{
-		m_moduleContext = MUON_CNEW(ModuleContextMap);
+		m_moduleContext = MUON_NEW(ModuleContextMap);
 	}
 
 	Engine::~Engine()
@@ -13,9 +13,9 @@ namespace hz
 		for(auto it = m_moduleContext->begin(); it != m_moduleContext->end(); ++it)
 		{
 			Context* c = it->second;
-			MUON_CDELETE(c);
+			MUON_DELETE(c);
 		}
-		MUON_CDELETE(m_moduleContext);
+		MUON_DELETE(m_moduleContext);
 	}
 
 	Context* Engine::createContext(const char* name)
@@ -23,7 +23,7 @@ namespace hz
 		Context* context = getContext(name);
 		if(!context)
 		{
-			context = MUON_CNEW(Context, name);
+			context = MUON_NEW(Context, name);
 			muon::String sName = name;
 			(*m_moduleContext)[sName] = context;
 		}
@@ -47,7 +47,7 @@ namespace hz
 		{
 			return false;
 		}
-		MUON_CDELETE(it->second);
+		MUON_DELETE(it->second);
 		m_moduleContext->erase(it);
 		return true;
 	}
