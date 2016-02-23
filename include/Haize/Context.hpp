@@ -156,6 +156,10 @@ namespace hz
 		eExecutationState run(const ByteCode* instr);
 
 	private:
+		eCompilationState parseLexical();
+		eCompilationState parseSyntaxic();
+		eCompilationState parseSemantic();
+
 		muon::String m_name;
 
 		ByteCode m_instr;
