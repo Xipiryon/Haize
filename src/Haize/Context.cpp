@@ -24,10 +24,14 @@ namespace hz
 	//	, m_stack(0)
 	{
 	//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
+		m_tokenList = MUON_NEW(std::vector<parser::Token>);
+		m_nodeRoot = MUON_NEW(parser::ASTNode);
 	}
 
 	Context::~Context()
 	{
+		MUON_DELETE(m_tokenList);
+		MUON_DELETE(m_nodeRoot);
 	//	MUON_DELETE(m_byteCodeModules);
 	}
 
@@ -80,8 +84,19 @@ namespace hz
 
 	eCompilationState Context::compile()
 	{
+		eCompilationState compState = COMPILATION_SUCCESS;
+		compState = parseLexical();
+		if (compState == COMPILATION_SUCCESS)
+		{
+			compState = parseSyntaxic();
+			if (compState == COMPILATION_SUCCESS)
+			{
+				compState = parseSemantic();
+			}
+		}
+
 		m_loadBuffer.clear();
-		return COMPILATION_ERROR;
+		return compState;
 	}
 
 	//==================================

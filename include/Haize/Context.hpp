@@ -6,6 +6,9 @@
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
 
+#include "Haize/Parser/Info.hpp"
+#include "Haize/Parser/ASTNode.hpp"
+
 namespace hz
 {
 	class Engine;
@@ -162,9 +165,15 @@ namespace hz
 
 		muon::String m_name;
 
+		// Parser
+		parser::InfoError m_error;
+		std::vector<parser::Token>* m_tokenList;
+		parser::ASTNode* m_nodeRoot;
+		SymbolTable m_symbols;
+
+		// Execution
 		ByteCode m_instr;
 		muon::u32 m_stack;
-		SymbolTable m_symbols;
 		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 
 		muon::String m_loadBuffer;
