@@ -29,22 +29,84 @@ namespace
 		muon::u32 column;
 	};
 
-	template<typename T> void displayToken(T&, const hz::parser::Token&);
-	bool isLetter(char);
-	bool isNumber(char);
-	bool isLogicSymbol(char);
-	bool isMathSymbol(char);
-	bool isWhitespace(char);
-	bool isLitteral(char c);
-	bool isNewLine(char c);
-	bool isSeparator(char);
-	bool isBracket(char c);
-	bool isBrace(char c);
-	bool isParenthesis(char c);
-	bool matchCombinedChar(char, char, char, char);
+	bool isLetter(char c)
+	{
+		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_'));
+	}
 
-	char get(InfoLexical&);
-	char peek(InfoLexical&);
+	bool isNumber(char c)
+	{
+		return (c >= '0' && c <= '9');
+	}
+
+	bool isLogicSymbol(char c)
+	{
+		return (c == '&' || c == '|' || c == '!' || c == '~' || c == '^' || c == '<' || c == '>');
+	}
+
+	bool isMathSymbol(char c)
+	{
+		return (c == '+' || c == '-' || c == '/' || c == '*' || c == '%' || c == '=');
+	}
+
+	bool isWhitespace(char c)
+	{
+		return (c == ' ' || c == '\t');
+	}
+
+	bool isLitteral(char c)
+	{
+		return (c == '\'' || c == '\"');
+	}
+
+	bool isNewLine(char c)
+	{
+		return (c == '\r' || c == '\n');
+	}
+
+	bool isSeparator(char c)
+	{
+		return (c == ';') || isNewLine(c);
+	}
+
+	bool isParenthesis(char c)
+	{
+		return (c == '(' || c == ')');
+	}
+
+	bool isBracket(char c)
+	{
+		return (c == '[' || c == ']');
+	}
+
+	bool isBrace(char c)
+	{
+		return (c == '{' || c == '}');
+	}
+
+	bool matchCombinedChar(char c, char nc, char refc, char refnc)
+	{
+		return (c == refc) && (nc == refnc);
+	}
+
+	char get(InfoLexical& info)
+	{
+		char c;
+		if (!info.stream.get(c))
+		{
+			return 0;
+		}
+		return c;
+	}
+
+	char peek(InfoLexical& info)
+	{
+		if (info.stream.eof())
+		{
+			return 0;
+		}
+		return info.stream.peek();
+	}
 }
 
 namespace hz
@@ -613,116 +675,5 @@ namespace hz
 		impl->token.type = hz::parser::S_INVALID;
 		impl->token.value.reset();
 		word = "";
-	}
-}
-
-namespace
-{
-	template<typename T>
-	void displayToken(T& stream, const hz::parser::Token& token)
-	{
-		stream << hz::parser::TokenTypeStr[token.type] << "@#" << token.line << ":" << token.column << muon::endl;
-		switch (token.type)
-		{
-			case hz::parser::V_NIL:
-				stream << "\t[ NIL ] " << muon::endl;
-				break;
-			case hz::parser::V_TRUE:
-				stream << "\t[ TRUE ] " << muon::endl;
-				break;
-			case hz::parser::V_FALSE:
-				stream << "\t[ FALSE ] " << muon::endl;
-				break;
-			case hz::parser::V_NUMBER:
-				stream << "\t[" << token.value.get<muon::f32>() << "] " << muon::endl;
-				break;
-			case hz::parser::V_STRING:
-			case hz::parser::V_IDENTIFIER:
-			{
-				stream << "\t[" << token.value.get<muon::String>().cStr() << "] " << muon::endl;
-				break;
-			}
-			default:
-				break;
-		}
-	}
-
-	bool isLetter(char c)
-	{
-		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_'));
-	}
-
-	bool isNumber(char c)
-	{
-		return (c >= '0' && c <= '9');
-	}
-
-	bool isLogicSymbol(char c)
-	{
-		return (c == '&' || c == '|' || c == '!' || c == '~' || c == '^' || c == '<' || c == '>');
-	}
-
-	bool isMathSymbol(char c)
-	{
-		return (c == '+' || c == '-' || c == '/' || c == '*' || c == '%' || c == '=');
-	}
-
-	bool isWhitespace(char c)
-	{
-		return (c == ' ' || c == '\t');
-	}
-
-	bool isLitteral(char c)
-	{
-		return (c == '\'' || c == '\"');
-	}
-
-	bool isNewLine(char c)
-	{
-		return (c == '\r' || c == '\n');
-	}
-
-	bool isSeparator(char c)
-	{
-		return (c == ';') || isNewLine(c);
-	}
-
-	bool isParenthesis(char c)
-	{
-		return (c == '(' || c == ')');
-	}
-
-	bool isBracket(char c)
-	{
-		return (c == '[' || c == ']');
-	}
-
-	bool isBrace(char c)
-	{
-		return (c == '{' || c == '}');
-	}
-
-	bool matchCombinedChar(char c, char nc, char refc, char refnc)
-	{
-		return (c == refc) && (nc == refnc);
-	}
-
-	char get(InfoLexical& info)
-	{
-		char c;
-		if (!info.stream.get(c))
-		{
-			return 0;
-		}
-		return c;
-	}
-
-	char peek(InfoLexical& info)
-	{
-		if (info.stream.eof())
-		{
-			return 0;
-		}
-		return info.stream.peek();
 	}
 }
