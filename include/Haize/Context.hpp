@@ -14,7 +14,9 @@ namespace hz
 	{
 		struct InfoImpl
 		{
-			virtual ~InfoImpl() = 0;
+			virtual ~InfoImpl()
+			{
+			}
 		};
 	}
 
@@ -47,9 +49,11 @@ namespace hz
 	*/
 	enum eCompilationState
 	{
-		COMPILATION_SUCCESS,			//!< Everything went good
-		COMPILATION_LEXICAL_ERROR,		//!< An unknow character have been encountered
-		COMPILATION_ERROR,				//!< Generic error message
+		COMPILATION_SUCCESS,					//!< Everything went good
+		COMPILATION_ERROR_LEXICAL_NUMBER,		//!< An encountered number is illformed
+		COMPILATION_ERROR_LEXICAL_IDENTIFIER,	//!< An encountered identifier is illformed
+		COMPILATION_ERROR_LEXICAL_OPERATOR,		//!< An encountered operator is illformed
+		COMPILATION_ERROR,						//!< Generic error message
 	};
 
 	/*!
