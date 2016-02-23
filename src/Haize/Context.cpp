@@ -44,6 +44,11 @@ namespace hz
 		return m_name.cStr();
 	}
 
+	InfoError Context::getLastError() const
+	{
+		return m_error;
+	}
+
 	//==================================
 	//			COMPILATION
 	//==================================

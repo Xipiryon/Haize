@@ -6,12 +6,31 @@
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
 
-#include "Haize/Parser/Info.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
 namespace hz
 {
+	namespace parser
+	{
+		struct InfoImpl
+		{
+			virtual ~InfoImpl() = 0;
+		};
+	}
+
 	class Engine;
+
+	/*!
+	*
+	*/
+	struct HAIZE_API InfoError
+	{
+		muon::String message;
+		muon::String section;
+		muon::String function;
+		muon::u32 line;
+		muon::u32 column;
+	};
 
 	/*!
 	*
@@ -28,8 +47,9 @@ namespace hz
 	*/
 	enum eCompilationState
 	{
-		COMPILATION_SUCCESS,	//!< Everything went good
-		COMPILATION_ERROR,		//!< Generic error message
+		COMPILATION_SUCCESS,			//!< Everything went good
+		COMPILATION_LEXICAL_ERROR,		//!< An unknow character have been encountered
+		COMPILATION_ERROR,				//!< Generic error message
 	};
 
 	/*!
@@ -105,6 +125,14 @@ namespace hz
 		const char* getName() const;
 
 		/*!
+		* @brief Return last error message 
+		* If an error occured and you want more information than just the returned enum,
+		* this function will return a hz::InfoError struct containing details.
+		* @note The struct will be reset on any succesful function call
+		*/
+		InfoError getLastError() const;
+
+		/*!
 		* @brief Read the content of the sstream
 		* @param stream Stream to read
 		*/
@@ -164,19 +192,29 @@ namespace hz
 		eCompilationState parseSemantic();
 
 		muon::String m_name;
+		InfoError m_error;
 
-		// Parser
-		parser::InfoError m_error;
+		// PARSER & COMPILATION
+		// ****************************
+		// Variables
+		muon::String m_loadBuffer;
 		std::vector<parser::Token>* m_tokenList;
 		parser::ASTNode* m_nodeRoot;
 		SymbolTable m_symbols;
 
-		// Execution
+		// Lexical
+		void pushToken(parser::InfoImpl*, muon::String&);
+		void pushSeparatorToken(parser::InfoImpl*, muon::String&);
+
+		// Syntaxic
+
+		// Semantic
+
+		// EXECUTION
+		// ****************************
 		ByteCode m_instr;
 		muon::u32 m_stack;
 		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
-
-		muon::String m_loadBuffer;
 	};
 
 }
