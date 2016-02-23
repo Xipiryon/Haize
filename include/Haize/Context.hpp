@@ -15,8 +15,9 @@ namespace hz
 	*/
 	enum eLoadState
 	{
-		LOAD_SUCCESS,
-		LOAD_ERROR,
+		LOAD_SUCCESS,		//!< Everything went good
+		LOAD_ERROR,			//!< Generic error message
+		LOAD_EMPTY_BUFFER,	//!< Buffer or loaded file is empty
 	};
 
 	/*!
@@ -24,8 +25,8 @@ namespace hz
 	*/
 	enum eCompilationState
 	{
-		COMPILATION_SUCCESS,
-		COMPILATION_ERROR,
+		COMPILATION_SUCCESS,	//!< Everything went good
+		COMPILATION_ERROR,		//!< Generic error message
 	};
 
 	/*!
@@ -33,8 +34,8 @@ namespace hz
 	*/
 	enum ePreparationState
 	{
-		PREPARATION_SUCCESS,
-		PREPARATION_ERROR,
+		PREPARATION_SUCCESS,	//!< Everything went good
+		PREPARATION_ERROR,		//!< Generic error message
 	};
 
 	/*!
@@ -42,8 +43,8 @@ namespace hz
 	*/
 	enum eExecutationState
 	{
-		EXECUTION_SUCCESS,
-		EXECUTION_ERROR,
+		EXECUTION_SUCCESS,		//!< Everything went good
+		EXECUTION_ERROR,		//!< Generic error message
 	};
 
 	static const char* s_eLoadStateStr[] =
@@ -157,17 +158,12 @@ namespace hz
 	private:
 		muon::String m_name;
 
-		eLoadState m_lastLoadState;
-		eCompilationState m_lastCompilationState;
-		ePreparationState m_lastPreparationState;
-		eExecutationState m_lastExecutionState;
-
 		ByteCode m_instr;
 		muon::u32 m_stack;
 		SymbolTable m_symbols;
 		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 
-		char* m_loadBuffer;
+		muon::String m_loadBuffer;
 	};
 
 }

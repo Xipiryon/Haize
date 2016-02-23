@@ -13,7 +13,6 @@
 
 namespace
 {
-	using namespace muon;
 	void arithmetic(hz::Context&, hz::eOpCode, muon::u32, muon::u32, muon::u32);
 	//void printError(hz::parser::InfoError& error);
 }
@@ -22,18 +21,13 @@ namespace hz
 {
 	Context::Context(const char* name)
 		: m_name(name)
-		, m_lastLoadState(LOAD_ERROR)
-		, m_lastCompilationState(COMPILATION_ERROR)
-		, m_lastExecutionState(EXECUTION_ERROR)
 	//	, m_stack(0)
-	//	, m_loadBuffer(NULL)
 	{
 	//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 	}
 
 	Context::~Context()
 	{
-	//	free(m_loadBuffer);
 	//	MUON_DELETE(m_byteCodeModules);
 	}
 
@@ -52,20 +46,30 @@ namespace hz
 
 	eLoadState Context::load(std::istream& file)
 	{
-		/*
-		if (file && !file.eof())
+		if (file)
 		{
-			file.seekg(0, std::ios::end);
-			muon::u64 length = (muon::u64)file.tellg();
-			file.seekg(0, std::ios::beg);
-			muon::u32 bufferSize = (m_loadBuffer ? strlen(m_loadBuffer) : 0);
-			m_loadBuffer = (char*)realloc(m_loadBuffer, bufferSize + sizeof(char) * (size_t)length);
-			file.read(m_loadBuffer, length);
-			return true;
+			if (!file.eof())
+			{
+				// Get stream size
+				file.seekg(0, file.end);
+				muon::u64 length = (muon::u64)file.tellg();
+				file.seekg(0, file.beg);
+				if(length == 0)
+				{
+					return LOAD_EMPTY_BUFFER;
+				}
+
+				char* buffer = (char*)malloc((muon::u32)length);
+				file.read(buffer, length);
+				buffer[file.gcount()] = 0;
+				m_loadBuffer += buffer;
+				free(buffer);
+
+				return LOAD_SUCCESS;
+			}
+			return LOAD_EMPTY_BUFFER;
 		}
-		//*/
-		m_lastLoadState = LOAD_ERROR;
-		return m_lastLoadState;
+		return LOAD_ERROR;
 	}
 
 	eLoadState Context::load(const muon::String& filename)
@@ -76,14 +80,8 @@ namespace hz
 
 	eCompilationState Context::compile()
 	{
-		if (m_lastLoadState != LOAD_SUCCESS)
-		{
-			m_lastCompilationState = COMPILATION_ERROR;
-			return m_lastCompilationState;
-		}
-
-		m_lastCompilationState = COMPILATION_ERROR;
-		return m_lastCompilationState;
+		m_loadBuffer.clear();
+		return COMPILATION_ERROR;
 	}
 
 	//==================================
@@ -92,27 +90,11 @@ namespace hz
 
 	ePreparationState Context::prepare(const muon::String& func)
 	{
-		if (m_lastCompilationState != COMPILATION_SUCCESS)
-		{
-			m_lastPreparationState = PREPARATION_ERROR;
-			return m_lastPreparationState;
-		}
-		
-		/*
-
-		// */
-
-		m_lastPreparationState = PREPARATION_ERROR;
-		return m_lastPreparationState;
+		return PREPARATION_ERROR;
 	}
 
 	eExecutationState Context::execute()
 	{
-		if (m_lastPreparationState != PREPARATION_SUCCESS)
-		{
-			m_lastExecutionState = EXECUTION_ERROR;
-			return m_lastExecutionState;
-		}
 		/*
 		auto it = m_byteCodeModules->find(module);
 		if(it != m_byteCodeModules->end())
@@ -120,8 +102,7 @@ namespace hz
 			return run(it->second);
 		}
 		//*/
-		m_lastExecutionState = EXECUTION_ERROR;
-		return m_lastExecutionState;
+		return EXECUTION_ERROR;
 	}
 
 	//==================================
@@ -190,8 +171,7 @@ namespace hz
 		// Execution
 		return run(m_info.IRCode);
 		//*/
-		m_lastExecutionState = EXECUTION_ERROR;
-		return m_lastExecutionState;
+		return EXECUTION_ERROR;
 	}
 
 	eExecutationState Context::run(const ByteCode* buffer)
