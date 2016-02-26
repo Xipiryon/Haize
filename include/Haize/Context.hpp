@@ -2,6 +2,8 @@
 #ifndef INCLUDE_HAIZE_CONTEXT_INCLUDED
 #define INCLUDE_HAIZE_CONTEXT_INCLUDED
 
+#include <vector>
+
 #include <Muon/Variant.hpp>
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
@@ -129,7 +131,7 @@ namespace hz
 		const char* getName() const;
 
 		/*!
-		* @brief Return last error message 
+		* @brief Return last error message
 		* If an error occured and you want more information than just the returned enum,
 		* this function will return a hz::InfoError struct containing details.
 		* @note The struct will be reset on any succesful function call
@@ -149,13 +151,13 @@ namespace hz
 		eLoadState load(const muon::String& file);
 
 		/*!
-		* @brief 
+		* @brief
 		*/
 		eCompilationState compile();
 
 		/*!
 		* @brief Prepare a function to call
-		* Only function can be executed, there is no "free code" 
+		* Only function can be executed, there is no "free code"
 		* like in Lua or Python, a file that contains only code will not
 		* be loaded
 		* @param func Function name to be loaded, with prefixed namespace (ex: "namespace::function")

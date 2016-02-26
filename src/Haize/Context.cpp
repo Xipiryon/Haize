@@ -1,7 +1,6 @@
 
 #include <cstdlib>
 #include <sstream>
-#include <vector>
 #include <fstream>
 
 #include <Muon/System/Log.hpp>
