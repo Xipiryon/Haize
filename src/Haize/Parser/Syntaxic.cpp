@@ -48,19 +48,18 @@ namespace hz
 		impl.node = NULL;
 		impl.readIndex = 0;
 
-		/*
-		if (info.TokenList->empty() || info.TokenList->front().type == S_EOF)
+		if (m_tokenList->empty() || m_tokenList->front().type == parser::S_EOF)
 		{
-			info.error.message = "Empty token list, nothing to parse.";
-			ret = false;
+			m_error.message = "Empty token list, nothing to parse.";
+			return COMPILATION_ERROR_SYNTAXIC;
 		}
-		else
-		{
-			initPrecedenceAssoc(info);
-			ret = initParse(info);
-		}
-		// */
 
-		return COMPILATION_SUCCESS;
+		//initPrecedenceAssoc(&info);
+		return COMPILATION_ERROR_SYNTAXIC;
+	}
+
+	void Context::initPrecedenceAssoc(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
 	}
 }
