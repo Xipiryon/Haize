@@ -7,6 +7,6 @@ namespace hz
 {
 	eCompilationState Context::parseSemantic()
 	{
-		return COMPILATION_ERROR;
+		return COMPILATION_ERROR_SEMANTIC;
 	}
 }
