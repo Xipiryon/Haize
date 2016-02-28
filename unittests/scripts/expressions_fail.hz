@@ -8,4 +8,5 @@ line comment */
 It's like C/C++ syntax
 // */
 
+// Can't have "free code", so this shouldn't compile
 a = false;
