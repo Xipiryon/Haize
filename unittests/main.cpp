@@ -95,13 +95,50 @@ int main(int argc, char** argv)
 		//HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
+	// Module Creation / Destruction
+	{
+		HAIZE_TITLE("Context creation / destruction");
+		module = "CreateDestroy";
+		hz::Context* context = vm.createContext(module.cStr());
+		HAIZE_CHECK(context != NULL, "Context creation failed!");
+		bool removed = vm.destroyContext(module.cStr());
+		HAIZE_CHECK(removed, "Context destruction failed!");
+		context = vm.getContext(module.cStr());
+		HAIZE_CHECK(context == NULL, "Returning non-null destroyed context!");
+		// Recreate
+		vm.createContext(module.cStr());
+		context = vm.getContext(module.cStr());
+		HAIZE_CHECK(context != NULL, "Returning already-created context failed!");
+		// Clean memory
+		vm.destroyContext(module.cStr());
+	}
+
 	// Expression
 	{
 		module = "Expr";
-		file = "unittests/scripts/expressions.hz";
+		file = "unittests/scripts/expressions_fail.hz";
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Expression' script");
+		muon::u32 state;
+
+		state = context->load(file.cStr());
+		HAIZE_CHECK(state == hz::LOAD_SUCCESS, "Couldn't load file \"%s\" -> State: \"%s\"", file.cStr(), hz::s_eLoadStateStr[state]);
+
+		state = context->compile();
+		HAIZE_CHECK(state == hz::COMPILATION_ERROR_SYNTAXIC_FREE_CODE, "Free code should trigger error, in module \"%s\" -> State: \"%s\"", module.cStr(), hz::s_eCompilationStateStr[state]);
+
+		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
+		// TODO
+	}
+
+	// Functions
+	{
+		module = "Function";
+		file = "unittests/scripts/functions.hz";
+
+		hz::Context* context = vm.createContext(module.cStr());
+		HAIZE_TITLE("Checking 'Functions' script");
 		muon::u32 state;
 
 		state = context->load(file.cStr());
@@ -113,7 +150,6 @@ int main(int argc, char** argv)
 		state = context->execute();
 		HAIZE_CHECK(state == hz::EXECUTION_SUCCESS, "Couldn't execute content of \"%s\" in module \"%s\" -> State: \"%s\"", file.cStr(), module.cStr(), hz::s_eExecutationStateStr[state]);
 	}
-
 	// END UNIT TEST
 	// ***************
 	mainLog(errorCount == 0 ? muon::LOG_INFO : muon::LOG_ERROR) << "Error Count: " << errorCount << muon::endl;
