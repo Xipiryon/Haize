@@ -52,12 +52,18 @@ namespace hz
 	enum eCompilationState
 	{
 		COMPILATION_SUCCESS,					//!< Everything went good
+
 		COMPILATION_ERROR_LEXICAL_NUMBER,		//!< An encountered number is illformed
 		COMPILATION_ERROR_LEXICAL_IDENTIFIER,	//!< An encountered identifier is illformed
 		COMPILATION_ERROR_LEXICAL_OPERATOR,		//!< An encountered operator is illformed
-		COMPILATION_ERROR_SYNTAXIC,				// TODO
-		COMPILATION_ERROR_SYNTAXIC_FREE_CODE,	//!< Language doesn't allow free code, which as been found somewhere
+
+		COMPILATION_ERROR_SYNTAXIC_NO_TOKEN,		//!< No token to parse
+		COMPILATION_ERROR_SYNTAXIC_FREE_CODE,		//!< Language doesn't allow free code, which as been found somewhere
+		COMPILATION_ERROR_SYNTAXIC_OPERAND_COUNT,	//!< An operator doesn't have enough operands
+		COMPILATION_ERROR_SYNTAXIC_UNKNOW_KEYWORD,	//!< An unknow keyword have been found
+
 		COMPILATION_ERROR_SEMANTIC,				// TODO
+
 		COMPILATION_ERROR,						//!< Generic error message
 	};
 

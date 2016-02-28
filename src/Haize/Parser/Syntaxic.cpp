@@ -18,13 +18,6 @@ namespace
 	};
 	static const OpAttribute s_OpDefault = { 0, ASSOC_LEFT };
 
-	enum ParserState
-	{
-		STATE_OK,
-		STATE_SKIP,
-		STATE_ERROR,
-	};
-
 	enum ParserPhase
 	{
 		PHASE_START,
@@ -43,13 +36,12 @@ namespace
 		{
 		}
 
-		ParserState state;
+		muon::u32 state;
 		std::deque<ParserPhase> phases;
 		muon::u32 readIndex;
-		hz::parser::ASTNode* node;
 
 		std::deque<hz::parser::Token> operatorToken;
-		std::deque<hz::parser::ASTNode*> exprNodes;
+		std::deque<hz::parser::ASTNode*> nodes;
 
 		static const OpAttribute precAttrib[hz::parser::E_TERMINALTOKEN_END];
 	};
@@ -69,15 +61,14 @@ namespace hz
 		m_nodeRoot->token = parser::Token(parser::TOTAL_COUNT);
 
 		InfoSyntaxic impl;
-		impl.state = STATE_OK;
+		impl.state = 0;
 		impl.phases.push_back(PHASE_START);
-		impl.node = NULL;
 		impl.readIndex = 0;
 
 		if (m_tokenList->empty() || m_tokenList->back().type == parser::S_EOF)
 		{
 			m_error.message = "Empty token list, nothing to parse.";
-			return COMPILATION_ERROR_SYNTAXIC;
+			return COMPILATION_ERROR_SYNTAXIC_NO_TOKEN;
 		}
 		muon::u32 i = 0;
 
@@ -104,7 +95,7 @@ namespace hz
 				}
 				else
 				{
-					return COMPILATION_ERROR_SYNTAXIC;
+					return COMPILATION_ERROR_SYNTAXIC_UNKNOW_KEYWORD;
 				}
 			}
 			else
@@ -113,7 +104,7 @@ namespace hz
 			}
 		}
 
-		return (impl.state == STATE_OK ? COMPILATION_SUCCESS : COMPILATION_ERROR_SYNTAXIC);
+		return (impl.state == 0 ? COMPILATION_SUCCESS : (hz::eCompilationState)impl.state);
 	}
 
 	void Context::parseExpression(parser::InfoImpl* info)
@@ -122,7 +113,19 @@ namespace hz
 		parser::Token currToken = m_tokenList->back();
 		if (currToken.category == parser::CATEGORY_BINOP)
 		{
-
+			// If we've less than 2 variable on the left, there is a problem
+			if (m_tokenList->size() < 2)
+			{
+				impl->state = (muon::u32)COMPILATION_ERROR_SYNTAXIC_OPERAND_COUNT;
+				return;
+			}
+			// old code
+			//node = INFO_IMPL->stackValue[i];
+			//node->addChild(INFO_IMPL->stackValue[i - 2]);
+			//node->addChild(INFO_IMPL->stackValue[i - 1]);
+			//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase right
+			//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase left
+			// */
 		}
 		m_tokenList->pop_back();
 	}
