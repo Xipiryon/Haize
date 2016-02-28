@@ -219,10 +219,7 @@ namespace hz
 		// Lexical
 		void pushToken(parser::InfoImpl*, muon::String&);
 		void pushSeparatorToken(parser::InfoImpl*, muon::String&);
-
 		// Syntaxic
-		void initPrecedenceAssoc(parser::InfoImpl*);
-
 		// Semantic
 
 		// EXECUTION

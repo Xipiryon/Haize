@@ -82,6 +82,8 @@ namespace hz
 			MATH_ASN_XOR,	//!< '^='
 			MATH_ASN_NOT,	//!< '~='
 			E_ASN_OP_END,
+			
+			E_TERMINALTOKEN_END,
 
 			NT_CHUNK,
 			NT_BLOCK,
@@ -185,6 +187,8 @@ namespace hz
 			"MATH_ASN_OR",
 			"MATH_ASN_XOR",
 			"MATH_ASN_NOT",
+			"",
+
 			"",
 
 			"NT_CHUNK",
