@@ -40,7 +40,7 @@ namespace hz
 		return NULL;
 	}
 
-	bool Engine::removeContext(const char* name)
+	bool Engine::destroyContext(const char* name)
 	{
 		auto it = m_moduleContext->find(name);
 		if(it == m_moduleContext->end())

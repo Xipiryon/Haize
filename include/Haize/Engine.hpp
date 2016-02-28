@@ -42,14 +42,14 @@ namespace hz
 		Context* getContext(const char* name);
 
 		/*!
-		* @brief Remove a Context
+		* @brief Destroy a Context
 		* Clear all the memory used by the specified Context.
 		* If there is no context associated with the given name,
 		* then the function will return false.
 		* @param name Context name
-		* @return True if Context correctly removed, false otherwhise
+		* @return True if Context correctly destroyed, false otherwhise
 		*/
-		bool removeContext(const char* name);
+		bool destroyContext(const char* name);
 
 	private:
 		typedef std::map<muon::String, Context*> ModuleContextMap;
