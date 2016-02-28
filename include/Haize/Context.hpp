@@ -56,6 +56,7 @@ namespace hz
 		COMPILATION_ERROR_LEXICAL_IDENTIFIER,	//!< An encountered identifier is illformed
 		COMPILATION_ERROR_LEXICAL_OPERATOR,		//!< An encountered operator is illformed
 		COMPILATION_ERROR_SYNTAXIC,				// TODO
+		COMPILATION_ERROR_SYNTAXIC_FREE_CODE,	//!< Language doesn't allow free code, which as been found somewhere
 		COMPILATION_ERROR_SEMANTIC,				// TODO
 		COMPILATION_ERROR,						//!< Generic error message
 	};
@@ -220,6 +221,10 @@ namespace hz
 		void pushToken(parser::InfoImpl*, muon::String&);
 		void pushSeparatorToken(parser::InfoImpl*, muon::String&);
 		// Syntaxic
+		void parseExpression(parser::InfoImpl*);
+		void parseGlobal(parser::InfoImpl*);
+		void parseClass(parser::InfoImpl*);
+		void parseFunction(parser::InfoImpl*);
 		// Semantic
 
 		// EXECUTION

@@ -20,10 +20,17 @@ namespace
 
 	enum ParserState
 	{
-		DONE,
-		RUNNING,
-		SKIPPING,
-		ERROR,
+		STATE_OK,
+		STATE_SKIP,
+		STATE_ERROR,
+	};
+
+	enum ParserPhase
+	{
+		PHASE_START,
+		PHASE_EXPRESSION,
+		PHASE_CLASS,
+		PHASE_FUNCTION,
 	};
 
 	/*
@@ -37,6 +44,7 @@ namespace
 		}
 
 		ParserState state;
+		std::deque<ParserPhase> phases;
 		muon::u32 readIndex;
 		hz::parser::ASTNode* node;
 
@@ -45,6 +53,94 @@ namespace
 
 		static const OpAttribute precAttrib[hz::parser::E_TERMINALTOKEN_END];
 	};
+}
+
+namespace hz
+{
+	eCompilationState Context::parseSyntaxic()
+	{
+		while (!m_nodeRoot->children->empty())
+		{
+			MUON_DELETE(m_nodeRoot->children->back());
+		}
+
+		// Reinit token
+		m_nodeRoot->name = "#ERROR#";
+		m_nodeRoot->token = parser::Token(parser::TOTAL_COUNT);
+
+		InfoSyntaxic impl;
+		impl.state = STATE_OK;
+		impl.phases.push_back(PHASE_START);
+		impl.node = NULL;
+		impl.readIndex = 0;
+
+		if (m_tokenList->empty() || m_tokenList->back().type == parser::S_EOF)
+		{
+			m_error.message = "Empty token list, nothing to parse.";
+			return COMPILATION_ERROR_SYNTAXIC;
+		}
+		muon::u32 i = 0;
+
+		hz::parser::ASTNode* node = NULL;
+
+		while(!m_tokenList->empty())
+		{
+			parser::Token currToken = m_tokenList->back();
+			if(currToken.type == parser::S_KEYWORD)
+			{
+				// Class or Function
+				muon::String keyword = currToken.value.get<muon::String>();
+				if (keyword == "class")
+				{
+					parseClass(&impl);
+				}
+				else if (keyword == "func")
+				{
+					parseFunction(&impl);
+				}
+				else if (keyword == "global")
+				{
+					parseGlobal(&impl);
+				}
+				else
+				{
+					return COMPILATION_ERROR_SYNTAXIC;
+				}
+			}
+			else
+			{
+				return COMPILATION_ERROR_SYNTAXIC_FREE_CODE;
+			}
+		}
+
+		return (impl.state == STATE_OK ? COMPILATION_SUCCESS : COMPILATION_ERROR_SYNTAXIC);
+	}
+
+	void Context::parseExpression(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token currToken = m_tokenList->back();
+		if (currToken.category == parser::CATEGORY_BINOP)
+		{
+
+		}
+		m_tokenList->pop_back();
+	}
+
+	void Context::parseGlobal(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+	}
+
+	void Context::parseClass(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+	}
+
+	void Context::parseFunction(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+	}
 }
 
 const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] = 
@@ -121,28 +217,3 @@ const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] =
 	s_OpDefault, //E_ASN_OP_END,
 };
 
-namespace hz
-{
-	eCompilationState Context::parseSyntaxic()
-	{
-		while (!m_nodeRoot->children->empty())
-		{
-			MUON_DELETE(m_nodeRoot->children->back());
-		}
-
-		m_nodeRoot->name = "NT_CHUNK";
-		m_nodeRoot->token = parser::Token(parser::NT_CHUNK);
-
-		InfoSyntaxic impl;
-		impl.node = NULL;
-		impl.readIndex = 0;
-
-		if (m_tokenList->empty() || m_tokenList->front().type == parser::S_EOF)
-		{
-			m_error.message = "Empty token list, nothing to parse.";
-			return COMPILATION_ERROR_SYNTAXIC;
-		}
-
-		return COMPILATION_ERROR_SYNTAXIC;
-	}
-}
