@@ -78,7 +78,6 @@ int main(int argc, char** argv)
 	hz::Engine& vm = hz::Engine::createInstance();
 	muon::String file;
 	muon::String module;
-	char buffer[FileContentBuffer];
 
 	// Eval some scripts
 	{
