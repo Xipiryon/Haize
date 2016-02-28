@@ -3,6 +3,14 @@
 // No return
 function noArg_noRet() { /* Empty function */ }
 
+// Same but with weird line ending
+// ---------- v
+function
+
+						noArg_noRet_weird				 	 	 	{
+			  }
+// ---------- ^ 
+
 // Some arguments as copy
 // No return
 function noArg_Ret(a, b)
@@ -35,5 +43,5 @@ function noArg_Ret(a, b) { return a == b; }
 function noArg_Ret() { return true; }
 
 // Lambda function
-
+// TODO
 
