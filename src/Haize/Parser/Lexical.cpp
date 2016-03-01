@@ -27,7 +27,8 @@ namespace
 		bool fdenUsed;
 
 		muon::u32 line;
-		muon::u32 column;
+		muon::u32 column;		// Token start column
+		muon::u32 columnCount; 	// Absolute column count
 	};
 
 	bool isLetter(char c)
@@ -127,13 +128,13 @@ namespace hz
 		impl.fdenOffset = 1;
 		impl.fdenUsed = false;
 		impl.line = 1;
-		impl.column = 0;
+		impl.column = 1;
 
 		muon::String word;
 
 		while (!impl.stream.eof())
 		{
-			++impl.column;
+			++impl.columnCount;
 			char c = get(impl);
 
 			// *** PARSE INFO ***
@@ -145,7 +146,8 @@ namespace hz
 				{
 					word += c;
 					++impl.line;
-					impl.column = 0;
+					impl.column = 1;
+					impl.columnCount = 1;
 				}
 				else
 				{
@@ -153,7 +155,8 @@ namespace hz
 					pushToken(&impl, word);
 					// Update line and column
 					++impl.line;
-					impl.column = 0;
+					impl.column = 1;
+					impl.columnCount = 1;
 					// Add Separator Token
 					if (!impl.multiLineComment)
 					{
@@ -485,6 +488,7 @@ namespace hz
 					 || impl.stream.eof())
 			{
 				pushToken(&impl, word);
+				impl.column = impl.columnCount;
 			}
 
 			// *** SERPARATOR ***
