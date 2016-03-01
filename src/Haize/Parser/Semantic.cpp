@@ -7,7 +7,7 @@ namespace hz
 {
 	bool Context::parseSemantic()
 	{
-		clearError();
+		clearError(false);
 		m_error.message = "Not implemented yet";
 		return false;
 	}

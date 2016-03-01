@@ -80,6 +80,13 @@ int main(int argc, char** argv)
 	muon::String file;
 	muon::String module;
 
+	const char* stepStr[] = {
+		"LOADING",
+		"COMPILATION",
+		"PREPARATION",
+		"EXECUTION"
+	};
+
 	// Eval some scripts
 	{
 		// The eval line must be set this way, so we have correct line ending
@@ -146,15 +153,19 @@ int main(int argc, char** argv)
 
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "Load Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		ok = context->compile();
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "Execute Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[COMPILATION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
-		ok = context->execute();
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "Execute Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		//TODO:
+		//Preparation
+
+		//TODO:
+		//ok = context->execute();
+		//infoError = context->getLastError();
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 	}
 
 	// END UNIT TEST

@@ -65,6 +65,7 @@ namespace hz
 
 		if (m_tokenList->empty() || m_tokenList->back().type == parser::S_EOF)
 		{
+			clearError(false);
 			m_error.message = "Empty token list, nothing to parse.";
 			return false;
 		}
@@ -93,7 +94,7 @@ namespace hz
 				}
 				else
 				{
-					clearError();
+					clearError(false);
 					m_error.line = currToken.line;
 					m_error.column = currToken.column;
 					m_error.message = "Unexpected keyword \"" + keyword + "\"";
@@ -102,7 +103,7 @@ namespace hz
 			}
 			else
 			{
-				clearError();
+				clearError(false);
 				m_error.line = currToken.line;
 				m_error.column = currToken.column;
 				m_error.message = "Code can't be outside functions/class or must have \"global\" specifier";
@@ -116,7 +117,7 @@ namespace hz
 			}
 		}
 
-		clearError();
+		clearError(true);
 		return true;
 	}
 
@@ -129,7 +130,7 @@ namespace hz
 			// If we've less than 2 variable on the left, there is a problem
 			if (m_tokenList->size() < 2)
 			{
-				clearError();
+				clearError(false);
 				m_error.line = currToken.line;
 				m_error.column = currToken.column;
 				m_error.message = "Operator has not enough operand!";

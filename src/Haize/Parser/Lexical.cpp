@@ -511,7 +511,7 @@ namespace hz
 					}
 					else
 					{
-						clearError();
+						clearError(false);
 						m_error.line = impl.line;
 						m_error.column = impl.column;
 						m_error.message = "Ill-formed Number: '.' should be used as decimal separator.";
@@ -542,7 +542,7 @@ namespace hz
 				}
 				else
 				{
-					clearError();
+					clearError(false);
 					m_error.line = impl.line;
 					m_error.column = impl.column;
 					m_error.message = "Ill-formed resolution operator: do you mean '::' ?";
@@ -568,7 +568,7 @@ namespace hz
 
 		// Now reverse every token to be read from "back to front"
 		std::reverse(m_tokenList->begin(), m_tokenList->end());
-		clearError();
+		clearError(true);
 		return true;
 	}
 

@@ -29,11 +29,21 @@ namespace hz
 	*/
 	struct HAIZE_API InfoError
 	{
+		enum eStep
+		{
+			LOADING,
+			COMPILATION,
+			PREPARATION,
+			EXECUTION,
+		} step;
+
 		muon::String message;
 		muon::String section;
 		muon::String function;
 		muon::u32 line;
 		muon::u32 column;
+
+		bool _cleared;
 	};
 
 	/*!
@@ -133,7 +143,7 @@ namespace hz
 
 		// PARSER & COMPILATION
 		// ****************************
-		void clearError();
+		void clearError(bool);
 		bool parseLexical();
 		bool parseSyntaxic();
 		bool parseSemantic();

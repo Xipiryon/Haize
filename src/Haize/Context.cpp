@@ -25,6 +25,7 @@ namespace hz
 	//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 		m_tokenList = MUON_NEW(std::vector<parser::Token>);
 		m_nodeRoot = MUON_NEW(parser::ASTNode);
+		clearError(true);
 	}
 
 	Context::~Context()
@@ -48,13 +49,14 @@ namespace hz
 		return m_error;
 	}
 
-	void Context::clearError()
+	void Context::clearError(bool cleared)
 	{
 		m_error.message.clear();
 		m_error.section.clear();
 		m_error.function.clear();
 		m_error.line = 0;
 		m_error.column = 0;
+		m_error._cleared = cleared;
 	}
 
 	//==================================
@@ -63,6 +65,7 @@ namespace hz
 
 	bool Context::load(std::istream& file)
 	{
+		m_error.step = InfoError::LOADING;
 		if (file)
 		{
 			if (!file.eof())
@@ -78,24 +81,25 @@ namespace hz
 				m_loadBuffer += buffer;
 				free(buffer);
 
-				clearError();
+				clearError(true);
 				return true;
 			}
-			clearError();
+			clearError(false);
 			m_error.message = "File stream seems to be empty: encountered EOF at beginning!";
 			return false;
 		}
-		clearError();
+		clearError(false);
 		m_error.message = "Couldn't open the file stream!";
 		return false;
 	}
 
 	bool Context::load(const muon::String& filename)
 	{
+		m_error.step = InfoError::LOADING;
 		std::ifstream file(filename.cStr());
 		if(!file)
 		{
-			clearError();
+			clearError(false);
 			m_error.message = "Couldn't open the file!";
 			return false;
 		}
@@ -104,6 +108,12 @@ namespace hz
 
 	bool Context::compile()
 	{
+		if(!m_error._cleared)
+		{
+			return false;
+		}
+
+		m_error.step = InfoError::COMPILATION;
 		if (!parseLexical())
 		{
 			m_loadBuffer.clear();
@@ -132,11 +142,23 @@ namespace hz
 
 	bool Context::prepare(const muon::String& func)
 	{
+		if(!m_error._cleared)
+		{
+			return false;
+		}
+
+		m_error.step = InfoError::PREPARATION;
 		return false;
 	}
 
 	bool Context::execute()
 	{
+		if(!m_error._cleared)
+		{
+			return false;
+		}
+
+		m_error.step = InfoError::EXECUTION;
 		/*
 		auto it = m_byteCodeModules->find(module);
 		if(it != m_byteCodeModules->end())
@@ -153,6 +175,7 @@ namespace hz
 
 	bool Context::eval(const char* code, bool storeCode /* = false*/)
 	{
+		m_error.step = InfoError::COMPILATION;
 		/*
 		muon::system::Log log("VM", muon::LOG_DEBUG);
 		muon::Variant nil;
@@ -218,6 +241,7 @@ namespace hz
 
 	bool Context::run(const ByteCode* buffer)
 	{
+		m_error.step = InfoError::EXECUTION;
 		/*
 		muon::system::Log log("VM");
 #ifdef MUON_DEBUG
