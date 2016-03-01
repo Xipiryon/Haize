@@ -9,8 +9,6 @@ namespace hz
 		Token::Token()
 			: type(S_INVALID)
 			, category(S_INVALID)
-			, section("#Undefined#")
-			, function("#Undefined#")
 			, line(0)
 			, column(0)
 		{
@@ -19,8 +17,6 @@ namespace hz
 		Token::Token(eTokenType type)
 			: type(type)
 			, category(S_INVALID)
-			, section("#Undefined#")
-			, function("#Undefined#")
 			, line(0)
 			, column(0)
 		{
@@ -41,8 +37,6 @@ namespace hz
 			{
 				type = token.type;
 				category = token.category;
-				section = token.section;
-				function = token.function;
 				line = token.line;
 				column = token.column;
 				value = token.value;

@@ -76,6 +76,7 @@ int main(int argc, char** argv)
 	clockTest.start();
 
 	hz::Engine& vm = hz::Engine::createInstance();
+	hz::InfoError infoError;
 	muon::String file;
 	muon::String module;
 
@@ -120,16 +121,18 @@ int main(int argc, char** argv)
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Expression' script");
-		muon::u32 state;
+		bool ok;
 
-		state = context->load(file.cStr());
-		HAIZE_CHECK(state == hz::LOAD_SUCCESS, "Couldn't load file \"%s\" -> State: \"%s\"", file.cStr(), hz::s_eLoadStateStr[state]);
+		ok = context->load(file.cStr());
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "Load Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
-		state = context->compile();
-		HAIZE_CHECK(state == hz::COMPILATION_ERROR_SYNTAXIC_FREE_CODE, "Free code should trigger error, in module \"%s\" -> State: \"%s\"", module.cStr(), hz::s_eCompilationStateStr[state]);
+		// Explicit failing test
+		ok = context->compile();
+		HAIZE_CHECK(!ok, "Compilation should have failed because of \"free code\" (\"%s\")", file.cStr());
 
 		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
-		// TODO
+		// TODO?
 	}
 
 	// Functions
@@ -139,17 +142,21 @@ int main(int argc, char** argv)
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Functions' script");
-		muon::u32 state;
+		bool ok;
 
-		state = context->load(file.cStr());
-		HAIZE_CHECK(state == hz::LOAD_SUCCESS, "Couldn't load file \"%s\" -> State: \"%s\"", file.cStr(), hz::s_eLoadStateStr[state]);
+		ok = context->load(file.cStr());
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "Load Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
-		state = context->compile();
-		HAIZE_CHECK(state == hz::COMPILATION_SUCCESS, "Couldn't compile content of \"%s\" in module \"%s\" -> State: \"%s\"", file.cStr(), module.cStr(), hz::s_eCompilationStateStr[state]);
+		ok = context->compile();
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "Execute Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
-		state = context->execute();
-		HAIZE_CHECK(state == hz::EXECUTION_SUCCESS, "Couldn't execute content of \"%s\" in module \"%s\" -> State: \"%s\"", file.cStr(), module.cStr(), hz::s_eExecutationStateStr[state]);
+		ok = context->execute();
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "Execute Error (\"%s\") [%d:%d] %s", file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 	}
+
 	// END UNIT TEST
 	// ***************
 	mainLog(errorCount == 0 ? muon::LOG_INFO : muon::LOG_ERROR) << "Error Count: " << errorCount << muon::endl;

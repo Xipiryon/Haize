@@ -5,8 +5,10 @@
 
 namespace hz
 {
-	eCompilationState Context::parseSemantic()
+	bool Context::parseSemantic()
 	{
-		return COMPILATION_ERROR_SEMANTIC;
+		clearError();
+		m_error.message = "Not implemented yet";
+		return false;
 	}
 }

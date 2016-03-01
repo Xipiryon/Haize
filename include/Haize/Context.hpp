@@ -37,85 +37,6 @@ namespace hz
 	};
 
 	/*!
-	*
-	*/
-	enum eLoadState
-	{
-		LOAD_SUCCESS,		//!< Everything went good
-		LOAD_ERROR,			//!< Generic error message
-		LOAD_EMPTY_BUFFER,	//!< Buffer or loaded file is empty
-	};
-
-	/*!
-	*
-	*/
-	enum eCompilationState
-	{
-		COMPILATION_SUCCESS,					//!< Everything went good
-
-		COMPILATION_ERROR_LEXICAL_NUMBER,		//!< An encountered number is illformed
-		COMPILATION_ERROR_LEXICAL_IDENTIFIER,	//!< An encountered identifier is illformed
-		COMPILATION_ERROR_LEXICAL_OPERATOR,		//!< An encountered operator is illformed
-
-		COMPILATION_ERROR_SYNTAXIC_NO_TOKEN,		//!< No token to parse
-		COMPILATION_ERROR_SYNTAXIC_FREE_CODE,		//!< Language doesn't allow free code, which as been found somewhere
-		COMPILATION_ERROR_SYNTAXIC_OPERAND_COUNT,	//!< An operator doesn't have enough operands
-		COMPILATION_ERROR_SYNTAXIC_UNKNOW_KEYWORD,	//!< An unknow keyword have been found
-
-		COMPILATION_ERROR_SEMANTIC,				// TODO
-
-		COMPILATION_ERROR,						//!< Generic error message
-	};
-
-	/*!
-	*
-	*/
-	enum ePreparationState
-	{
-		PREPARATION_SUCCESS,	//!< Everything went good
-		PREPARATION_ERROR,		//!< Generic error message
-	};
-
-	/*!
-	*
-	*/
-	enum eExecutationState
-	{
-		EXECUTION_SUCCESS,		//!< Everything went good
-		EXECUTION_ERROR,		//!< Generic error message
-	};
-
-	static const char* s_eLoadStateStr[] =
-	{
-		"LOAD_SUCCESS",
-		"LOAD_ERROR",
-		"LOAD_EMPTY_BUFFER",
-	};
-
-	static const char* s_eCompilationStateStr[] =
-	{
-		"COMPILATION_SUCCESS",
-		"COMPILATION_ERROR_LEXICAL_NUMBER",
-		"COMPILATION_ERROR_LEXICAL_IDENTIFIER",
-		"COMPILATION_ERROR_LEXICAL_OPERATOR",
-		"COMPILATION_ERROR_SYNTAXIC",
-		"COMPILATION_ERROR_SEMANTIC",
-		"COMPILATION_ERROR",
-	};
-
-	static const char* s_ePreparationStateStr[] =
-	{
-		"PREPARATION_SUCCESS",
-		"PREPARATION_ERROR",
-	};
-
-	static const char* s_eExecutationStateStr[] =
-	{
-		"EXECUTION_SUCCESS",
-		"EXECUTION_ERROR",
-	};
-
-	/*!
 	* @brief Script execution entry point
 	* Context are used both for compilation and execution.
 	* The whole process follow the given order
@@ -157,18 +78,18 @@ namespace hz
 		* @brief Read the content of the sstream
 		* @param stream Stream to read
 		*/
-		eLoadState load(std::istream& stream);
+		bool load(std::istream& stream);
 
 		/*!
 		* @brief Load a file located at path
 		* @param file File to load
 		*/
-		eLoadState load(const muon::String& file);
+		bool load(const muon::String& file);
 
 		/*!
 		* @brief
 		*/
-		eCompilationState compile();
+		bool compile();
 
 		/*!
 		* @brief Prepare a function to call
@@ -177,13 +98,13 @@ namespace hz
 		* be loaded
 		* @param func Function name to be loaded, with prefixed namespace (ex: "namespace::function")
 		*/
-		ePreparationState prepare(const muon::String& func);
+		bool prepare(const muon::String& func);
 
 		/*!
 		* @brief Start executing the prepared function
 		*
 		*/
-		eExecutationState execute();
+		bool execute();
 
 		/*!
 		* @brief Compile and execute code
@@ -193,9 +114,9 @@ namespace hz
 		*
 		* @param str Buffer of code to be loaded, compiled and executed
 		* @param storeCode Make the context store any new function / struct (Disabled by default)
-		* @return Execution state, from eExecutationState
+		* @return False if any of the loading, compiling, execution step failed  (see ::getLastError())
 		*/
-		eExecutationState eval(const char* str, bool storeCode = false);
+		bool eval(const char* str, bool storeCode = false);
 
 		/*!
 		* @brief Execute ByteCode directly
@@ -203,34 +124,32 @@ namespace hz
 		* like checking if functions or structs are defined
 		*
 		* @param instr ByteCode buffer to be executed
-		* @return Execution state, from eExecutationState
 		*/
-		eExecutationState run(const ByteCode* instr);
+		bool run(const ByteCode* instr);
 
 	private:
-		eCompilationState parseLexical();
-		eCompilationState parseSyntaxic();
-		eCompilationState parseSemantic();
-
 		muon::String m_name;
 		InfoError m_error;
 
 		// PARSER & COMPILATION
 		// ****************************
+		void clearError();
+		bool parseLexical();
+		bool parseSyntaxic();
+		bool parseSemantic();
 		// Variables
 		muon::String m_loadBuffer;
 		std::vector<parser::Token>* m_tokenList;
 		parser::ASTNode* m_nodeRoot;
 		SymbolTable m_symbols;
-
 		// Lexical
 		void pushToken(parser::InfoImpl*, muon::String&);
 		void pushSeparatorToken(parser::InfoImpl*, muon::String&);
 		// Syntaxic
-		void parseExpression(parser::InfoImpl*);
-		void parseGlobal(parser::InfoImpl*);
-		void parseClass(parser::InfoImpl*);
-		void parseFunction(parser::InfoImpl*);
+		bool parseExpression(parser::InfoImpl*);
+		bool parseGlobal(parser::InfoImpl*);
+		bool parseClass(parser::InfoImpl*);
+		bool parseFunction(parser::InfoImpl*);
 		// Semantic
 
 		// EXECUTION

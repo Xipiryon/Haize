@@ -36,7 +36,6 @@ namespace
 		{
 		}
 
-		muon::u32 state;
 		std::deque<ParserPhase> phases;
 		muon::u32 readIndex;
 
@@ -49,7 +48,7 @@ namespace
 
 namespace hz
 {
-	eCompilationState Context::parseSyntaxic()
+	bool Context::parseSyntaxic()
 	{
 		while (!m_nodeRoot->children->empty())
 		{
@@ -61,17 +60,16 @@ namespace hz
 		m_nodeRoot->token = parser::Token(parser::TOTAL_COUNT);
 
 		InfoSyntaxic impl;
-		impl.state = 0;
 		impl.phases.push_back(PHASE_START);
 		impl.readIndex = 0;
 
 		if (m_tokenList->empty() || m_tokenList->back().type == parser::S_EOF)
 		{
 			m_error.message = "Empty token list, nothing to parse.";
-			return COMPILATION_ERROR_SYNTAXIC_NO_TOKEN;
+			return false;
 		}
-		muon::u32 i = 0;
 
+		bool err = false;
 		hz::parser::ASTNode* node = NULL;
 
 		while(!m_tokenList->empty())
@@ -83,31 +81,46 @@ namespace hz
 				muon::String keyword = currToken.value.get<muon::String>();
 				if (keyword == "class")
 				{
-					parseClass(&impl);
+					err = parseClass(&impl);
 				}
 				else if (keyword == "func")
 				{
-					parseFunction(&impl);
+					err = parseFunction(&impl);
 				}
 				else if (keyword == "global")
 				{
-					parseGlobal(&impl);
+					err = parseGlobal(&impl);
 				}
 				else
 				{
-					return COMPILATION_ERROR_SYNTAXIC_UNKNOW_KEYWORD;
+					clearError();
+					m_error.line = currToken.line;
+					m_error.column = currToken.column;
+					m_error.message = "Unexpected keyword \"" + keyword + "\"";
+					return false;
 				}
 			}
 			else
 			{
-				return COMPILATION_ERROR_SYNTAXIC_FREE_CODE;
+				clearError();
+				m_error.line = currToken.line;
+				m_error.column = currToken.column;
+				m_error.message = "Code can't be outside functions/class or must have \"global\" specifier";
+				return false;
+			}
+
+			if(err)
+			{
+				// Error should have been set in parse{...} functions
+				return false;
 			}
 		}
 
-		return (impl.state == 0 ? COMPILATION_SUCCESS : (hz::eCompilationState)impl.state);
+		clearError();
+		return true;
 	}
 
-	void Context::parseExpression(parser::InfoImpl* info)
+	bool Context::parseExpression(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
 		parser::Token currToken = m_tokenList->back();
@@ -116,8 +129,11 @@ namespace hz
 			// If we've less than 2 variable on the left, there is a problem
 			if (m_tokenList->size() < 2)
 			{
-				impl->state = (muon::u32)COMPILATION_ERROR_SYNTAXIC_OPERAND_COUNT;
-				return;
+				clearError();
+				m_error.line = currToken.line;
+				m_error.column = currToken.column;
+				m_error.message = "Operator has not enough operand!";
+				return false;
 			}
 			// old code
 			//node = INFO_IMPL->stackValue[i];
@@ -128,25 +144,29 @@ namespace hz
 			// */
 		}
 		m_tokenList->pop_back();
+		return true;
 	}
 
-	void Context::parseGlobal(parser::InfoImpl* info)
+	bool Context::parseGlobal(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		return true;
 	}
 
-	void Context::parseClass(parser::InfoImpl* info)
+	bool Context::parseClass(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		return true;
 	}
 
-	void Context::parseFunction(parser::InfoImpl* info)
+	bool Context::parseFunction(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		return true;
 	}
 }
 
-const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] = 
+const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] =
 {
 	s_OpDefault, //S_INVALID,
 	s_OpDefault, //S_EOF,
@@ -155,7 +175,7 @@ const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] =
 	{ 85, ASSOC_RIGHT },	//S_ACCESSOR,		'.'
 	{ 90, ASSOC_LEFT },		//S_RESOLUTION,		'::'
 	s_OpDefault, //S_SEPARATOR,		New line, or ';'
-	s_OpDefault, //S_KEYWORD,		
+	s_OpDefault, //S_KEYWORD,
 	s_OpDefault, //S_LPARENT,		'('
 	s_OpDefault, //S_RPARENT,		')'
 	s_OpDefault, //S_LBRACKET,		'['
@@ -166,9 +186,9 @@ const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] =
 	s_OpDefault, //V_NUMBER,			A number (in either dec, oct, bin or hex format)
 	s_OpDefault, //V_IDENTIFIER,		An alphanumeric identifier
 	s_OpDefault, //V_STRING,			A string contained between two '"' character
-	s_OpDefault, //V_NIL,			
-	s_OpDefault, //V_TRUE,			
-	s_OpDefault, //V_FALSE,		
+	s_OpDefault, //V_NIL,
+	s_OpDefault, //V_TRUE,
+	s_OpDefault, //V_FALSE,
 
 	s_OpDefault, //E_LOGIC_OP_BEGIN,
 	{ 55, ASSOC_LEFT },		//LOGIC_EQ,			'=='

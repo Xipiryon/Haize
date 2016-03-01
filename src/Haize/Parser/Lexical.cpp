@@ -113,7 +113,7 @@ namespace
 namespace hz
 {
 
-	eCompilationState Context::parseLexical()
+	bool Context::parseLexical()
 	{
 		InfoLexical impl;
 
@@ -507,10 +507,11 @@ namespace hz
 					}
 					else
 					{
+						clearError();
 						m_error.line = impl.line;
 						m_error.column = impl.column;
 						m_error.message = "Ill-formed Number: '.' should be used as decimal separator.";
-						return COMPILATION_ERROR_LEXICAL_NUMBER;
+						return false;
 					}
 				}
 				else
@@ -537,10 +538,11 @@ namespace hz
 				}
 				else
 				{
+					clearError();
 					m_error.line = impl.line;
 					m_error.column = impl.column;
 					m_error.message = "Ill-formed resolution operator: do you mean '::' ?";
-					return COMPILATION_ERROR_LEXICAL_OPERATOR;
+					return false;
 				}
 			}
 
@@ -562,7 +564,8 @@ namespace hz
 
 		// Now reverse every token to be read from "back to front"
 		std::reverse(m_tokenList->begin(), m_tokenList->end());
-		return COMPILATION_SUCCESS;
+		clearError();
+		return true;
 	}
 
 	void Context::pushSeparatorToken(parser::InfoImpl* info, muon::String& word)

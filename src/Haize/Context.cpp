@@ -48,11 +48,20 @@ namespace hz
 		return m_error;
 	}
 
+	void Context::clearError()
+	{
+		m_error.message.clear();
+		m_error.section.clear();
+		m_error.function.clear();
+		m_error.line = 0;
+		m_error.column = 0;
+	}
+
 	//==================================
 	//			COMPILATION
 	//==================================
 
-	eLoadState Context::load(std::istream& file)
+	bool Context::load(std::istream& file)
 	{
 		if (file)
 		{
@@ -62,10 +71,6 @@ namespace hz
 				file.seekg(0, file.end);
 				muon::u64 length = (muon::u64)file.tellg();
 				file.seekg(0, file.beg);
-				if(length == 0)
-				{
-					return LOAD_EMPTY_BUFFER;
-				}
 
 				char* buffer = (char*)malloc((muon::u32)length);
 				file.read(buffer, length);
@@ -73,46 +78,64 @@ namespace hz
 				m_loadBuffer += buffer;
 				free(buffer);
 
-				return LOAD_SUCCESS;
+				clearError();
+				return true;
 			}
-			return LOAD_EMPTY_BUFFER;
+			clearError();
+			m_error.message = "File stream seems to be empty: encountered EOF at beginning!";
+			return false;
 		}
-		return LOAD_ERROR;
+		clearError();
+		m_error.message = "Couldn't open the file stream!";
+		return false;
 	}
 
-	eLoadState Context::load(const muon::String& filename)
+	bool Context::load(const muon::String& filename)
 	{
 		std::ifstream file(filename.cStr());
+		if(!file)
+		{
+			clearError();
+			m_error.message = "Couldn't open the file!";
+			return false;
+		}
 		return load(file);
 	}
 
-	eCompilationState Context::compile()
+	bool Context::compile()
 	{
-		eCompilationState compState = COMPILATION_SUCCESS;
-		compState = parseLexical();
-		if (compState == COMPILATION_SUCCESS)
+		if (!parseLexical())
 		{
-			compState = parseSyntaxic();
-			if (compState == COMPILATION_SUCCESS)
-			{
-				compState = parseSemantic();
-			}
+			m_loadBuffer.clear();
+			return false;
+		}
+
+		if (!parseSyntaxic())
+		{
+			m_loadBuffer.clear();
+			return false;
+		}
+
+		if(!parseSemantic())
+		{
+			m_loadBuffer.clear();
+			return false;
 		}
 
 		m_loadBuffer.clear();
-		return compState;
+		return true;
 	}
 
 	//==================================
 	//			EXECUTION FLOW
 	//==================================
 
-	ePreparationState Context::prepare(const muon::String& func)
+	bool Context::prepare(const muon::String& func)
 	{
-		return PREPARATION_ERROR;
+		return false;
 	}
 
-	eExecutationState Context::execute()
+	bool Context::execute()
 	{
 		/*
 		auto it = m_byteCodeModules->find(module);
@@ -121,14 +144,14 @@ namespace hz
 			return run(it->second);
 		}
 		//*/
-		return EXECUTION_ERROR;
+		return false;
 	}
 
 	//==================================
 	//			EXECUTION
 	//==================================
 
-	eExecutationState Context::eval(const char* code, bool storeCode /* = false*/)
+	bool Context::eval(const char* code, bool storeCode /* = false*/)
 	{
 		/*
 		muon::system::Log log("VM", muon::LOG_DEBUG);
@@ -190,10 +213,10 @@ namespace hz
 		// Execution
 		return run(m_info.IRCode);
 		//*/
-		return EXECUTION_ERROR;
+		return false;
 	}
 
-	eExecutationState Context::run(const ByteCode* buffer)
+	bool Context::run(const ByteCode* buffer)
 	{
 		/*
 		muon::system::Log log("VM");
@@ -333,7 +356,7 @@ namespace hz
 			++m_stack;
 		} while (exec);
 		//*/
-		return EXECUTION_ERROR;
+		return false;
 	}
 }
 

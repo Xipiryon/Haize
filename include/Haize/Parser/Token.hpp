@@ -82,7 +82,7 @@ namespace hz
 			MATH_ASN_XOR,	//!< '^='
 			MATH_ASN_NOT,	//!< '~='
 			E_ASN_OP_END,
-			
+
 			E_TERMINALTOKEN_END,
 
 			CATEGORY_BINOP,
@@ -188,8 +188,6 @@ namespace hz
 			eTokenType category;
 			muon::Variant value;
 
-			muon::String section;
-			muon::String function;
 			muon::u32 line;
 			muon::u32 column;
 		};
