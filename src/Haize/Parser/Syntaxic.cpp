@@ -13,7 +13,7 @@ namespace
 
 	struct OpAttribute
 	{
-		muon::u32 precedence;
+		m::u32 precedence;
 		OpAssociativity associativity;
 	};
 	static const OpAttribute s_OpDefault = { 0, ASSOC_LEFT };
@@ -37,7 +37,7 @@ namespace
 		}
 
 		std::deque<ParserPhase> phases;
-		muon::u32 readIndex;
+		m::u32 readIndex;
 
 		std::deque<hz::parser::Token> operatorToken;
 		std::deque<hz::parser::ASTNode*> nodes;
@@ -79,7 +79,7 @@ namespace hz
 			if(currToken.type == parser::S_KEYWORD)
 			{
 				// Class or Function
-				muon::String keyword = currToken.value.get<muon::String>();
+				m::String keyword = currToken.value.get<m::String>();
 				if (keyword == "class")
 				{
 					err = parseClass(&impl);

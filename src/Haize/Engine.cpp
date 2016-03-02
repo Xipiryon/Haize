@@ -24,7 +24,7 @@ namespace hz
 		if(!context)
 		{
 			context = MUON_NEW(Context, name);
-			muon::String sName = name;
+			m::String sName = name;
 			(*m_moduleContext)[sName] = context;
 		}
 		return context;

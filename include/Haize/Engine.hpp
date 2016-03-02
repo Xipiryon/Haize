@@ -16,9 +16,9 @@ namespace hz
 	* @brief Main class of the API
 	* Use the Engine to manipulate Context.
 	*/
-	class HAIZE_API Engine : public muon::helper::Singleton<Engine>
+	class HAIZE_API Engine : public m::helper::Singleton<Engine>
 	{
-		friend class muon::helper::Singleton<Engine>;
+		friend class m::helper::Singleton<Engine>;
 		Engine();
 		~Engine();
 	public:
@@ -52,7 +52,7 @@ namespace hz
 		bool destroyContext(const char* name);
 
 	private:
-		typedef std::map<muon::String, Context*> ModuleContextMap;
+		typedef std::map<m::String, Context*> ModuleContextMap;
 
 		ModuleContextMap* m_moduleContext;
 	};

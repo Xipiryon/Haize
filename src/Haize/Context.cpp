@@ -12,7 +12,7 @@
 
 namespace
 {
-	void arithmetic(hz::Context&, hz::eOpCode, muon::u32, muon::u32, muon::u32);
+	void arithmetic(hz::Context&, hz::eOpCode, m::u32, m::u32, m::u32);
 	//void printError(hz::parser::InfoError& error);
 }
 
@@ -72,10 +72,10 @@ namespace hz
 			{
 				// Get stream size
 				file.seekg(0, file.end);
-				muon::u64 length = (muon::u64)file.tellg();
+				m::u64 length = (m::u64)file.tellg();
 				file.seekg(0, file.beg);
 
-				char* buffer = (char*)malloc((muon::u32)length);
+				char* buffer = (char*)malloc((m::u32)length);
 				file.read(buffer, length);
 				buffer[file.gcount()] = 0;
 				m_loadBuffer += buffer;
@@ -93,7 +93,7 @@ namespace hz
 		return false;
 	}
 
-	bool Context::load(const muon::String& filename)
+	bool Context::load(const m::String& filename)
 	{
 		m_error.step = InfoError::LOADING;
 		std::ifstream file(filename.cStr());
@@ -140,7 +140,7 @@ namespace hz
 	//			EXECUTION FLOW
 	//==================================
 
-	bool Context::prepare(const muon::String& func)
+	bool Context::prepare(const m::String& func)
 	{
 		if(!m_error._cleared)
 		{
@@ -177,13 +177,13 @@ namespace hz
 	{
 		m_error.step = InfoError::COMPILATION;
 		/*
-		muon::system::Log log("VM", muon::LOG_DEBUG);
-		muon::Variant nil;
+		m::system::Log log("VM", m::LOG_DEBUG);
+		m::Variant nil;
 		m_info.error.section = "#RunTimeEval#";
 
 #if defined(MUON_DEBUG)
-		muon::system::Time time;
-		muon::f32 totalTime = 0;
+		m::system::Time time;
+		m::f32 totalTime = 0;
 
 		// Lexical
 		time.start();
@@ -196,7 +196,7 @@ namespace hz
 			hz::parser::lexical::display(m_info);
 		}
 		totalTime += time.now();
-		log() << "Lexical parse: " << time.now() << " seconds" << muon::endl;
+		log() << "Lexical parse: " << time.now() << " seconds" << m::endl;
 
 		// Syntaxic
 		time.start();
@@ -209,7 +209,7 @@ namespace hz
 			hz::parser::syntaxic::display(m_info);
 		}
 		totalTime += time.now();
-		log() << "Syntaxic parse: " << time.now() << " seconds" << muon::endl;
+		log() << "Syntaxic parse: " << time.now() << " seconds" << m::endl;
 
 		// Semantic
 		time.start();
@@ -222,8 +222,8 @@ namespace hz
 			hz::parser::semantic::display(m_info);
 		}
 		totalTime += time.now();
-		log() << "ByteCode Creation: " << time.now() << " seconds" << muon::endl;
-		log() << "** Total Parse Time: " << totalTime << " seconds **" << muon::endl;
+		log() << "ByteCode Creation: " << time.now() << " seconds" << m::endl;
+		log() << "** Total Parse Time: " << totalTime << " seconds **" << m::endl;
 #else
 		if(!(hz::parser::lexical::parse(m_info, code)
 			&& hz::parser::syntaxic::parse(m_info)
@@ -243,15 +243,15 @@ namespace hz
 	{
 		m_error.step = InfoError::EXECUTION;
 		/*
-		muon::system::Log log("VM");
+		m::system::Log log("VM");
 #ifdef MUON_DEBUG
 #	define DEBUG_CASE(Case) case Case:
-		log(muon::LOG_DEBUG) << "** Execute Debug Log enabled **" << muon::endl;
+		log(m::LOG_DEBUG) << "** Execute Debug Log enabled **" << m::endl;
 #else
 #	define DEBUG_CASE(Case) case Case:
 #endif
 		m_stack = 0;
-		muon::u32 reg[3] = { 0, 0, 0 };
+		m::u32 reg[3] = { 0, 0, 0 };
 
 		bool exec = true;
 		do
@@ -268,9 +268,9 @@ namespace hz
 
 				DEBUG_CASE(SYS_SETRAW)
 				{
-					muon::u64 type = m_instr.argG();
-					muon::u8 dest = m_instr.res();
-					muon::RawPointer rawData = muon::RawPointer(buffer + m_stack + 1);
+					m::u64 type = m_instr.argG();
+					m::u8 dest = m_instr.res();
+					m::RawPointer rawData = m::RawPointer(buffer + m_stack + 1);
 					//_registers[dest].set(rawData);
 					m_stack += 2;
 					break;
@@ -374,7 +374,7 @@ namespace hz
 				// *****
 				default:
 				{
-					log(muon::LOG_ERROR) << "Nothing to do for OpCode: " << opCode << muon::endl;
+					log(m::LOG_ERROR) << "Nothing to do for OpCode: " << opCode << m::endl;
 				}
 			}
 			++m_stack;
@@ -387,12 +387,12 @@ namespace hz
 namespace
 {
 #define VM_REG(Id) (*registers)[Id]
-	void arithmetic(hz::Context& vm, hz::eOpCode op, muon::u32 rA, muon::u32 rB, muon::u32 rC)
+	void arithmetic(hz::Context& vm, hz::eOpCode op, m::u32 rA, m::u32 rB, m::u32 rC)
 	{
 		/*
-		muon::f64 left = hz::boxed::getFloating(REG(rB));
-		muon::f64 right = hz::boxed::getFloating(REG(rC));
-		muon::f64 r = 0;
+		m::f64 left = hz::boxed::getFloating(REG(rB));
+		m::f64 right = hz::boxed::getFloating(REG(rC));
+		m::f64 r = 0;
 		switch (op)
 		{
 			DEBUG_CASE(hz::OP_ADD) r = left + right; break;
@@ -407,10 +407,10 @@ namespace
 	/*
 	void printError(hz::parser::InfoError& error)
 	{
-		muon::system::Log log("VM", muon::LOG_ERROR);
-		log() << "Section: " << error.section << muon::endl;
-		log() << "Function: " << error.function << " @ " << error.line << ":" << error.column << muon::endl;
-		log() << "Message: \"" << error.message << "\"" << muon::endl;
+		m::system::Log log("VM", m::LOG_ERROR);
+		log() << "Section: " << error.section << m::endl;
+		log() << "Function: " << error.function << " @ " << error.line << ":" << error.column << m::endl;
+		log() << "Message: \"" << error.message << "\"" << m::endl;
 	}
 	//*/
 }

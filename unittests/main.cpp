@@ -9,56 +9,56 @@
 
 namespace
 {
-	const muon::u32 FileContentBuffer = 4096;
+	const m::u32 FileContentBuffer = 4096;
 }
 
 bool loadFile(const char* filename, char* outbuffer)
 {
-	muon::system::Log log("LoadFile");
+	m::system::Log log("LoadFile");
 
 	std::ifstream file(filename);
 	if (!file)
 	{
-		log(muon::LOG_ERROR) << "Couldn't load: " << filename << muon::endl;
+		log(m::LOG_ERROR) << "Couldn't load: " << filename << m::endl;
 		return false;
 	}
 	if (!file.eof())
 	{
 		file.seekg(0, std::ios::end);
-		muon::u64 length = (muon::u64)file.tellg();
+		m::u64 length = (m::u64)file.tellg();
 		file.seekg(0, std::ios::beg);
-		log(muon::LOG_INFO) << "Reading " << length << " bytes from \"" << filename << "\"..." << muon::endl;
+		log(m::LOG_INFO) << "Reading " << length << " bytes from \"" << filename << "\"..." << m::endl;
 		MUON_ASSERT_BREAK(length < FileContentBuffer, "File buffer is not big enough!");
 		file.read(outbuffer, length);
-		log(muon::LOG_INFO) << "... done !" << muon::endl;
+		log(m::LOG_INFO) << "... done !" << m::endl;
 	}
 	return true;
 }
 
 int main(int argc, char** argv)
 {
-	if(!muon::meta::MetaDatabase::isInstantiated())
+	if(!m::meta::MetaDatabase::isInstantiated())
 	{
-		muon::meta::MetaDatabase::createInstance();
+		m::meta::MetaDatabase::createInstance();
 	}
-	muon::system::Log::registerDefaultLogImpl();
-	muon::system::Log mainLog("Main", muon::LOG_INFO);
+	m::system::Log::registerDefaultLogImpl();
+	m::system::Log mainLog("Main", m::LOG_INFO);
 
-	mainLog() << "Number of arguments: " << argc << muon::endl;
-	for (muon::i32 i = 0; i < argc; ++i)
+	mainLog() << "Number of arguments: " << argc << m::endl;
+	for (m::i32 i = 0; i < argc; ++i)
 	{
-		mainLog() << "\t: " << argv[i] << muon::endl;
+		mainLog() << "\t: " << argv[i] << m::endl;
 	}
 
 	// Required variables
-	muon::system::Time clockTest;
-	muon::String title;
-	muon::u32 errorCount = 0;
-	muon::u32 totalTests = 0;
+	m::system::Time clockTest;
+	m::String title;
+	m::u32 errorCount = 0;
+	m::u32 totalTests = 0;
 	tinyxml2::XMLDocument xmlDoc;
 	tinyxml2::XMLElement* xmlRoot = xmlDoc.NewElement("testsuite");
 
-#define HAIZE_TITLE(msg) do { mainLog() << msg << muon::endl; title = msg; } while(false);
+#define HAIZE_TITLE(msg) do { mainLog() << msg << m::endl; title = msg; } while(false);
 #define HAIZE_NODE_BEGIN(cond)	++totalTests; tinyxml2::XMLElement* xmlNode = xmlDoc.NewElement("testcase"); \
 									xmlNode->SetAttribute("name", #cond); \
 									xmlNode->SetAttribute("classname", title.cStr()); \
@@ -77,8 +77,8 @@ int main(int argc, char** argv)
 
 	hz::Engine& vm = hz::Engine::createInstance();
 	hz::InfoError infoError;
-	muon::String file;
-	muon::String module;
+	m::String file;
+	m::String module;
 
 	const char* stepStr[] = {
 		"LOADING",
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 			return 64;
 		);
 
-		//HAIZE_TITLE(muon::String::join("Evaluating Script: \"", eval, "\""));
+		//HAIZE_TITLE(m::String::join("Evaluating Script: \"", eval, "\""));
 		//HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
@@ -170,13 +170,13 @@ int main(int argc, char** argv)
 
 	// END UNIT TEST
 	// ***************
-	mainLog(errorCount == 0 ? muon::LOG_INFO : muon::LOG_ERROR) << "Error Count: " << errorCount << muon::endl;
+	mainLog(errorCount == 0 ? m::LOG_INFO : m::LOG_ERROR) << "Error Count: " << errorCount << m::endl;
 
 	xmlRoot->SetAttribute("tests", totalTests);
 	xmlDoc.InsertFirstChild(xmlRoot);
 	xmlDoc.SaveFile("unittests.xml");
 
-	muon::system::Log::close();
+	m::system::Log::close();
 
-	return -((muon::i32)errorCount);
+	return -((m::i32)errorCount);
 }

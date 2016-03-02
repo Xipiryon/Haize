@@ -186,10 +186,10 @@ namespace hz
 
 			eTokenType type;
 			eTokenType category;
-			muon::Variant value;
+			m::Variant value;
 
-			muon::u32 line;
-			muon::u32 column;
+			m::u32 line;
+			m::u32 column;
 		};
 	}
 }

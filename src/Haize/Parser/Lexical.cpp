@@ -22,13 +22,13 @@ namespace
 		bool multiLineComment;
 		std::stringstream stream;
 
-		muon::f32 fvalue;
-		muon::u32 fdenOffset;
+		m::f32 fvalue;
+		m::u32 fdenOffset;
 		bool fdenUsed;
 
-		muon::u32 line;
-		muon::u32 column;		// Token start column
-		muon::u32 columnCount; 	// Absolute column count
+		m::u32 line;
+		m::u32 column;		// Token start column
+		m::u32 columnCount; 	// Absolute column count
 	};
 
 	bool isLetter(char c)
@@ -130,7 +130,7 @@ namespace hz
 		impl.line = 1;
 		impl.column = 1;
 
-		muon::String word;
+		m::String word;
 
 		while (!impl.stream.eof())
 		{
@@ -141,7 +141,7 @@ namespace hz
 			// **************
 			if (isNewLine(c))
 			{
-				// If muon::String, update word, line & column count
+				// If m::String, update word, line & column count
 				if (impl.token.type == parser::V_STRING)
 				{
 					word += c;
@@ -223,7 +223,7 @@ namespace hz
 					if (impl.fdenUsed)
 					{
 						impl.fdenOffset *= 10;
-						muon::f32 n = muon::f32(c - '0') / impl.fdenOffset;
+						m::f32 n = m::f32(c - '0') / impl.fdenOffset;
 						impl.fvalue += n;
 					}
 					else
@@ -562,7 +562,7 @@ namespace hz
 		}
 
 		// Push the EOF token
-		muon::String eof = "#EOF#";
+		m::String eof = "#EOF#";
 		impl.token.type = parser::S_EOF;
 		pushToken(&impl, eof);
 
@@ -572,7 +572,7 @@ namespace hz
 		return true;
 	}
 
-	void Context::pushSeparatorToken(parser::InfoImpl* info, muon::String& word)
+	void Context::pushSeparatorToken(parser::InfoImpl* info, m::String& word)
 	{
 		InfoLexical* impl = (InfoLexical*)info;
 		//Push only a new separator token if not already the last in the list
@@ -590,7 +590,7 @@ namespace hz
 		}
 	}
 
-	void Context::pushToken(parser::InfoImpl* info, muon::String& word)
+	void Context::pushToken(parser::InfoImpl* info, m::String& word)
 	{
 		InfoLexical* impl = (InfoLexical*)info;
 

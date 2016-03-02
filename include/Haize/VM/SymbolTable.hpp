@@ -13,17 +13,17 @@ namespace hz
 		SymbolTable();
 		~SymbolTable();
 
-		muon::u8 checkOrCreateRegister(const muon::String&);
-		void freeRegister(const muon::String&);
-		void freeRegister(muon::u8);
+		m::u8 checkOrCreateRegister(const m::String&);
+		void freeRegister(const m::String&);
+		void freeRegister(m::u8);
 
 	private:
-		typedef std::unordered_map<muon::String, muon::u8> HashMapRegistry;
-		typedef std::unordered_map<muon::String, SymbolTable*> HashMapNamespace;
+		typedef std::unordered_map<m::String, m::u8> HashMapRegistry;
+		typedef std::unordered_map<m::String, SymbolTable*> HashMapNamespace;
 
 		HashMapRegistry* m_registers;
 		HashMapNamespace* m_namespaces;
-		muon::u8 m_registerId;
+		m::u8 m_registerId;
 	};
 }
 

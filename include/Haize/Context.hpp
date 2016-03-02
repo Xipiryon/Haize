@@ -37,11 +37,11 @@ namespace hz
 			EXECUTION,
 		} step;
 
-		muon::String message;
-		muon::String section;
-		muon::String function;
-		muon::u32 line;
-		muon::u32 column;
+		m::String message;
+		m::String section;
+		m::String function;
+		m::u32 line;
+		m::u32 column;
 
 		bool _cleared;
 	};
@@ -94,7 +94,7 @@ namespace hz
 		* @brief Load a file located at path
 		* @param file File to load
 		*/
-		bool load(const muon::String& file);
+		bool load(const m::String& file);
 
 		/*!
 		* @brief
@@ -108,7 +108,7 @@ namespace hz
 		* be loaded
 		* @param func Function name to be loaded, with prefixed namespace (ex: "namespace::function")
 		*/
-		bool prepare(const muon::String& func);
+		bool prepare(const m::String& func);
 
 		/*!
 		* @brief Start executing the prepared function
@@ -138,7 +138,7 @@ namespace hz
 		bool run(const ByteCode* instr);
 
 	private:
-		muon::String m_name;
+		m::String m_name;
 		InfoError m_error;
 
 		// PARSER & COMPILATION
@@ -148,13 +148,13 @@ namespace hz
 		bool parseSyntaxic();
 		bool parseSemantic();
 		// Variables
-		muon::String m_loadBuffer;
+		m::String m_loadBuffer;
 		std::vector<parser::Token>* m_tokenList;
 		parser::ASTNode* m_nodeRoot;
 		SymbolTable m_symbols;
 		// Lexical
-		void pushToken(parser::InfoImpl*, muon::String&);
-		void pushSeparatorToken(parser::InfoImpl*, muon::String&);
+		void pushToken(parser::InfoImpl*, m::String&);
+		void pushSeparatorToken(parser::InfoImpl*, m::String&);
 		// Syntaxic
 		bool parseExpression(parser::InfoImpl*);
 		bool parseGlobal(parser::InfoImpl*);
@@ -165,8 +165,8 @@ namespace hz
 		// EXECUTION
 		// ****************************
 		ByteCode m_instr;
-		muon::u32 m_stack;
-		muon::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
+		m::u32 m_stack;
+		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 	};
 
 }
