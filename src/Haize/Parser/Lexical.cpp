@@ -68,7 +68,7 @@ namespace
 
 	bool isSeparator(char c)
 	{
-		return (c == ';') || isNewLine(c);
+		return (c == ';');
 	}
 
 	bool isParenthesis(char c)
@@ -157,11 +157,6 @@ namespace hz
 					++impl.line;
 					impl.column = 1;
 					impl.columnCount = 1;
-					// Add Separator Token
-					if (!impl.multiLineComment)
-					{
-						pushSeparatorToken(&impl, word);
-					}
 				}
 			}
 
