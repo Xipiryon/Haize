@@ -240,7 +240,22 @@ namespace hz
 
 				if (token.type != parser::S_RPARENT)
 				{
-					if(token.type != parser::V_IDENTIFIER)
+					if(token.type == parser::S_KEYWORD)
+					{
+						m::String keyword = token.value.get<m::String>();
+						if(keyword == "ref")
+						{
+							//TODO
+						}
+						else
+						{
+							//TODO
+						}
+					}
+					else if(token.type == parser::V_IDENTIFIER)
+					{
+					}
+					else
 					{
 						tokenError(token, "Expected type for function argument!");
 						return false;
