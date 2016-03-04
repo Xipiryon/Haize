@@ -613,11 +613,8 @@ namespace hz
 					impl->token.value = false;
 				}
 				else if (word == "namespace"
-						 // Class and functions
 						 || word == "class"
-						 || word == "attr"
 						 || word == "ref"
-						 || word == "function"
 						 // Logic keyword
 						 || word == "if"
 						 || word == "else"
