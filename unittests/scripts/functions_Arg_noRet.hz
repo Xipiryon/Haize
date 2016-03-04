@@ -1,0 +1,22 @@
+
+// Some arguments as copy
+// No return
+function Arg_noRet(int a, int b)
+{
+}
+
+// Some arguments as reference
+// No return
+/*
+function noArg_Ret(ref int a, ref int b)
+{
+}
+//*/
+
+// Some arguments as copy or reference
+// No return
+/*
+function noArg_Ret(int a, ref int b)
+{
+}
+//*/

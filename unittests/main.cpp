@@ -143,9 +143,22 @@ int main(int argc, char** argv)
 	}
 
 	// Functions
+	struct FileModule
 	{
-		module = "Function: No Arguments, No Return";
-		file = "unittests/scripts/functions_noArg_noRet.hz";
+		m::String file;
+		m::String module;
+	} scriptTests[] = {
+		{"unittests/scripts/functions_noArg_noRet.hz", "Function: No Arguments, No Return"},
+		{"unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return"},
+
+		{"",""}
+	};
+	m::i32 scriptIndex = 0;
+
+	while(scriptTests[scriptIndex].file != "")
+	{
+		module = scriptTests[scriptIndex].module;
+		file = scriptTests[scriptIndex].file;
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking 'Func_NoArg_NoRet' script");
@@ -166,6 +179,7 @@ int main(int argc, char** argv)
 		//ok = context->execute();
 		//infoError = context->getLastError();
 		//HAIZE_CHECK(ok, "[EXECUTION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		++scriptIndex;
 	}
 
 	// END UNIT TEST
