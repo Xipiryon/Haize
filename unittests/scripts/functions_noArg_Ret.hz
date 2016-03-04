@@ -1,0 +1,5 @@
+
+// No Arguments
+// Return value
+
+function noArg_Ret() { return true; }

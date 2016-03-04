@@ -228,8 +228,15 @@ namespace hz
 			parser::ASTNode* args = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_ARGS, "NT_FUNCTION_ARGS");
 			funcNode->addChild(args);
 
+			parser::ASTNode* refNode;
+			parser::ASTNode* retType;
+			parser::ASTNode* varName;
 			do
 			{
+				refNode = NULL;
+				retType = NULL;
+				varName = NULL;
+
 				// read token without poping it
 				ok = readToken(token, false);
 				if(!ok)
@@ -252,17 +259,33 @@ namespace hz
 							//TODO
 						}
 					}
-					else if(token.type == parser::V_IDENTIFIER)
+
+					if(token.type == parser::V_IDENTIFIER)
 					{
+						retType = MUON_NEW(parser::ASTNode, token);
+						m_tokenList->pop_back(); // remove rettype
+
+						ok = readToken(token, true);
+						if(!ok || token.type != parser::V_IDENTIFIER)
+						{
+							tokenError(token, "Expected variable name for function argument");
+							return false;
+						}
+
+						varName = MUON_NEW(parser::ASTNode, token);
+						varName->addChild(retType);
+
+						// Either add refNode or directly varName
+						args->addChild(refNode ? (refNode->addChild(varName), refNode) : varName);
 					}
 					else
 					{
-						tokenError(token, "Expected type for function argument!");
+						tokenError(token, "Unexpected token in function argument list!");
 						return false;
 					}
 
 					// Consume token
-					m_tokenList->pop_back();
+					//m_tokenList->pop_back();
 				}
 			} while (token.type != parser::S_RPARENT);
 		}

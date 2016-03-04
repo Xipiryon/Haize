@@ -1,4 +1,10 @@
 
+// One arguments as copy
+// No return
+function Arg_noRet(int a)
+{
+}
+
 // Some arguments as copy
 // No return
 function Arg_noRet(int a, int b)
