@@ -89,6 +89,13 @@ namespace hz
 			CATEGORY_UNOP,
 			CATEGORY_CONSTANT,
 
+			NT_ROOT,
+			NT_FUNCTION,
+			NT_FUNCTION_ARGS,
+			NT_CLASS,
+			NT_NAMESPACE,
+			NT_EXPR,
+
 			TOTAL_COUNT		//!< '' Total Count of every stored TokenType,
 		};
 
@@ -171,6 +178,13 @@ namespace hz
 			"CATEGORY_BINOP",
 			"CATEGORY_UNOP",
 			"CATEGORY_CONSTANT",
+
+			"NT_ROOT",
+			"NT_FUNCTION",
+			"NT_FUNCTION_ARGS",
+			"NT_CLASS",
+			"NT_NAMESPACE",
+			"NT_EXPR",
 		};
 
 		/*!

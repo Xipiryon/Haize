@@ -144,6 +144,7 @@ namespace hz
 		// PARSER & COMPILATION
 		// ****************************
 		void clearError(bool);
+		void tokenError(const parser::Token&, const m::String&);
 		bool parseLexical();
 		bool parseSyntaxic();
 		bool parseSemantic();
@@ -156,8 +157,10 @@ namespace hz
 		void pushToken(parser::InfoImpl*, m::String&);
 		void pushSeparatorToken(parser::InfoImpl*, m::String&);
 		// Syntaxic
+		bool readToken(parser::Token&, bool);
 		bool parseExpression(parser::InfoImpl*);
 		bool parseGlobal(parser::InfoImpl*);
+		bool parseNamespace(parser::InfoImpl*);
 		bool parseClass(parser::InfoImpl*);
 		bool parseFunction(parser::InfoImpl*);
 		// Semantic

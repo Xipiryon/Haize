@@ -55,6 +55,14 @@ namespace hz
 		m_error._cleared = cleared;
 	}
 
+	void Context::tokenError(const parser::Token& token, const m::String& err)
+	{
+		clearError(false);
+		m_error.line = token.line;
+		m_error.column = token.column;
+		m_error.message = err;
+	}
+
 	//==================================
 	//			COMPILATION
 	//==================================

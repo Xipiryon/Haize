@@ -144,11 +144,11 @@ int main(int argc, char** argv)
 
 	// Functions
 	{
-		module = "Function";
-		file = "unittests/scripts/functions.hz";
+		module = "Function: No Arguments, No Return";
+		file = "unittests/scripts/functions_noArg_noRet.hz";
 
 		hz::Context* context = vm.createContext(module.cStr());
-		HAIZE_TITLE("Checking 'Functions' script");
+		HAIZE_TITLE("Checking 'Func_NoArg_NoRet' script");
 		bool ok;
 
 		ok = context->load(file.cStr());

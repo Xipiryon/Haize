@@ -48,16 +48,32 @@ namespace
 
 namespace hz
 {
+	bool Context::readToken(parser::Token& out, bool pop)
+	{
+		if(!m_tokenList->empty())
+		{
+			out = m_tokenList->back();
+			if(pop)
+			{
+				m_tokenList->pop_back();
+			}
+			return true;
+		}
+		return false;
+	}
+
 	bool Context::parseSyntaxic()
 	{
+		// Clean children
 		while (!m_nodeRoot->children->empty())
 		{
 			MUON_DELETE(m_nodeRoot->children->back());
+			m_nodeRoot->children->pop_back();
 		}
 
 		// Reinit token
-		m_nodeRoot->name = "#ERROR#";
-		m_nodeRoot->token = parser::Token(parser::TOTAL_COUNT);
+		m_nodeRoot->name = "#ROOT#";
+		m_nodeRoot->token.type = parser::NT_ROOT;
 
 		InfoSyntaxic impl;
 		impl.phases.push_back(PHASE_START);
@@ -70,7 +86,7 @@ namespace hz
 			return false;
 		}
 
-		bool err = false;
+		bool ok = true;
 		hz::parser::ASTNode* node = NULL;
 
 		while(!m_tokenList->empty())
@@ -82,35 +98,40 @@ namespace hz
 				m::String keyword = currToken.value.get<m::String>();
 				if (keyword == "class")
 				{
-					err = parseClass(&impl);
+					ok = parseClass(&impl);
 				}
-				else if (keyword == "func")
+				else if (keyword == "namespace")
 				{
-					err = parseFunction(&impl);
+					ok = parseNamespace(&impl);
 				}
 				else if (keyword == "global")
 				{
-					err = parseGlobal(&impl);
+					ok = parseGlobal(&impl);
 				}
 				else
 				{
-					clearError(false);
-					m_error.line = currToken.line;
-					m_error.column = currToken.column;
-					m_error.message = "Unexpected keyword \"" + keyword + "\"";
+					tokenError(currToken, "Unexpected keyword \"" + keyword + "\"");
 					return false;
 				}
 			}
+			// Else, if identifier, then it's a function (or at least suppose it)
+			else if(currToken.type == parser::V_IDENTIFIER)
+			{
+				ok = parseFunction(&impl);
+			}
+			// Pop token that have no semantic value
+			else if(currToken.type == parser::S_SEPARATOR
+					|| currToken.type == parser::S_EOF)
+			{
+				m_tokenList->pop_back();
+			}
 			else
 			{
-				clearError(false);
-				m_error.line = currToken.line;
-				m_error.column = currToken.column;
-				m_error.message = "Code can't be outside functions/class or must have \"global\" specifier";
+				tokenError(currToken, "Code can't be outside functions/class or must have \"global\" specifier");
 				return false;
 			}
 
-			if(err)
+			if(!ok)
 			{
 				// Error should have been set in parse{...} functions
 				return false;
@@ -130,10 +151,7 @@ namespace hz
 			// If we've less than 2 variable on the left, there is a problem
 			if (m_tokenList->size() < 2)
 			{
-				clearError(false);
-				m_error.line = currToken.line;
-				m_error.column = currToken.column;
-				m_error.message = "Operator has not enough operand!";
+				tokenError(currToken, "Operator has not enough operand!");
 				return false;
 			}
 			// old code
@@ -154,6 +172,12 @@ namespace hz
 		return true;
 	}
 
+	bool Context::parseNamespace(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		return true;
+	}
+
 	bool Context::parseClass(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
@@ -163,6 +187,100 @@ namespace hz
 	bool Context::parseFunction(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token token;
+		bool ok;
+
+		impl->phases.push_back(PHASE_FUNCTION);
+		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "NT_FUNCTION");
+		impl->nodes.push_back(funcNode);
+
+		// Current token is "return type", pop it,
+		// and create required nodes
+		readToken(token, true);
+		funcNode->addChild(MUON_NEW(parser::ASTNode, token));
+
+		// Check function identifer (the function name)
+		ok = readToken(token, true);
+		if(ok && token.type == parser::V_IDENTIFIER)
+		{
+			funcNode->addChild(MUON_NEW(parser::ASTNode, token));
+		}
+		else
+		{
+			tokenError(token, "Expected identifier for function declaration!");
+			return false;
+		}
+
+		// (
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::S_LPARENT)
+		{
+			tokenError(token, "Missing '(' after function name!");
+			return false;
+		}
+
+		// Check arguments, they follow the EBNF pattern:
+		// [ V_IDENTIFIER V_IDENTIFIER {S_COMMA V_IDENTIFIER V_IDENTIFIER}]
+		// (the reason for the double identifier is because "varType varName")
+		// Just check we have at least something, else directly jump to ')'
+		{
+			//In any cases, push a NT_FUNCTION_ARGS node
+			parser::ASTNode* args = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_ARGS, "NT_FUNCTION_ARGS");
+			funcNode->addChild(args);
+
+			do
+			{
+				// read token without poping it
+				ok = readToken(token, false);
+				if(!ok)
+				{
+					tokenError(token, "Expected token for function argument list!");
+					return false;
+				}
+
+				if (token.type != parser::S_RPARENT)
+				{
+					if(token.type != parser::V_IDENTIFIER)
+					{
+						tokenError(token, "Expected type for function argument!");
+						return false;
+					}
+
+					// Consume token
+					m_tokenList->pop_back();
+				}
+			} while (token.type != parser::S_RPARENT);
+		}
+
+		// )
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::S_RPARENT)
+		{
+			tokenError(token, "Missing ')' to end function parameter list!");
+			return false;
+		}
+
+		// {
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::S_LBRACE)
+		{
+			tokenError(token, "Missing '{' after function parameter list!");
+			return false;
+		}
+
+		// Check body function
+		// If next token is }, then we warn the body is empty?
+
+
+
+		// }
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::S_RBRACE)
+		{
+			tokenError(token, "Missing '}' after function body!");
+			return false;
+		}
+
 		return true;
 	}
 }

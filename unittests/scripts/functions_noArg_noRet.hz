@@ -1,0 +1,13 @@
+
+// No arguments
+// No return
+function noArg_noRet() { /* Empty function */ }
+
+// Same but with weird line ending
+// ---------- v
+function
+
+						noArg_noRet_lineEnding				 	 	 	(
+						){
+			  }
+// ---------- ^
