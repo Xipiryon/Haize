@@ -8,7 +8,7 @@ namespace hz
 	bool Context::parseSemantic()
 	{
 		clearError(false);
-		m_error.message = "Not implemented yet";
+		m_error.message = "Semantic not implemented yet";
 		return false;
 	}
 }
