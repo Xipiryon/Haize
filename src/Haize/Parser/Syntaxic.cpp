@@ -20,10 +20,11 @@ namespace
 
 	enum ParserPhase
 	{
-		PHASE_START,
+		PHASE_ROOT,
 		PHASE_EXPRESSION,
 		PHASE_CLASS,
 		PHASE_FUNCTION,
+		PHASE_NAMESPACE,
 	};
 
 	/*
@@ -39,8 +40,9 @@ namespace
 		std::deque<ParserPhase> phases;
 		m::u32 readIndex;
 
-		std::deque<hz::parser::Token> operatorToken;
-		std::deque<hz::parser::ASTNode*> nodes;
+		std::deque<hz::parser::Token> exprTokens;
+		std::deque<hz::parser::ASTNode*> exprNodes;
+		hz::parser::ASTNode* phaseNode;
 
 		static const OpAttribute precAttrib[hz::parser::E_TERMINALTOKEN_END];
 	};
@@ -76,8 +78,9 @@ namespace hz
 		m_nodeRoot->token.type = parser::NT_ROOT;
 
 		InfoSyntaxic impl;
-		impl.phases.push_back(PHASE_START);
+		impl.phases.push_back(PHASE_ROOT);
 		impl.readIndex = 0;
+		impl.phaseNode = m_nodeRoot;
 
 		// Skip empty Token list
 		if (m_tokenList->empty()
@@ -102,44 +105,100 @@ namespace hz
 	{
 		bool ok = true;
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
-		parser::Token currToken = m_tokenList->back();
-		if (currToken.type == parser::S_KEYWORD)
-		{
-			// Class or Function
-			m::String keyword = currToken.value.get<m::String>();
-			if (keyword == "class")
-			{
-				ok = parseClass(info);
-			}
-			else if (keyword == "namespace")
-			{
-				ok = parseNamespace(info);
-			}
-			else if (keyword == "global")
-			{
-				ok = parseGlobal(info);
-			}
-			else
-			{
-				tokenError(currToken, "Unexpected keyword \"" + keyword + "\"");
-				return false;
-			}
-		}
-		// Else, if identifier, then it's a function (or at least suppose it)
-		else if (currToken.type == parser::V_IDENTIFIER)
-		{
-			ok = parseFunction(info);
-		}
+		parser::Token token = m_tokenList->back();
+		ParserPhase phase = impl->phases.back();
+
 		// Pop token that have no real value
-		else if (currToken.type == parser::S_SEPARATOR
-				 || currToken.type == parser::S_EOF)
+		if (token.type == parser::S_SEPARATOR
+			|| token.type == parser::S_EOF)
 		{
 			m_tokenList->pop_back();
+			return true;
 		}
-		else
+
+		// It may be a closing from a previous parse, check it here
+		if (token.type == parser::S_RBRACE)
 		{
-			tokenError(currToken, "Code can't be outside functions/class or must have \"global\" specifier");
-			return false;
+			if (impl->phases.empty())
+			{
+				tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
+				return false;
+			}
+
+			switch (phase)
+			{
+				case PHASE_CLASS:
+				case PHASE_FUNCTION:
+				case PHASE_NAMESPACE:
+				{
+					impl->phases.pop_back();
+					m_tokenList->pop_back();
+					return true;
+				}
+				default:
+				{
+					tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
+					return false;
+				}
+			}
+		}
+
+		// Check phase to call the correct parse phase
+		switch(phase)
+		{
+			case PHASE_ROOT:
+			{
+				if (token.type == parser::S_KEYWORD)
+				{
+					m::String keyword = token.value.get<m::String>();
+					if (keyword == "class")
+					{
+						ok = parseClass(info);
+					}
+					else if (keyword == "namespace")
+					{
+						ok = parseNamespace(info);
+					}
+					else if (keyword == "global")
+					{
+						ok = parseGlobal(info);
+					}
+					else
+					{
+						tokenError(token, "Unexpected keyword \"" + keyword + "\"");
+						return false;
+					}
+				}
+				// Else if identifier, it can only be a function
+				else if (token.type == parser::V_IDENTIFIER)
+				{
+					ok = parseFunction(info);
+				}
+				else
+				{
+					tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
+					return false;
+				}
+				break;
+			}
+			case PHASE_FUNCTION:
+			{
+				ok = parseExpression(info);
+				break;
+			}
+			case PHASE_NAMESPACE:
+			{
+				if (token.type == parser::S_KEYWORD
+					&& token.value.get<m::String>() == "namespace")
+				{
+					ok = parseNamespace(info);
+				}
+				else
+				{
+					ok = parseChunk(info);
+				}
+				break;
+			}
 		}
 
 		if (!ok)
@@ -154,13 +213,13 @@ namespace hz
 	bool Context::parseExpression(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
-		parser::Token currToken = m_tokenList->back();
-		if (currToken.category == parser::CATEGORY_BINOP)
+		parser::Token token = m_tokenList->back();
+		if (token.category == parser::CATEGORY_BINOP)
 		{
 			// If we've less than 2 variable on the left, there is a problem
 			if (m_tokenList->size() < 2)
 			{
-				tokenError(currToken, "Operator \"" + currToken.value.get<m::String>() + "\" has not enough operand!");
+				tokenError(token, "Operator \"" + token.value.get<m::String>() + "\" has not enough operand!");
 				return false;
 			}
 			// old code
@@ -190,6 +249,29 @@ namespace hz
 		parser::Token token;
 		bool ok = true;
 
+		m_tokenList->pop_back();
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::V_IDENTIFIER)
+		{
+			tokenError(token, "Expected identifier after 'namespace'!");
+			return false;
+		}
+
+		// Update phase
+		impl->phases.push_back(PHASE_NAMESPACE);
+		parser::ASTNode* namespaceNode = MUON_NEW(parser::ASTNode, parser::NT_NAMESPACE, token.value.get<m::String>());
+		impl->phaseNode->addChild(namespaceNode);
+
+		// Set namespace as phaseNode
+		impl->phaseNode = namespaceNode;
+
+		// {
+		ok = readToken(token, true);
+		if(!ok || token.type != parser::S_LBRACE)
+		{
+			tokenError(token, "Missing '{' after namespace declaration!");
+			return false;
+		}
 		return true;
 	}
 
@@ -208,9 +290,9 @@ namespace hz
 		parser::Token token;
 		bool ok;
 
-		impl->phases.push_back(PHASE_FUNCTION);
-		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "NT_FUNCTION");
-		impl->nodes.push_back(funcNode);
+		// Update phase
+		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "#NT_FUNCTION#");
+		impl->phaseNode->addChild(funcNode);
 
 		// Current token is "return type", pop it,
 		// and create required nodes
@@ -221,7 +303,7 @@ namespace hz
 		ok = readToken(token, true);
 		if(ok && token.type == parser::V_IDENTIFIER)
 		{
-			funcNode->addChild(MUON_NEW(parser::ASTNode, token));
+			funcNode->name = token.value.get<m::String>();
 		}
 		else
 		{
@@ -238,8 +320,8 @@ namespace hz
 		}
 
 		// Check arguments, they follow the EBNF pattern:
-		// [ V_IDENTIFIER V_IDENTIFIER {S_COMMA V_IDENTIFIER V_IDENTIFIER}]
-		// (the reason for the double identifier is because "varType varName")
+		// [ V_IDENTIFIER V_IDENTIFIER {S_COMMA V_IDENTIFIER V_IDENTIFIER [S_COMMA]}]
+		// (the reason for the double identifier is because "varType varName", a trailing comma is allowed)
 		// Just check we have at least something, else directly jump to ')'
 		{
 			//In any cases, push a NT_FUNCTION_ARGS node
@@ -342,22 +424,8 @@ namespace hz
 			return false;
 		}
 
-		// Check body function
-		// If next token is }, then we warn the body is empty?
-		if(!parseExpression(info))
-		{
-			// error has been set in parseExpression
-			return false;
-		}
-
-		// }
-		ok = readToken(token, true);
-		if(!ok || token.type != parser::S_RBRACE)
-		{
-			tokenError(token, "Missing '}' after function body!");
-			return false;
-		}
-
+		// Update phase only if successful
+		impl->phases.push_back(PHASE_FUNCTION);
 		return true;
 	}
 }
