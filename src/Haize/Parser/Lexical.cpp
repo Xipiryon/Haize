@@ -658,11 +658,13 @@ namespace hz
 					 )
 			{
 				impl->token.category = hz::parser::CATEGORY_BINOP;
+				impl->token.value = word;
 			}
 			else if (impl->token.type == hz::parser::MATH_INC
 					 || impl->token.type == hz::parser::MATH_DEC)
 			{
 				impl->token.category = hz::parser::CATEGORY_UNOP;
+				impl->token.value = word;
 			}
 
 			impl->token.line = impl->line;
