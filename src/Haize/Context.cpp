@@ -134,12 +134,14 @@ namespace hz
 			clearVariable();
 			return false;
 		}
+		m_loadBuffer.clear();
 
 		if (!parseSyntaxic())
 		{
 			clearVariable();
 			return false;
 		}
+		m_tokenList->clear();
 
 		if(!parseSemantic())
 		{

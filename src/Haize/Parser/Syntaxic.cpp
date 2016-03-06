@@ -79,6 +79,7 @@ namespace hz
 		impl.phases.push_back(PHASE_START);
 		impl.readIndex = 0;
 
+		// Skip empty Token list
 		if (m_tokenList->empty()
 			|| m_tokenList->back().type == parser::S_EOF)
 		{
