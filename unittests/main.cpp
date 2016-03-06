@@ -173,14 +173,14 @@ int main(int argc, char** argv)
 
 		ok = context->load(file_A);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], file_A, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_A, infoError.line, infoError.column, infoError.message.cStr());
 		ok = context->load(file_B);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], file_B, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_B, infoError.line, infoError.column, infoError.message.cStr());
 
 		ok = context->compile();
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		//TODO:
 		//Preparation
