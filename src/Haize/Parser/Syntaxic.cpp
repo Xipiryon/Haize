@@ -79,11 +79,10 @@ namespace hz
 		impl.phases.push_back(PHASE_START);
 		impl.readIndex = 0;
 
-		if (m_tokenList->empty() || m_tokenList->back().type == parser::S_EOF)
+		if (m_tokenList->empty()
+			|| m_tokenList->back().type == parser::S_EOF)
 		{
-			clearError(false);
-			m_error.message = "Empty token list, nothing to parse.";
-			return false;
+			return true;
 		}
 
 		bool ok = true;
