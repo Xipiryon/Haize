@@ -119,7 +119,7 @@ namespace hz
 			{
 				ok = parseFunction(&impl);
 			}
-			// Pop token that have no semantic value
+			// Pop token that have no real value
 			else if(currToken.type == parser::S_SEPARATOR
 					|| currToken.type == parser::S_EOF)
 			{
@@ -133,7 +133,7 @@ namespace hz
 
 			if(!ok)
 			{
-				// Error should have been set in parse{...} functions
+				// Error have been set in sub syntaxic parseN functions
 				return false;
 			}
 		}
@@ -151,7 +151,7 @@ namespace hz
 			// If we've less than 2 variable on the left, there is a problem
 			if (m_tokenList->size() < 2)
 			{
-				tokenError(currToken, "Operator has not enough operand!");
+				tokenError(currToken, "Operator \"" + currToken.value.get<m::String>() + "\" has not enough operand!");
 				return false;
 			}
 			// old code
@@ -252,11 +252,19 @@ namespace hz
 						m::String keyword = token.value.get<m::String>();
 						if(keyword == "ref")
 						{
-							//TODO
+							refNode = MUON_NEW(parser::ASTNode, token);
+							m_tokenList->pop_back(); // remove 'ref'
+							ok = readToken(token, false);
+							if(!ok)
+							{
+								tokenError(token, "Expected return type after 'ref' keyword!");
+								return false;
+							}
 						}
 						else
 						{
-							//TODO
+							tokenError(token, "Unexpected token for function argument! (Expected ref, got something else)");
+							return false;
 						}
 					}
 
@@ -268,7 +276,7 @@ namespace hz
 						ok = readToken(token, true);
 						if(!ok || token.type != parser::V_IDENTIFIER)
 						{
-							tokenError(token, "Expected variable name for function argument");
+							tokenError(token, "Expected variable name for function argument!");
 							return false;
 						}
 
@@ -284,8 +292,18 @@ namespace hz
 						return false;
 					}
 
-					// Consume token
-					//m_tokenList->pop_back();
+					ok = readToken(token, false);
+					if(!ok)
+					{
+						tokenError(token, "Unexpected EOF in function argument list!");
+						return false;
+					}
+					else if(token.type == parser::S_COMMA)
+					{
+						// Just consume it. 
+						// This allow an argument list ending by a ,
+						m_tokenList->pop_back();
+					}
 				}
 			} while (token.type != parser::S_RPARENT);
 		}
@@ -308,8 +326,11 @@ namespace hz
 
 		// Check body function
 		// If next token is }, then we warn the body is empty?
-
-
+		if(!parseExpression(info))
+		{
+			// error has been set in parseExpression
+			return false;
+		}
 
 		// }
 		ok = readToken(token, true);
