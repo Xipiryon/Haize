@@ -132,11 +132,11 @@ int main(int argc, char** argv)
 
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		// Explicit failing test
 		ok = context->compile();
-		HAIZE_CHECK(!ok, "[COMPILATION] Should have failed because of \"free code\"!");
+		HAIZE_CHECK(!ok, "[%s] Should have failed because of \"free code\"!");
 
 		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
 		// TODO?
@@ -154,10 +154,10 @@ int main(int argc, char** argv)
 
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		ok = context->compile();
-		HAIZE_CHECK(ok, "[COMPILATION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		vm.destroyContext(module.cStr());
 	}
 
@@ -173,14 +173,14 @@ int main(int argc, char** argv)
 
 		ok = context->load(file_A);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file_A, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], file_A, infoError.line, infoError.column, infoError.message.cStr());
 		ok = context->load(file_B);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], file_B, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], file_B, infoError.line, infoError.column, infoError.message.cStr());
 
 		ok = context->compile();
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[COMPILATION] Error in step \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.line, infoError.column, infoError.message.cStr());
 
 		//TODO:
 		//Preparation
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
 		//TODO:
 		//ok = context->execute();
 		//infoError = context->getLastError();
-		//HAIZE_CHECK(ok, "[EXECUTION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		vm.destroyContext(module.cStr());
 	}
 
@@ -218,11 +218,11 @@ int main(int argc, char** argv)
 
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[LOADING] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		ok = context->compile();
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[COMPILATION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		//TODO:
 		//Preparation
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
 		//TODO:
 		//ok = context->execute();
 		//infoError = context->getLastError();
-		//HAIZE_CHECK(ok, "[EXECUTION] Error in step \"%s\" (\"%s\") [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		++scriptIndex;
 		vm.destroyContext(module.cStr());
 	}
