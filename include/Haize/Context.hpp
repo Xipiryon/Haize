@@ -158,6 +158,7 @@ namespace hz
 		void pushSeparatorToken(parser::InfoImpl*, m::String&);
 		// Syntaxic
 		bool readToken(parser::Token&, bool);
+		bool parseChunk(parser::InfoImpl*);
 		bool parseExpression(parser::InfoImpl*);
 		bool parseGlobal(parser::InfoImpl*);
 		bool parseNamespace(parser::InfoImpl*);

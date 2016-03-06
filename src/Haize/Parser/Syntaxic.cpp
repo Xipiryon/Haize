@@ -86,59 +86,68 @@ namespace hz
 			return true;
 		}
 
-		bool ok = true;
-		hz::parser::ASTNode* node = NULL;
-
 		while(!m_tokenList->empty())
 		{
-			parser::Token currToken = m_tokenList->back();
-			if(currToken.type == parser::S_KEYWORD)
+			if(!parseChunk(&impl))
 			{
-				// Class or Function
-				m::String keyword = currToken.value.get<m::String>();
-				if (keyword == "class")
-				{
-					ok = parseClass(&impl);
-				}
-				else if (keyword == "namespace")
-				{
-					ok = parseNamespace(&impl);
-				}
-				else if (keyword == "global")
-				{
-					ok = parseGlobal(&impl);
-				}
-				else
-				{
-					tokenError(currToken, "Unexpected keyword \"" + keyword + "\"");
-					return false;
-				}
-			}
-			// Else, if identifier, then it's a function (or at least suppose it)
-			else if(currToken.type == parser::V_IDENTIFIER)
-			{
-				ok = parseFunction(&impl);
-			}
-			// Pop token that have no real value
-			else if(currToken.type == parser::S_SEPARATOR
-					|| currToken.type == parser::S_EOF)
-			{
-				m_tokenList->pop_back();
-			}
-			else
-			{
-				tokenError(currToken, "Code can't be outside functions/class or must have \"global\" specifier");
-				return false;
-			}
-
-			if(!ok)
-			{
-				// Error have been set in sub syntaxic parseN functions
 				return false;
 			}
 		}
 
 		clearError(true);
+		return true;
+	}
+
+	bool Context::parseChunk(parser::InfoImpl* info)
+	{
+		bool ok = true;
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token currToken = m_tokenList->back();
+		if (currToken.type == parser::S_KEYWORD)
+		{
+			// Class or Function
+			m::String keyword = currToken.value.get<m::String>();
+			if (keyword == "class")
+			{
+				ok = parseClass(info);
+			}
+			else if (keyword == "namespace")
+			{
+				ok = parseNamespace(info);
+			}
+			else if (keyword == "global")
+			{
+				ok = parseGlobal(info);
+			}
+			else
+			{
+				tokenError(currToken, "Unexpected keyword \"" + keyword + "\"");
+				return false;
+			}
+		}
+		// Else, if identifier, then it's a function (or at least suppose it)
+		else if (currToken.type == parser::V_IDENTIFIER)
+		{
+			ok = parseFunction(info);
+		}
+		// Pop token that have no real value
+		else if (currToken.type == parser::S_SEPARATOR
+				 || currToken.type == parser::S_EOF)
+		{
+			m_tokenList->pop_back();
+		}
+		else
+		{
+			tokenError(currToken, "Code can't be outside functions/class or must have \"global\" specifier");
+			return false;
+		}
+
+		if (!ok)
+		{
+			// Error have been set in sub syntaxic parseN functions
+			return false;
+		}
+
 		return true;
 	}
 
