@@ -14,16 +14,16 @@ namespace hz
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			ASTNode(eTokenType, const char*);
+			ASTNode(eTokenType, const m::String&);
 			ASTNode(const Token&);
 			~ASTNode();
 
-			const char* name;
+			m::String name;
 			Token token;
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
 
-			ASTNode* addChild(eTokenType, const char*);
+			ASTNode* addChild(eTokenType, const m::String&);
 			ASTNode* addChild(const Token&);
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);

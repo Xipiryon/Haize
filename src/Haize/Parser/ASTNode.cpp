@@ -9,14 +9,14 @@ namespace hz
 	namespace parser
 	{
 		ASTNode::ASTNode()
-			: name(NULL)
+			: name("#ANONYMOUS#")
 			, token(S_INVALID)
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
 
-		ASTNode::ASTNode(eTokenType type_, const char* name_)
+		ASTNode::ASTNode(eTokenType type_, const m::String& name_)
 			: name(name_)
 			, token(type_)
 			, children(MUON_NEW(std::deque<ASTNode*>))
@@ -41,7 +41,7 @@ namespace hz
 			delete children;
 		}
 
-		ASTNode* ASTNode::addChild(eTokenType type, const char* name)
+		ASTNode* ASTNode::addChild(eTokenType type, const m::String& name)
 		{
 			ASTNode* node = MUON_NEW(ASTNode, type, name);
 			node->parent = this;
