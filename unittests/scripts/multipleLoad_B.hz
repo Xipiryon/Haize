@@ -1,0 +1,6 @@
+
+// Simple function using in another file
+bool multipleLoad_B()
+{
+	return multipleLoad_A();
+}

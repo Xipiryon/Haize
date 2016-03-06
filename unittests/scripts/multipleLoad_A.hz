@@ -1,0 +1,6 @@
+
+// Simple function declaration
+bool multipleLoad_A()
+{
+	return true;
+}
