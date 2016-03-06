@@ -202,6 +202,7 @@ int main(int argc, char** argv)
 		{"unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return"},
 		{"unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return"},
 		{"unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return"},
+		{"unittests/scripts/namespace.hz", "Namespaces"},
 
 		{"",""}
 	};
