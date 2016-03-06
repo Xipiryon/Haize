@@ -178,18 +178,27 @@ namespace hz
 	bool Context::parseGlobal(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token token;
+		bool ok = true;
+
 		return true;
 	}
 
 	bool Context::parseNamespace(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token token;
+		bool ok = true;
+
 		return true;
 	}
 
 	bool Context::parseClass(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token token;
+		bool ok = true;
+
 		return true;
 	}
 
