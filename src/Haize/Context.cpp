@@ -79,7 +79,7 @@ namespace hz
 				m::u64 length = (m::u64)file.tellg();
 				file.seekg(0, file.beg);
 
-				char* buffer = (char*)malloc((m::u32)length);
+				char* buffer = (char*)malloc((m::u32)length+1);
 				file.read(buffer, length);
 				buffer[file.gcount()] = 0;
 				m_loadBuffer += buffer;
