@@ -1,0 +1,25 @@
+
+// Class with member and function, even references other class
+
+class A
+{
+	construct()
+	{
+	}
+	
+	destruct()
+	{
+	}
+
+	int i;
+}
+
+class B
+{
+	A a;
+	int i;
+
+	void foo() 
+	{
+	}
+}

@@ -1,0 +1,11 @@
+
+// Class with simple function, constructor and destructor
+
+class FCstrDstr
+{
+	construct() {}
+	construct(int i) {}
+	destruct() {}
+
+	void f() {}
+}

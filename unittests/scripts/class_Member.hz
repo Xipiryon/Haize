@@ -1,0 +1,7 @@
+
+// Class with member attribute
+class MyClass
+{
+	int i;
+	float j;
+}
