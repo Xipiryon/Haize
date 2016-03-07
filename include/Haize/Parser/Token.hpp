@@ -93,8 +93,14 @@ namespace hz
 			NT_FUNCTION,
 			NT_FUNCTION_ARGS,
 			NT_CLASS,
+			NT_CLASS_ATTRIB,
+			NT_GLOBAL,
 			NT_NAMESPACE,
 			NT_EXPR,
+			NT_EXPR_VAR,
+			NT_EXPR_IF,
+			NT_EXPR_FOR,
+			NT_EXPR_WHILE,
 
 			TOTAL_COUNT		//!< '' Total Count of every stored TokenType,
 		};
@@ -183,8 +189,14 @@ namespace hz
 			"NT_FUNCTION",
 			"NT_FUNCTION_ARGS",
 			"NT_CLASS",
+			"NT_CLASS_ATTRIB",
+			"NT_GLOBAL",
 			"NT_NAMESPACE",
 			"NT_EXPR",
+			"NT_EXPR_VAR",
+			"NT_EXPR_IF",
+			"NT_EXPR_FOR",
+			"NT_EXPR_WHILE",
 		};
 
 		/*!
