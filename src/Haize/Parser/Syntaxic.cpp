@@ -176,7 +176,8 @@ namespace hz
 				}
 				else
 				{
-					tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
+					m::String tokstr = (MUON_META(m::String) == token.value.getMeta() ? token.value.get<m::String>() : parser::TokenTypeStr[token.type]);
+					tokenError(token, "Unexpected token \"" + tokstr + "\"");
 					return false;
 				}
 				break;
