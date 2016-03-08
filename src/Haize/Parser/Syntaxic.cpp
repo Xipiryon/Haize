@@ -282,6 +282,25 @@ namespace hz
 		parser::Token token;
 		bool ok = true;
 
+		// Extract class keyword
+		m_tokenList->pop_back();
+
+		// Update phase
+		parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS, "#NT_CLASS#");
+		impl->phaseNode->addChild(classNode);
+
+		// Check function identifer (the function name)
+		ok = readToken(token, true);
+		if(ok && token.type == parser::V_IDENTIFIER)
+		{
+			classNode->name = token.value.get<m::String>();
+		}
+		else
+		{
+			tokenError(token, "Expected identifier for class declaration!");
+			return false;
+		}
+
 		return true;
 	}
 
@@ -401,7 +420,7 @@ namespace hz
 					}
 					else if(token.type == parser::S_COMMA)
 					{
-						// Just consume it. 
+						// Just consume it.
 						// This allow an argument list ending by a ,
 						m_tokenList->pop_back();
 					}
