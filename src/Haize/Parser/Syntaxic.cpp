@@ -192,6 +192,53 @@ namespace hz
 				}
 				break;
 			}
+			case PHASE_CLASS:
+			{
+				parser::Token retType;
+				parser::Token identifier;
+				ok = readToken(retType, 0); // return type
+				if (ok && retType.type == parser::V_IDENTIFIER)
+				{
+					ok = readToken(identifier, 1); // member/function name
+					if (ok && identifier.type == parser::V_IDENTIFIER)
+					{
+						ok = readToken(token, 2);
+						// ( means a function
+						// ; means an attribute
+						// else, error
+						switch(token.type)
+						{
+							case parser::S_LPARENT:
+							{
+								ok = parseFunction(info);
+								break;
+							}
+							case parser::S_SEPARATOR:
+							{
+								parser::ASTNode* attribNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_MEMBER, identifier.value.get<m::String>());
+								attribNode->addChild(MUON_NEW(parser::ASTNode, retType));
+								impl->phaseNode->addChild(attribNode);
+								popToken(3); // retType identifier separator
+								break;
+							}
+							default:
+							{
+								ok = false;
+								break;
+							}
+						}
+					}
+				}
+
+				if(!ok)
+				{
+					m::String tokstr = (MUON_META(m::String) == token.value.getMeta() ? token.value.get<m::String>() : parser::TokenTypeStr[token.type]);
+					tokenError(token, "Unexpected token \"" + tokstr + "\"");
+					return false;
+				}
+
+				break;
+			}
 			case PHASE_FUNCTION:
 			{
 				ok = parseExpression(info);
@@ -299,7 +346,6 @@ namespace hz
 
 		// Update phase
 		parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS, "#NT_CLASS#");
-		impl->phaseNode->addChild(classNode);
 
 		// Check function identifer (the function name)
 		ok = readToken(token, 0);
@@ -307,9 +353,18 @@ namespace hz
 		if(ok && token.type == parser::V_IDENTIFIER)
 		{
 			classNode->name = token.value.get<m::String>();
+			ok = readToken(token, 0);
+			popToken(1);
+			if(ok && token.type == parser::S_LBRACE)
+			{
+				impl->phaseNode->addChild(classNode);
+				impl->phaseNode = classNode;
+				impl->phases.push_back(PHASE_CLASS);
+			}
 		}
 		else
 		{
+			MUON_DELETE(classNode);
 			tokenError(token, "Expected identifier for class declaration!");
 			return false;
 		}
@@ -325,7 +380,6 @@ namespace hz
 
 		// Update phase
 		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "#NT_FUNCTION#");
-		impl->phaseNode->addChild(funcNode);
 
 		// Current token is "return type", pop it,
 		// and create required nodes
@@ -377,6 +431,7 @@ namespace hz
 				ok = readToken(token, 0);
 				if(!ok)
 				{
+					MUON_DELETE(funcNode);
 					tokenError(token, "Expected token for function argument list!");
 					return false;
 				}
@@ -393,12 +448,14 @@ namespace hz
 							ok = readToken(token, 0);
 							if(!ok)
 							{
+								MUON_DELETE(funcNode);
 								tokenError(token, "Expected return type after 'ref' keyword!");
 								return false;
 							}
 						}
 						else
 						{
+							MUON_DELETE(funcNode);
 							tokenError(token, "Unexpected token for function argument! (Expected ref, got something else)");
 							return false;
 						}
@@ -413,6 +470,7 @@ namespace hz
 						popToken(1);
 						if(!ok || token.type != parser::V_IDENTIFIER)
 						{
+							MUON_DELETE(funcNode);
 							tokenError(token, "Expected variable name for function argument!");
 							return false;
 						}
@@ -425,6 +483,7 @@ namespace hz
 					}
 					else
 					{
+						MUON_DELETE(funcNode);
 						tokenError(token, "Unexpected token in function argument list!");
 						return false;
 					}
@@ -432,6 +491,7 @@ namespace hz
 					ok = readToken(token, 0);
 					if(!ok)
 					{
+						MUON_DELETE(funcNode);
 						tokenError(token, "Unexpected EOF in function argument list!");
 						return false;
 					}
@@ -450,6 +510,7 @@ namespace hz
 		popToken(1);
 		if(!ok || token.type != parser::S_RPARENT)
 		{
+			MUON_DELETE(funcNode);
 			tokenError(token, "Missing ')' to end function parameter list!");
 			return false;
 		}
@@ -459,11 +520,14 @@ namespace hz
 		popToken(1);
 		if(!ok || token.type != parser::S_LBRACE)
 		{
+			MUON_DELETE(funcNode);
 			tokenError(token, "Missing '{' after function parameter list!");
 			return false;
 		}
 
 		// Update phase only if successful
+		impl->phaseNode->addChild(funcNode);
+		impl->phaseNode = funcNode;
 		impl->phases.push_back(PHASE_FUNCTION);
 		return true;
 	}
