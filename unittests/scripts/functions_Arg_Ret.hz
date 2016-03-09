@@ -1,8 +1,8 @@
 
 // One argument
 // Return value
-function Arg_Ret(int a) { return a == b; }
+bool Arg_Ret(int a) { return a == true; }
 
 // Some arguments
 // Return value
-function Arg_Ret(int a, int b) { return a == b; }
+bool Arg_Ret(int a, int b) { return a == b; }

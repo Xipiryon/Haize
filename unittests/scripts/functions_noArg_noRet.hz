@@ -1,11 +1,11 @@
 
 // No arguments
 // No return
-function noArg_noRet() { /* Empty function */ }
+void noArg_noRet() { /* Empty void */ }
 
 // Same but with weird line ending
 // ---------- v
-function
+void
 
 						noArg_noRet_lineEnding				 	 	 	(
 						){

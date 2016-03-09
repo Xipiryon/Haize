@@ -1,36 +1,36 @@
 
 // One argument as copy
 // No return
-function Arg_noRet(int a)
+void Arg_noRet(int a)
 {
 }
 
 // Multiple arguments as copy
 // No return 
-function Args_noRet(int a, int b)
+void Args_noRet(int a, int b)
 {
 }
 
 // Multiple arguments as copy, with a trailing comma
 // No return
-function ArgsComma_noRet(int a, int b, int c,)
+void ArgsComma_noRet(int a, int b, int c,)
 {
 }
 
 // One argument as reference
 // No return
-function ArgRef_noRet(ref int a)
+void ArgRef_noRet(ref int a)
 {
 }
 
 // Some arguments as reference
 // No return
-function ArgsRef_noRet(ref int a, ref int b)
+void ArgsRef_noRet(ref int a, ref int b)
 {
 }
 
 // Multiple arguments as copy or reference
 // No return
-function ArgCopyRef_noRet(int a, ref int b)
+void ArgCopyRef_noRet(int a, ref int b)
 {
 }

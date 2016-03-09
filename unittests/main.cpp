@@ -202,11 +202,18 @@ int main(int argc, char** argv)
 		{"unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return"},
 		{"unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return"},
 		{"unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return"},
+
 		{"unittests/scripts/namespace.hz", "Namespaces"},
+
 		{"unittests/scripts/class_Empty.hz", "Empty Class"},
 		{"unittests/scripts/class_Member.hz", "Class with Member"},
 		{"unittests/scripts/class_Function.hz", "Class with Function"},
 		{"unittests/scripts/class_Full.hz", "Class with both Member and Function"},
+
+		{"unittests/scripts/logic_if.hz", "Control Flow: if"},
+		{"unittests/scripts/logic_for.hz", "Control Flow: for"},
+		{"unittests/scripts/logic_while.hz", "Control Flow: while"},
+		{"unittests/scripts/logic_switch.hz", "Control Flow: switch"},
 
 		{"",""}
 	};

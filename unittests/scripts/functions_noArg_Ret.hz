@@ -2,4 +2,4 @@
 // No Arguments
 // Return value
 
-function noArg_Ret() { return true; }
+int noArg_Ret() { return 64; }
