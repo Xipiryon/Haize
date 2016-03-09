@@ -592,25 +592,23 @@ namespace hz
 		impl->token.category = hz::parser::S_INVALID;
 		if (impl->token.type != hz::parser::S_INVALID)
 		{
+			impl->token.value = word;
 			if (impl->token.type == hz::parser::V_IDENTIFIER)
 			{
 				if (word == "nil")
 				{
 					impl->token.type = hz::parser::V_NIL;
 					impl->token.category = hz::parser::CATEGORY_CONSTANT;
-					impl->token.value.reset();
 				}
 				else if (word == "true")
 				{
 					impl->token.type = hz::parser::V_TRUE;
 					impl->token.category = hz::parser::CATEGORY_CONSTANT;
-					impl->token.value = true;
 				}
 				else if (word == "false")
 				{
 					impl->token.type = hz::parser::V_FALSE;
 					impl->token.category = hz::parser::CATEGORY_CONSTANT;
-					impl->token.value = false;
 				}
 				else if (word == "namespace"
 						 || word == "class"
@@ -632,17 +630,11 @@ namespace hz
 						 )
 				{
 					impl->token.type = hz::parser::S_KEYWORD;
-					impl->token.value = word;
-				}
-				else
-				{
-					impl->token.value = word;
 				}
 			}
 			else if (impl->token.type == hz::parser::V_STRING)
 			{
 				impl->token.category = hz::parser::CATEGORY_CONSTANT;
-				impl->token.value = word;
 			}
 			else if (impl->token.type == hz::parser::V_NUMBER)
 			{
@@ -658,13 +650,11 @@ namespace hz
 					 )
 			{
 				impl->token.category = hz::parser::CATEGORY_BINOP;
-				impl->token.value = word;
 			}
 			else if (impl->token.type == hz::parser::MATH_INC
 					 || impl->token.type == hz::parser::MATH_DEC)
 			{
 				impl->token.category = hz::parser::CATEGORY_UNOP;
-				impl->token.value = word;
 			}
 
 			impl->token.line = impl->line;
