@@ -50,12 +50,22 @@ namespace
 
 namespace hz
 {
-	bool Context::readToken(parser::Token& out, bool pop)
+	bool Context::readToken(parser::Token& out, m::u32 index)
 	{
-		if(!m_tokenList->empty())
+		if(index < m_tokenList->size())
 		{
-			out = m_tokenList->back();
-			if(pop)
+			out = (*m_tokenList)[m_tokenList->size() - (index + 1)];
+			return true;
+		}
+		return false;
+
+	}
+
+	bool Context::popToken(m::u32 count)
+	{
+		if(count <= m_tokenList->size())
+		{
+			for(m::u32 i = 0; i < count; ++i)
 			{
 				m_tokenList->pop_back();
 			}
@@ -112,7 +122,7 @@ namespace hz
 		if (token.type == parser::S_SEPARATOR
 			|| token.type == parser::S_EOF)
 		{
-			m_tokenList->pop_back();
+			popToken(1);
 			return true;
 		}
 
@@ -132,7 +142,7 @@ namespace hz
 				case PHASE_NAMESPACE:
 				{
 					impl->phases.pop_back();
-					m_tokenList->pop_back();
+					popToken(1);
 					return true;
 				}
 				default:
@@ -231,7 +241,7 @@ namespace hz
 			//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase left
 			// */
 		}
-		m_tokenList->pop_back();
+		popToken(1);
 		return true;
 	}
 
@@ -250,8 +260,9 @@ namespace hz
 		parser::Token token;
 		bool ok = true;
 
-		m_tokenList->pop_back();
-		ok = readToken(token, true);
+		popToken(1);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(!ok || token.type != parser::V_IDENTIFIER)
 		{
 			tokenError(token, "Expected identifier after 'namespace'!");
@@ -267,7 +278,8 @@ namespace hz
 		impl->phaseNode = namespaceNode;
 
 		// {
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(!ok || token.type != parser::S_LBRACE)
 		{
 			tokenError(token, "Missing '{' after namespace declaration!");
@@ -283,14 +295,15 @@ namespace hz
 		bool ok = true;
 
 		// Extract class keyword
-		m_tokenList->pop_back();
+		popToken(1);
 
 		// Update phase
 		parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS, "#NT_CLASS#");
 		impl->phaseNode->addChild(classNode);
 
 		// Check function identifer (the function name)
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(ok && token.type == parser::V_IDENTIFIER)
 		{
 			classNode->name = token.value.get<m::String>();
@@ -316,11 +329,13 @@ namespace hz
 
 		// Current token is "return type", pop it,
 		// and create required nodes
-		readToken(token, true);
+		readToken(token, 0);
+		popToken(1);
 		funcNode->addChild(MUON_NEW(parser::ASTNode, token));
 
 		// Check function identifer (the function name)
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(ok && token.type == parser::V_IDENTIFIER)
 		{
 			funcNode->name = token.value.get<m::String>();
@@ -332,7 +347,8 @@ namespace hz
 		}
 
 		// (
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(!ok || token.type != parser::S_LPARENT)
 		{
 			tokenError(token, "Missing '(' after function name!");
@@ -358,7 +374,7 @@ namespace hz
 				varName = NULL;
 
 				// read token without poping it
-				ok = readToken(token, false);
+				ok = readToken(token, 0);
 				if(!ok)
 				{
 					tokenError(token, "Expected token for function argument list!");
@@ -373,8 +389,8 @@ namespace hz
 						if(keyword == "ref")
 						{
 							refNode = MUON_NEW(parser::ASTNode, token);
-							m_tokenList->pop_back(); // remove 'ref'
-							ok = readToken(token, false);
+							popToken(1); // remove 'ref'
+							ok = readToken(token, 0);
 							if(!ok)
 							{
 								tokenError(token, "Expected return type after 'ref' keyword!");
@@ -391,9 +407,10 @@ namespace hz
 					if(token.type == parser::V_IDENTIFIER)
 					{
 						retType = MUON_NEW(parser::ASTNode, token);
-						m_tokenList->pop_back(); // remove rettype
+						popToken(1); // remove rettype
 
-						ok = readToken(token, true);
+						ok = readToken(token, 0);
+						popToken(1);
 						if(!ok || token.type != parser::V_IDENTIFIER)
 						{
 							tokenError(token, "Expected variable name for function argument!");
@@ -412,7 +429,7 @@ namespace hz
 						return false;
 					}
 
-					ok = readToken(token, false);
+					ok = readToken(token, 0);
 					if(!ok)
 					{
 						tokenError(token, "Unexpected EOF in function argument list!");
@@ -422,14 +439,15 @@ namespace hz
 					{
 						// Just consume it.
 						// This allow an argument list ending by a ,
-						m_tokenList->pop_back();
+						popToken(1);
 					}
 				}
 			} while (token.type != parser::S_RPARENT);
 		}
 
 		// )
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(!ok || token.type != parser::S_RPARENT)
 		{
 			tokenError(token, "Missing ')' to end function parameter list!");
@@ -437,7 +455,8 @@ namespace hz
 		}
 
 		// {
-		ok = readToken(token, true);
+		ok = readToken(token, 0);
+		popToken(1);
 		if(!ok || token.type != parser::S_LBRACE)
 		{
 			tokenError(token, "Missing '{' after function parameter list!");
