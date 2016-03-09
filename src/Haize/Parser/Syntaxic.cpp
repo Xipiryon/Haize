@@ -5,6 +5,32 @@
 
 namespace
 {
+	m::String unexpectedToken(const hz::parser::Token& token)
+	{
+		char buffer[32];
+		m::String tokstr;
+		m::meta::MetaData* m = token.value.getMeta();
+		if (MUON_META(m::String) == m)
+		{
+			tokstr = token.value.get<m::String>();
+		}
+		else if (MUON_META(m::f32) == m)
+		{
+			m::ftoa(token.value.get<m::f32>(), buffer);
+			tokstr = buffer;
+		}
+		else if (MUON_META(m::i32) == m)
+		{
+			m::itoa((m::i64)token.value.get<m::i32>(), buffer);
+			tokstr = buffer;
+		}
+		else
+		{
+			tokstr = hz::parser::TokenTypeStr[token.type];
+		}
+		return m::String("Unexpected token \"" + tokstr + "\"");
+	}
+
 	enum OpAssociativity
 	{
 		ASSOC_LEFT,
@@ -186,8 +212,7 @@ namespace hz
 				}
 				else
 				{
-					m::String tokstr = (MUON_META(m::String) == token.value.getMeta() ? token.value.get<m::String>() : parser::TokenTypeStr[token.type]);
-					tokenError(token, "Unexpected token \"" + tokstr + "\"");
+					tokenError(token, unexpectedToken(token));
 					return false;
 				}
 				break;
@@ -232,8 +257,7 @@ namespace hz
 
 				if(!ok)
 				{
-					m::String tokstr = (MUON_META(m::String) == token.value.getMeta() ? token.value.get<m::String>() : parser::TokenTypeStr[token.type]);
-					tokenError(token, "Unexpected token \"" + tokstr + "\"");
+					tokenError(token, unexpectedToken(token));
 					return false;
 				}
 
