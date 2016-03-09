@@ -3,11 +3,11 @@
 
 class A
 {
-	construct()
+	constructor()
 	{
 	}
 	
-	destruct()
+	destructor()
 	{
 	}
 

@@ -69,6 +69,7 @@ namespace
 		std::deque<hz::parser::Token> exprTokens;
 		std::deque<hz::parser::ASTNode*> exprNodes;
 		hz::parser::ASTNode* phaseNode;
+		bool funcCstrDstr;
 
 		static const OpAttribute precAttrib[hz::parser::E_TERMINALTOKEN_END];
 	};
@@ -117,6 +118,7 @@ namespace hz
 		impl.phases.push_back(PHASE_ROOT);
 		impl.readIndex = 0;
 		impl.phaseNode = m_nodeRoot;
+		impl.funcCstrDstr = false;
 
 		// Skip empty Token list
 		if (m_tokenList->empty()
@@ -221,10 +223,31 @@ namespace hz
 			{
 				parser::Token retType;
 				parser::Token identifier;
-				ok = readToken(retType, 0); // return type
-				ok &= retType.type == parser::V_IDENTIFIER;
+				ok = readToken(retType, 0); // return type, or constructor/destructor
 				if (ok)
 				{
+					if(retType.type == parser::S_KEYWORD)
+					{
+						m::String keyword = retType.value.get<m::String>();
+						if(keyword == "constructor" || keyword == "destructor")
+						{
+							impl->funcCstrDstr = true;
+							ok = parseFunction(info);
+							impl->funcCstrDstr = false;
+							break;
+						}
+						else
+						{
+							ok = false;
+							break;
+						}
+					}
+					else if(retType.type != parser::V_IDENTIFIER)
+					{
+						ok = false;
+						break;
+					}
+
 					ok = readToken(identifier, 1); // member/function name
 					ok &= identifier.type == parser::V_IDENTIFIER;
 					if (ok)
@@ -407,23 +430,34 @@ namespace hz
 		// Update phase
 		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "#NT_FUNCTION#");
 
-		// Current token is "return type", pop it,
+		// Current token is a return type, "constructor" or "destructor", pop it,
 		// and create required nodes
 		readToken(token, 0);
 		popToken(1);
 		funcNode->addChild(MUON_NEW(parser::ASTNode, token));
 
-		// Check function identifer (the function name)
-		ok = readToken(token, 0);
-		popToken(1);
-		if(ok && token.type == parser::V_IDENTIFIER)
+		// update node info if constructor/destructor
+		// else look for function name
+		if(impl->funcCstrDstr)
 		{
-			funcNode->name = token.value.get<m::String>();
+			m::String keyword = token.value.get<m::String>();
+			funcNode->name = keyword;
+			funcNode->token.type = (keyword == "constructor" ? parser::NT_CLASS_CONSTRUCTOR : parser::NT_CLASS_DESTRUCTOR);
 		}
 		else
 		{
-			tokenError(token, "Expected identifier for function declaration!");
-			return false;
+			// Check function identifer (the function name)
+			ok = readToken(token, 0);
+			popToken(1);
+			if (ok && token.type == parser::V_IDENTIFIER)
+			{
+				funcNode->name = token.value.get<m::String>();
+			}
+			else
+			{
+				tokenError(token, "Expected identifier for function declaration!");
+				return false;
+			}
 		}
 
 		// (

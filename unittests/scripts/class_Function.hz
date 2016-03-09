@@ -3,9 +3,11 @@
 
 class FCstrDstr
 {
-	construct() {}
-	construct(int i) {}
-	destruct() {}
+	constructor() {}
+	constructor(int i) {}
+	constructor(int i, int j) {}
+	constructor(int i, ref int j) {}
+	destructor() {}
 
 	void f() {}
 }

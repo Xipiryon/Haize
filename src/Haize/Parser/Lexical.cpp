@@ -612,6 +612,8 @@ namespace hz
 				}
 				else if (word == "namespace"
 						 || word == "class"
+						 || word == "constructor"
+						 || word == "destructor"
 						 || word == "ref"
 						 // Logic keyword
 						 || word == "if"
