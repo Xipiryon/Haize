@@ -222,10 +222,12 @@ namespace hz
 				parser::Token retType;
 				parser::Token identifier;
 				ok = readToken(retType, 0); // return type
-				if (ok && retType.type == parser::V_IDENTIFIER)
+				ok &= retType.type == parser::V_IDENTIFIER;
+				if (ok)
 				{
 					ok = readToken(identifier, 1); // member/function name
-					if (ok && identifier.type == parser::V_IDENTIFIER)
+					ok &= identifier.type == parser::V_IDENTIFIER;
+					if (ok)
 					{
 						ok = readToken(token, 2);
 						// ( means a function
