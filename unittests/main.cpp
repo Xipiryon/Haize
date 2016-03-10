@@ -121,28 +121,6 @@ int main(int argc, char** argv)
 		vm.destroyContext(module.cStr());
 	}
 
-	// Free code
-	{
-		module = "Free Code";
-		file = "unittests/scripts/freecode.hz";
-
-		hz::Context* context = vm.createContext(module.cStr());
-		HAIZE_TITLE("Checking 'Free Code' script");
-		bool ok;
-
-		ok = context->load(file.cStr());
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-
-		// Explicit failing test
-		ok = context->compile();
-		HAIZE_CHECK(!ok, "[%s] Should have failed because of \"free code\"!");
-
-		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
-		// TODO?
-		vm.destroyContext(module.cStr());
-	}
-
 	// Comments
 	{
 		module = "Comments";
@@ -192,12 +170,52 @@ int main(int argc, char** argv)
 		vm.destroyContext(module.cStr());
 	}
 
-	// Functions
 	struct FileModule
 	{
 		m::String file;
 		m::String module;
-	} scriptTests[] = {
+	};
+	m::i32 scriptIndex = 0;
+
+	// ************************
+	// A bunch of "failing" test (can't handle every cases though)
+	FileModule scriptErrorTests[] = {
+		{"unittests/scripts/error_FreeCode.hz", "Free Code"},
+		{"unittests/scripts/error_FreeCodeClass.hz", "Free Code in Class"},
+		{"unittests/scripts/error_OutsideCstr.hz", "Constructor as function"},
+		{"unittests/scripts/error_AnonNamespace.hz", "Anonymous Namespace"},
+
+		{"",""}
+	};
+
+	scriptIndex = 0;
+	while(scriptErrorTests[scriptIndex].file != "")
+	{
+		module = scriptErrorTests[scriptIndex].module;
+		file = scriptErrorTests[scriptIndex].file;
+
+		hz::Context* context = vm.createContext(module.cStr());
+		HAIZE_TITLE("Checking '" + module + "' script");
+		bool ok;
+
+		ok = context->load(file.cStr());
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+
+		ok = context->compile();
+		infoError = context->getLastError();
+		HAIZE_CHECK(!ok, "[%s] In section \"%s\": file should not have compiled successfully!", stepStr[infoError.step], infoError.section.cStr());
+
+		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
+		// TODO?
+
+		++scriptIndex;
+		vm.destroyContext(module.cStr());
+	}
+
+	// ************************
+	// Test that should work :)
+	FileModule scriptSuccessTests[] = {
 		{"unittests/scripts/functions_noArg_noRet.hz", "Function: No Arguments, No Return"},
 		{"unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return"},
 		{"unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return"},
@@ -217,12 +235,12 @@ int main(int argc, char** argv)
 
 		{"",""}
 	};
-	m::i32 scriptIndex = 0;
 
-	while(scriptTests[scriptIndex].file != "")
+	scriptIndex = 0;
+	while(scriptSuccessTests[scriptIndex].file != "")
 	{
-		module = scriptTests[scriptIndex].module;
-		file = scriptTests[scriptIndex].file;
+		module = scriptSuccessTests[scriptIndex].module;
+		file = scriptSuccessTests[scriptIndex].file;
 
 		hz::Context* context = vm.createContext(module.cStr());
 		HAIZE_TITLE("Checking '" + module + "' script");
