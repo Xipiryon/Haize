@@ -317,30 +317,6 @@ namespace hz
 		return true;
 	}
 
-	bool Context::parseExpression(parser::InfoImpl* info)
-	{
-		InfoSyntaxic* impl = (InfoSyntaxic*)info;
-		parser::Token token = m_tokenList->back();
-		if (token.category == parser::CATEGORY_BINOP)
-		{
-			// If we've less than 2 variable on the left, there is a problem
-			if (m_tokenList->size() < 2)
-			{
-				tokenError(token, "Operator \"" + token.value.get<m::String>() + "\" has not enough operand!");
-				return false;
-			}
-			// old code
-			//node = INFO_IMPL->stackValue[i];
-			//node->addChild(INFO_IMPL->stackValue[i - 2]);
-			//node->addChild(INFO_IMPL->stackValue[i - 1]);
-			//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase right
-			//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase left
-			// */
-		}
-		popToken(1);
-		return true;
-	}
-
 	bool Context::parseGlobal(parser::InfoImpl* info)
 	{
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
@@ -589,6 +565,86 @@ namespace hz
 		impl->phaseNode->addChild(funcNode);
 		impl->phaseNode = funcNode;
 		impl->phases.push_back(PHASE_FUNCTION);
+		return true;
+	}
+
+	bool Context::parseExpression(parser::InfoImpl* info)
+	{
+		InfoSyntaxic* impl = (InfoSyntaxic*)info;
+		parser::Token token;
+		bool ok = true;
+		bool parseExpr = true;
+
+		m::u32 openParenthesis = 0;
+		m::u32 openBraces = 0;
+		m::u32 openBrackets = 0;
+
+		ok = readToken(token, 0);
+		popToken(1);
+
+		// Allowed tokens are identifier, unary and binary operator, or keyword (control flow)
+		while(ok && parseExpr)
+		{
+			ok = readToken(token, 0);
+			// don't even parse if token are missing
+			if (!ok)
+			{
+				continue;
+			}
+
+			// Create the AST
+			if (token.type == parser::S_KEYWORD)
+			{
+			}
+			else if (token.type >= parser::E_VALUE_BEGIN
+					 && token.type <= parser::E_VALUE_END)
+			{
+			}
+			// Closing instructions
+			else if(token.type == parser::S_SEPARATOR)
+			{
+			}
+			// Closing braces
+			else if(token.type == parser::S_RBRACE)
+			{
+				if(openBraces == 0)
+				{
+					parseExpr = false;
+					continue;
+				}
+				--openBraces;
+			}
+			// Other unexpected tokens
+			else
+			{
+				ok = false;
+				continue;
+			}
+			popToken(1);
+		}
+		/*
+		if (token.category == parser::CATEGORY_BINOP)
+		{
+		// If we've less than 2 variable on the left, there is a problem
+		if (m_tokenList->size() < 2)
+		{
+		tokenError(token, "Operator \"" + token.value.get<m::String>() + "\" has not enough operand!");
+		return false;
+		}
+		// old code
+		//node = INFO_IMPL->stackValue[i];
+		//node->addChild(INFO_IMPL->stackValue[i - 2]);
+		//node->addChild(INFO_IMPL->stackValue[i - 1]);
+		//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase right
+		//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase left
+		}
+		// */
+		if(!ok)
+		{
+			tokenError(token, unexpectedToken(token));
+			return false;
+		}
+
 		return true;
 	}
 }

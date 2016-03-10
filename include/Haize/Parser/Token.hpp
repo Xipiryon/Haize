@@ -29,12 +29,14 @@ namespace hz
 			S_LBRACE,		//!< '{'
 			S_RBRACE,		//!< '}'
 
-			V_NUMBER,		//!< A number (in either dec, oct, bin or hex format)
+			E_VALUE_BEGIN,
 			V_IDENTIFIER,	//!< An alphanumeric identifier
+			V_NUMBER,		//!< A number (in either dec, oct, bin or hex format)
 			V_STRING,		//!< A string contained between two '"' character
 			V_NIL,			//!<
 			V_TRUE,			//!<
 			V_FALSE,		//!<
+			E_VALUE_END,
 
 			E_LOGIC_OP_BEGIN,
 			LOGIC_EQ,		//!< '=='
@@ -127,12 +129,14 @@ namespace hz
 			"S_LBRACE",
 			"S_RBRACE",
 
-			"V_NUMBER",
+			"E_VALUE_BEGIN",
 			"V_IDENTIFIER",
+			"V_NUMBER",
 			"V_STRING",
 			"V_NIL",
 			"V_TRUE",
 			"V_FALSE",
+			"E_VALUE_END",
 
 			"",
 			"LOGIC_EQU",
