@@ -370,7 +370,7 @@ namespace hz
 		popToken(1);
 
 		// Update phase
-		parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS, "#NT_CLASS#");
+		parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_DECL);
 
 		// Check function identifer (the function name)
 		ok = readToken(token, 0);
@@ -404,7 +404,7 @@ namespace hz
 		bool ok;
 
 		// Update phase
-		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION, "#NT_FUNCTION#");
+		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_DECL);
 
 		// Current token is a return type, "constructor" or "destructor", pop it,
 		// and create required nodes
@@ -451,7 +451,7 @@ namespace hz
 		// Just check we have at least something, else directly jump to ')'
 		{
 			//In any cases, push a NT_FUNCTION_ARGS node
-			parser::ASTNode* args = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_ARGS, "NT_FUNCTION_ARGS");
+			parser::ASTNode* args = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_ARGS);
 			funcNode->addChild(args);
 
 			parser::ASTNode* refNode;
@@ -582,7 +582,7 @@ namespace hz
 		ok = readToken(token, 0);
 		popToken(1);
 
-		parser::ASTNode* exprRootNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR, "NT_EXPR");
+		parser::ASTNode* exprRootNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR);
 		impl->phaseNode->addChild(exprRootNode);
 		impl->phases->push_back(PHASE_EXPRESSION);
 		impl->phaseNode = exprRootNode;
