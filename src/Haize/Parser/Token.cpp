@@ -8,15 +8,6 @@ namespace hz
 	{
 		Token::Token()
 			: type(S_INVALID)
-			, category(S_INVALID)
-			, line(0)
-			, column(0)
-		{
-		}
-
-		Token::Token(eTokenType type)
-			: type(type)
-			, category(S_INVALID)
 			, line(0)
 			, column(0)
 		{
@@ -31,17 +22,19 @@ namespace hz
 		{
 		}
 
+		/*
 		Token& Token::operator=(const Token& token)
 		{
 			if (this != &token)
 			{
 				type = token.type;
-				category = token.category;
+
 				line = token.line;
 				column = token.column;
 				value = token.value;
 			}
 			return *this;
 		}
+		//*/
 	}
 }

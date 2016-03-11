@@ -10,18 +10,25 @@ namespace hz
 	{
 		ASTNode::ASTNode()
 			: name("#ANONYMOUS#")
-			, token(S_INVALID)
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
 
-		ASTNode::ASTNode(eTokenType type_, const m::String& name_)
-			: name(name_)
-			, token(type_)
+		ASTNode::ASTNode(eTokenType type_)
+			: name(TokenTypeStr[type_])
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
+			token.type = type_;
+		}
+
+		ASTNode::ASTNode(eTokenType type_, const m::String& name_)
+			: name(name_)
+			, children(MUON_NEW(std::deque<ASTNode*>))
+			, parent(NULL)
+		{
+			token.type = type_;
 		}
 
 		ASTNode::ASTNode(const Token& token_)
@@ -39,6 +46,11 @@ namespace hz
 				delete *it;
 			}
 			delete children;
+		}
+
+		ASTNode* ASTNode::addChild(eTokenType type)
+		{
+			return addChild(type, TokenTypeStr[type]);
 		}
 
 		ASTNode* ASTNode::addChild(eTokenType type, const m::String& name)

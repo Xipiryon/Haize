@@ -105,6 +105,8 @@ namespace hz
 			NT_EXPR_IF,
 			NT_EXPR_FOR,
 			NT_EXPR_WHILE,
+			NT_EXPR_RETURN,
+			NT_EXPR_BREAK,
 
 			TOTAL_COUNT		//!< '' Total Count of every stored TokenType,
 		};
@@ -203,6 +205,8 @@ namespace hz
 			"NT_EXPR_IF",
 			"NT_EXPR_FOR",
 			"NT_EXPR_WHILE",
+			"NT_EXPR_RETURN",
+			"NT_EXPR_BREAK",
 		};
 
 		/*!
@@ -212,14 +216,12 @@ namespace hz
 		{
 			Token();
 			Token(const Token&);
-			explicit Token(eTokenType);
 			~Token();
-			Token& operator=(const Token&);
 
 			eTokenType type;
-			eTokenType category;
 			m::Variant value;
 
+			m::String section;
 			m::u32 line;
 			m::u32 column;
 		};
