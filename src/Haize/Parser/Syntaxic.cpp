@@ -582,6 +582,11 @@ namespace hz
 		ok = readToken(token, 0);
 		popToken(1);
 
+		parser::ASTNode* exprRootNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR, "NT_EXPR");
+		impl->phaseNode->addChild(exprRootNode);
+		impl->phases->push_back(PHASE_EXPRESSION);
+		impl->phaseNode = exprRootNode;
+
 		// Allowed tokens are identifier, unary and binary operator, or keyword (control flow)
 		while(ok && parseExpr)
 		{
@@ -595,6 +600,14 @@ namespace hz
 			// Create the AST
 			if (token.type == parser::S_KEYWORD)
 			{
+				m::String keyword = token.value.get<m::String>();
+				if(keyword == "return")
+				{
+
+				}
+				else
+				{
+				}
 			}
 			else if (token.type >= parser::E_VALUE_BEGIN
 					 && token.type <= parser::E_VALUE_END)
