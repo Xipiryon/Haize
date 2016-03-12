@@ -26,7 +26,7 @@ namespace hz
 	/*!
 	*
 	*/
-	struct HAIZE_API InfoError
+	struct HAIZE_API Error
 	{
 		enum eStep
 		{
@@ -41,8 +41,6 @@ namespace hz
 		m::String function;
 		m::u32 line;
 		m::u32 column;
-
-		bool _cleared;
 	};
 
 	/*!
@@ -81,7 +79,7 @@ namespace hz
 		* this function will return a hz::InfoError struct containing details.
 		* @note The struct will be reset on any succesful function call
 		*/
-		InfoError getLastError() const;
+		Error getLastError() const;
 
 		/*!
 		* @brief Load a file located at path
@@ -132,7 +130,7 @@ namespace hz
 
 	private:
 		m::String m_name;
-		InfoError m_error;
+		Error m_error;
 
 		// PARSER & COMPILATION
 		// ****************************

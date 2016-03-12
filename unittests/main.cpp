@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	clockTest.start();
 
 	hz::Engine& vm = hz::Engine::createInstance();
-	hz::InfoError infoError;
+	hz::Error infoError;
 	m::String file;
 	m::String module;
 

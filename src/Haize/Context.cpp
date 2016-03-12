@@ -39,7 +39,7 @@ namespace hz
 		return m_name.cStr();
 	}
 
-	InfoError Context::getLastError() const
+	Error Context::getLastError() const
 	{
 		return m_error;
 	}
@@ -51,7 +51,6 @@ namespace hz
 		m_error.function.clear();
 		m_error.line = 0;
 		m_error.column = 0;
-		m_error._cleared = cleared;
 	}
 
 	void Context::tokenError(const parser::Token& token, const m::String& err)
@@ -68,7 +67,7 @@ namespace hz
 
 	bool Context::load(const m::String& filename)
 	{
-		m_error.step = InfoError::LOADING;
+		m_error.step = Error::LOADING;
 		std::ifstream file(filename.cStr());
 		if (!file)
 		{
@@ -100,11 +99,6 @@ namespace hz
 
 	bool Context::compile()
 	{
-		if (!m_error._cleared)
-		{
-			return false;
-		}
-
 		m_tokenList = MUON_NEW(std::vector<parser::Token>);
 		m_nodeRoot = MUON_NEW(parser::ASTNode);
 
@@ -116,7 +110,7 @@ namespace hz
 			MUON_DELETE(m_nodeRoot);
 		};
 
-		m_error.step = InfoError::COMPILATION;
+		m_error.step = Error::COMPILATION;
 		if (!parseLexical())
 		{
 			clearVariable();
@@ -147,23 +141,13 @@ namespace hz
 
 	bool Context::prepare(const m::String& func)
 	{
-		if (!m_error._cleared)
-		{
-			return false;
-		}
-
-		m_error.step = InfoError::PREPARATION;
+		m_error.step = Error::PREPARATION;
 		return false;
 	}
 
 	bool Context::execute()
 	{
-		if (!m_error._cleared)
-		{
-			return false;
-		}
-
-		m_error.step = InfoError::EXECUTION;
+		m_error.step = Error::EXECUTION;
 		/*
 		auto it = m_byteCodeModules->find(module);
 		if(it != m_byteCodeModules->end())
@@ -180,7 +164,7 @@ namespace hz
 
 	bool Context::eval(const char* code, bool storeCode /* = false*/)
 	{
-		m_error.step = InfoError::COMPILATION;
+		m_error.step = Error::COMPILATION;
 		/*
 		m::system::Log log("VM", m::LOG_DEBUG);
 		m::Variant nil;
@@ -246,7 +230,7 @@ namespace hz
 
 	bool Context::run(const ByteCode* buffer)
 	{
-		m_error.step = InfoError::EXECUTION;
+		m_error.step = Error::EXECUTION;
 		/*
 		m::system::Log log("VM");
 		#ifdef MUON_DEBUG
