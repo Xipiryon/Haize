@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <sstream>
 #include <Muon/System/Log.hpp>
@@ -113,7 +112,6 @@ namespace
 
 namespace hz
 {
-
 	bool Context::parseLexical()
 	{
 		InfoLexical impl;
@@ -520,28 +518,6 @@ namespace hz
 					word.clear();
 					word += c;
 					pushToken(&impl, word);
-				}
-			}
-
-			// *** RESOLUTION OPERATOR ***
-			// **************
-			else if (c == ':')
-			{
-				char nc = peek(impl);
-				if (matchCombinedChar(c, nc, ':', ':'))
-				{
-					pushToken(&impl, word);
-					word = "::";
-					impl.token.type = parser::S_RESOLUTION;
-					pushToken(&impl, word);
-				}
-				else
-				{
-					clearError(false);
-					m_error.line = impl.line;
-					m_error.column = impl.column;
-					m_error.message = "Ill-formed resolution operator: do you mean '::' ?";
-					return false;
 				}
 			}
 

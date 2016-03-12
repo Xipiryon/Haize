@@ -19,8 +19,7 @@ namespace hz
 
 			S_COMMA,		//!< ','
 			S_ACCESSOR,		//!< '.'
-			S_RESOLUTION,	//!< '::'
-			S_SEPARATOR,	//!< New line, or ';'
+			S_SEPARATOR,	//!< ';'
 			S_KEYWORD,		//!<
 			S_LPARENT,		//!< '('
 			S_RPARENT,		//!< ')'
@@ -60,7 +59,7 @@ namespace hz
 			E_BITWISE_OP_END,
 
 			UNARY_PLUS,		//!< '+' before an expression (is optional: +5 <=> 5)
-			UNARY_MINUS,	//!< '-' before an expression (-5 is not parsed as 0-5)
+			UNARY_MINUS,	//!< '-' before an expression (so -5 is not parsed as 0-5)
 
 			E_MATH_OP_BEGIN,
 			MATH_ADD,		//!< '+'
@@ -86,10 +85,6 @@ namespace hz
 			E_ASN_OP_END,
 
 			E_TERMINALTOKEN_END,
-
-			CATEGORY_BINOP,
-			CATEGORY_UNOP,
-			CATEGORY_CONSTANT,
 
 			NT_ROOT,
 			NT_FUNCTION_DECL,
@@ -123,7 +118,6 @@ namespace hz
 
 			"S_COMMA",
 			"S_ACCESSOR",
-			"S_RESOLUTION",
 			"S_SEPARATOR",
 			"S_KEYWORD",
 			"S_LPARENT",
@@ -191,10 +185,6 @@ namespace hz
 
 			"",
 
-			"CATEGORY_BINOP",
-			"CATEGORY_UNOP",
-			"CATEGORY_CONSTANT",
-
 			"NT_ROOT",
 			"NT_FUNCTION_DECL",
 			"NT_FUNCTION_ARGS",
@@ -220,9 +210,12 @@ namespace hz
 		*/
 		struct HAIZE_API Token
 		{
-			Token();
-			Token(const Token&);
-			~Token();
+			Token()
+				: type(S_INVALID)
+				, line(0)
+				, column(0)
+			{
+			}
 
 			eTokenType type;
 			m::Variant value;
