@@ -23,3 +23,8 @@ class B
 	{
 	}
 }
+
+void main()
+{
+	new B c;
+}

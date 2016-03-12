@@ -1,3 +1,0 @@
-
-// Can't have "free code", so this shouldn't compile
-int a = false;

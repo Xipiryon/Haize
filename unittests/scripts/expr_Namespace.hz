@@ -1,0 +1,20 @@
+
+// Namespace
+namespace foo {}
+
+// Nested namespace
+namespace foo 
+{ 
+	namespace bar 
+	{
+		void hello()
+		{
+			print("hello");
+		}
+	} 
+}
+
+void main()
+{
+	foo.bar.hello();
+}

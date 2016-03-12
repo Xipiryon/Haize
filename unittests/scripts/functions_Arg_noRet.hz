@@ -34,3 +34,17 @@ void ArgsRef_noRet(ref int a, ref int b)
 void ArgCopyRef_noRet(int a, ref int b)
 {
 }
+
+void main()
+{
+	new int a = 42;
+	new int b = 64;
+
+	Arg_noRet(a);
+	Args_noRet(a, b);
+	Args_noRet(a, 64);
+	ArgsComma_noRet(a, b, c);
+	ArgRef_noRet(a);
+	ArgsRef_noRet(a, b);
+	ArgCopyRef_noRet(64, a);
+}

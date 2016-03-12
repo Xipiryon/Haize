@@ -5,3 +5,8 @@ class MyClass
 	int i;
 	float j;
 }
+
+void main()
+{
+	new MyClass c;
+}

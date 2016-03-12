@@ -121,97 +121,12 @@ int main(int argc, char** argv)
 		vm.destroyContext(module.cStr());
 	}
 
-	// Comments
-	{
-		module = "Comments";
-		file = "unittests/scripts/comments.hz";
-
-		hz::Context* context = vm.createContext(module.cStr());
-		HAIZE_TITLE("Checking 'Comments' script");
-		bool ok;
-
-		ok = context->load(file.cStr());
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-
-		ok = context->compile();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		vm.destroyContext(module.cStr());
-	}
-
-	// Multiple Load
-	{
-		module = "MultipleLoad";
-		const char* file_A = "unittests/scripts/multipleLoad_A.hz";
-		const char* file_B = "unittests/scripts/multipleLoad_B.hz";
-
-		hz::Context* context = vm.createContext(module.cStr());
-		HAIZE_TITLE("Checking 'Multiple Load' script");
-		bool ok;
-
-		ok = context->load(file_A);
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_A, infoError.line, infoError.column, infoError.message.cStr());
-		ok = context->load(file_B);
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_B, infoError.line, infoError.column, infoError.message.cStr());
-
-		ok = context->compile();
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-
-		//TODO:
-		//Preparation
-
-		//TODO:
-		//ok = context->execute();
-		//infoError = context->getLastError();
-		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		vm.destroyContext(module.cStr());
-	}
-
 	struct FileModule
 	{
 		m::String file;
 		m::String module;
 	};
 	m::i32 scriptIndex = 0;
-
-	// ************************
-	// A bunch of "failing" test (can't handle every cases though)
-	FileModule scriptErrorTests[] = {
-		{"unittests/scripts/error_FreeCode.hz", "Free Code"},
-		{"unittests/scripts/error_FreeCodeClass.hz", "Free Code in Class"},
-		{"unittests/scripts/error_OutsideCstr.hz", "Constructor as function"},
-		{"unittests/scripts/error_AnonNamespace.hz", "Anonymous Namespace"},
-
-		{"",""}
-	};
-
-	scriptIndex = 0;
-	while(scriptErrorTests[scriptIndex].file != "")
-	{
-		module = scriptErrorTests[scriptIndex].module;
-		file = scriptErrorTests[scriptIndex].file;
-
-		hz::Context* context = vm.createContext(module.cStr());
-		HAIZE_TITLE("Checking '" + module + "' script");
-		bool ok;
-
-		ok = context->load(file.cStr());
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-
-		ok = context->compile();
-		infoError = context->getLastError();
-		HAIZE_CHECK(!ok, "[%s] In section \"%s\": file should not have compiled successfully!", stepStr[infoError.step], infoError.section.cStr());
-
-		// As compilation should have failed, don't even try to execute it, as it is not loaded inside Context
-		// TODO?
-
-		++scriptIndex;
-		vm.destroyContext(module.cStr());
-	}
 
 	// ************************
 	// Test that should work :)
@@ -221,7 +136,10 @@ int main(int argc, char** argv)
 		{"unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return"},
 		{"unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return"},
 
-		{"unittests/scripts/namespace.hz", "Namespaces"},
+		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
+		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
+		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
+		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
 
 		{"unittests/scripts/class_Empty.hz", "Empty Class"},
 		{"unittests/scripts/class_Member.hz", "Class with Member"},
@@ -236,8 +154,7 @@ int main(int argc, char** argv)
 		{"",""}
 	};
 
-	scriptIndex = 0;
-	while(scriptSuccessTests[scriptIndex].file != "")
+	for (scriptIndex = 0; scriptSuccessTests[scriptIndex].file != ""; ++scriptIndex)
 	{
 		module = scriptSuccessTests[scriptIndex].module;
 		file = scriptSuccessTests[scriptIndex].file;
@@ -249,21 +166,87 @@ int main(int argc, char** argv)
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
 		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if(!ok) continue;
 
 		ok = context->compile();
 		infoError = context->getLastError();
 		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if(!ok) continue;
 
 		//TODO:
 		//Preparation
+		if(!ok) continue;
 
 		//TODO:
 		//ok = context->execute();
 		//infoError = context->getLastError();
 		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		++scriptIndex;
+
 		vm.destroyContext(module.cStr());
 	}
+
+	// ************************
+	// Multiple Pass
+	{
+		module = "Multiple Pass";
+		const char* file_A = "unittests/scripts/multiple_LoadA.hz";
+		const char* file_B = "unittests/scripts/multiple_LoadB.hz";
+
+		hz::Context* context = vm.createContext(module.cStr());
+		HAIZE_TITLE("Checking 'Multiple Load' script");
+		bool ok;
+
+		ok = context->load(file_A);
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_A, infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) goto skipMultiplePass;
+
+		ok = context->load(file_B);
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_B, infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) goto skipMultiplePass;
+
+		ok = context->compile();
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) goto skipMultiplePass;
+
+		//TODO:
+		//Preparation
+		if (!ok) goto skipMultiplePass;
+
+		//TODO:
+		//ok = context->execute();
+		//infoError = context->getLastError();
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+
+		// Post compile
+		HAIZE_TITLE("Checking 'Post Compile' script");
+		const char* postCompile = "mutiple_PostCompile.hz";
+
+		ok = context->load(postCompile);
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), postCompile, infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) goto skipMultiplePass;
+
+		ok = context->compile();
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) goto skipMultiplePass;
+
+		//TODO:
+		//Prepare again
+		if (!ok) goto skipMultiplePass;
+
+		//TODO:
+		//ok = context->execute();
+		//infoError = context->getLastError();
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+
+		// Finaly clear everything
+		vm.destroyContext(module.cStr());
+	}
+skipMultiplePass:
 
 	// END UNIT TEST
 	// ***************

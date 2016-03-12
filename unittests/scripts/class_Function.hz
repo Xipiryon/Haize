@@ -3,11 +3,21 @@
 
 class FCstrDstr
 {
-	constructor() {}
-	constructor(int i) {}
-	constructor(int i, int j) {}
-	constructor(int i, ref int j) {}
-	destructor() {}
+	constructor() { print("FCstrDstr()"); }
+	constructor(int i) { print("FCstrDstr(int)"); }
+	constructor(int i, int j) { print("FCstrDstr(int, int)"); }
+	constructor(int i, ref int j) { print("FCstrDstr(int, ref int)"); }
+	destructor() { print("destructor()"); }
 
 	void f() {}
+}
+
+void main()
+{
+	new int i;
+
+	new MyClass a0;
+	new MyClass a1(0);
+	new MyClass a2(0, 0); // int,int
+	new MyClass a3(0, i); // int,ref int
 }
