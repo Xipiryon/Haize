@@ -160,7 +160,6 @@ namespace hz
 		bool readToken(parser::Token&, m::u32);
 		bool popToken(m::u32);
 
-		bool parseChunk(parser::InfoImpl*);
 		bool parseExpression(parser::InfoImpl*);
 		bool parseGlobal(parser::InfoImpl*);
 		bool parseNamespace(parser::InfoImpl*);

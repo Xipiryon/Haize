@@ -129,191 +129,175 @@ namespace hz
 
 		while(!m_tokenList->empty())
 		{
-			if(!parseChunk(&impl))
+			bool ok = true;
+			parser::Token token = m_tokenList->back();
+			ParserPhase phase = impl.phases.back();
+
+			// Pop token that have no real value
+			if (token.type == parser::S_SEPARATOR
+				|| token.type == parser::S_EOF)
 			{
-				return false;
-			}
-		}
-
-		clearError(true);
-		return true;
-	}
-
-	bool Context::parseChunk(parser::InfoImpl* info)
-	{
-		bool ok = true;
-		InfoSyntaxic* impl = (InfoSyntaxic*)info;
-		parser::Token token = m_tokenList->back();
-		ParserPhase phase = impl->phases.back();
-
-		// Pop token that have no real value
-		if (token.type == parser::S_SEPARATOR
-			|| token.type == parser::S_EOF)
-		{
-			popToken(1);
-			return true;
-		}
-
-		// It may be a closing from a previous parse, check it here
-		if (token.type == parser::S_RBRACE)
-		{
-			if (impl->phases.empty())
-			{
-				tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
-				return false;
+				popToken(1);
+				return true;
 			}
 
-			switch (phase)
+			// It may be a closing from a previous parse, check it here
+			if (token.type == parser::S_RBRACE)
 			{
-				case PHASE_CLASS:
-				case PHASE_FUNCTION:
-				case PHASE_NAMESPACE:
-				{
-					impl->phases.pop_back();
-					popToken(1);
-					return true;
-				}
-				default:
+				if (impl.phases.empty())
 				{
 					tokenError(token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
 					return false;
 				}
-			}
-		}
 
-		// Check phase to call the correct parse phase
-		switch(phase)
-		{
-			case PHASE_ROOT:
-			{
-				if (token.type == parser::S_KEYWORD)
-				{
-					m::String keyword = token.value.get<m::String>();
-					if (keyword == "class")
-					{
-						ok = parseClass(info);
-					}
-					else if (keyword == "namespace")
-					{
-						ok = parseNamespace(info);
-					}
-					else if (keyword == "global")
-					{
-						ok = parseGlobal(info);
-					}
-					else
-					{
-						tokenError(token, "Unexpected keyword \"" + keyword + "\"");
-						return false;
-					}
-				}
-				// Else if identifier, it can only be a function
-				else if (token.type == parser::V_IDENTIFIER)
-				{
-					ok = parseFunction(info);
-				}
-				else
-				{
-					tokenError(token, unexpectedToken(token));
-					return false;
-				}
-				break;
+				impl.phases.pop_back();
+				popToken(1);
+				return true;
 			}
-			case PHASE_CLASS:
+
+			// Check phase to call the correct parse phase
+			switch (phase)
 			{
-				parser::Token retType;
-				parser::Token identifier;
-				ok = readToken(retType, 0); // return type, or constructor/destructor
-				if (ok)
+				case PHASE_ROOT:
 				{
-					if(retType.type == parser::S_KEYWORD)
+					if (token.type == parser::S_KEYWORD)
 					{
-						m::String keyword = retType.value.get<m::String>();
-						if(keyword == "constructor" || keyword == "destructor")
+						m::String keyword = token.value.get<m::String>();
+						if (keyword == "class")
 						{
-							impl->funcCstrDstr = true;
-							ok = parseFunction(info);
-							impl->funcCstrDstr = false;
-							break;
+							ok = parseClass(&impl);
+						}
+						else if (keyword == "namespace")
+						{
+							ok = parseNamespace(&impl);
+						}
+						else if (keyword == "global")
+						{
+							ok = parseGlobal(&impl);
 						}
 						else
 						{
-							ok = false;
-							break;
+							tokenError(token, "Unexpected keyword \"" + keyword + "\"");
+							return false;
 						}
 					}
-					else if(retType.type != parser::V_IDENTIFIER)
+					// Else if identifier, it can only be a function
+					else if (token.type == parser::V_IDENTIFIER)
 					{
-						ok = false;
-						break;
+						ok = parseFunction(&impl);
 					}
-
-					ok = readToken(identifier, 1); // member/function name
-					ok &= identifier.type == parser::V_IDENTIFIER;
+					else
+					{
+						tokenError(token, unexpectedToken(token));
+						return false;
+					}
+					break;
+				}
+				case PHASE_CLASS:
+				{
+					parser::Token retType;
+					parser::Token identifier;
+					ok = readToken(retType, 0); // return type, or constructor/destructor
 					if (ok)
 					{
-						ok = readToken(token, 2);
-						// ( means a function
-						// ; means an attribute
-						// else, error
-						switch(token.type)
+						if (retType.type == parser::S_KEYWORD)
 						{
-							case parser::S_LPARENT:
+							m::String keyword = retType.value.get<m::String>();
+							if (keyword == "constructor" || keyword == "destructor")
 							{
-								ok = parseFunction(info);
+								impl.funcCstrDstr = true;
+								ok = parseFunction(&impl);
+								impl.funcCstrDstr = false;
 								break;
 							}
-							case parser::S_SEPARATOR:
-							{
-								parser::ASTNode* attribNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_MEMBER, identifier.value.get<m::String>());
-								attribNode->addChild(MUON_NEW(parser::ASTNode, retType));
-								impl->phaseNode->addChild(attribNode);
-								popToken(3); // retType identifier separator
-								break;
-							}
-							default:
+							else
 							{
 								ok = false;
 								break;
 							}
 						}
+						else if (retType.type != parser::V_IDENTIFIER)
+						{
+							ok = false;
+							break;
+						}
+
+						ok = readToken(identifier, 1); // member/function name
+						ok &= identifier.type == parser::V_IDENTIFIER;
+						if (ok)
+						{
+							ok = readToken(token, 2);
+							// ( means a function
+							// ; means an attribute
+							// else, error
+							switch (token.type)
+							{
+								case parser::S_LPARENT:
+								{
+									ok = parseFunction(&impl);
+									break;
+								}
+								case parser::S_SEPARATOR:
+								{
+									parser::ASTNode* attribNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_MEMBER, identifier.value.get<m::String>());
+									attribNode->addChild(MUON_NEW(parser::ASTNode, retType));
+									impl.phaseNode->addChild(attribNode);
+									popToken(3); // retType identifier separator
+									break;
+								}
+								default:
+								{
+									ok = false;
+									break;
+								}
+							}
+						}
 					}
-				}
 
-				if(!ok)
+					if (!ok)
+					{
+						tokenError(token, unexpectedToken(token));
+						return false;
+					}
+
+					break;
+				}
+				case PHASE_FUNCTION:
 				{
-					tokenError(token, unexpectedToken(token));
-					return false;
+					ok = parseExpression(&impl);
+					break;
 				}
-
-				break;
+				case PHASE_NAMESPACE:
+				{
+					if (token.type == parser::S_KEYWORD)
+					{
+						m::String keyword = token.value.get<m::String>();
+						if (keyword == "namespace")
+						{
+							ok = parseNamespace(&impl);
+						}
+						else if (keyword == "class")
+						{
+							ok = parseClass(&impl);
+						}
+					}
+					else
+					{
+						ok = parseFunction(&impl);
+					}
+					break;
+				}
 			}
-			case PHASE_FUNCTION:
+
+			if (!ok)
 			{
-				ok = parseExpression(info);
-				break;
+				// Error have been set in sub syntaxic parseN functions
+				return false;
 			}
-			case PHASE_NAMESPACE:
-			{
-				if (token.type == parser::S_KEYWORD
-					&& token.value.get<m::String>() == "namespace")
-				{
-					ok = parseNamespace(info);
-				}
-				else
-				{
-					ok = parseChunk(info);
-				}
-				break;
-			}
-		}
 
-		if (!ok)
-		{
-			// Error have been set in sub syntaxic parseN functions
-			return false;
+			return true;
 		}
-
+		clearError(true);
 		return true;
 	}
 
@@ -579,12 +563,9 @@ namespace hz
 		m::u32 openBraces = 0;
 		m::u32 openBrackets = 0;
 
-		ok = readToken(token, 0);
-		popToken(1);
-
 		parser::ASTNode* exprRootNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR);
 		impl->phaseNode->addChild(exprRootNode);
-		impl->phases->push_back(PHASE_EXPRESSION);
+		impl->phases.push_back(PHASE_EXPRESSION);
 		impl->phaseNode = exprRootNode;
 
 		// Allowed tokens are identifier, unary and binary operator, or keyword (control flow)
@@ -603,19 +584,40 @@ namespace hz
 				m::String keyword = token.value.get<m::String>();
 				if(keyword == "return")
 				{
-
+					parser::ASTNode* retNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR_RETURN);
+					retNode->token = token;
+					impl->phaseNode->addChild(retNode);
+					impl->phaseNode = retNode;
+				}
+				else if(keyword == "new")
+				{
+				}
+				else if(keyword == "delete")
+				{
 				}
 				else
 				{
+					ok = false;
+					continue;
 				}
 			}
 			else if (token.type >= parser::E_VALUE_BEGIN
 					 && token.type <= parser::E_VALUE_END)
 			{
+				if (token.type == parser::V_IDENTIFIER)
+				{
+				}
+				else
+				{
+					parser::ASTNode* node = MUON_NEW(parser::ASTNode, token);
+					impl->phaseNode->addChild(node);
+				}
 			}
 			// Closing instructions
 			else if(token.type == parser::S_SEPARATOR)
 			{
+				// Return to parent node
+				impl->phaseNode = impl->phaseNode->parent;
 			}
 			// Closing braces
 			else if(token.type == parser::S_RBRACE)
@@ -633,6 +635,7 @@ namespace hz
 				ok = false;
 				continue;
 			}
+
 			popToken(1);
 		}
 		/*
