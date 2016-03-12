@@ -1,4 +1,3 @@
-
 #ifndef INCLUDE_HAIZE_CONTEXT_INCLUDED
 #define INCLUDE_HAIZE_CONTEXT_INCLUDED
 
@@ -52,16 +51,16 @@ namespace hz
 	* The whole process follow the given order
 	* 1. Loading files
 	*	-# There is no "include" in the language
-	*	-# If 'A.hz' requires 'B.hz', you will have to load both (order doesn't matter)
+	*	-# If 'A.hz' requires 'B.hz', you will have to load both
 	* 2. Compilation
 	*	-# When every files are loaded, compilation will translates text code
 	*		into intermediate representation
-	*	-# If 'A.hz' requires 'B.hz', but 'B.hz' is not (at least) loaded, compiling 'A.hz' will fail
+	*	-# If 'A.hz' requires 'B.hz', but 'B.hz' is not loaded, compiling 'A.hz' will fail
 	* 3. Preparation
-	*	-# Push variables / functions on the stack
-	*	-# Indicate the entry point of the Context
+	*	-# Set the variable you're going to call
+	*	-# Push variables in the Context
 	* 4. Execution
-	*	-# Start executing intermediate code
+	*	-# Start executing intermediate code for the prepared function
 	*/
 	class HAIZE_API Context
 	{
@@ -83,12 +82,6 @@ namespace hz
 		* @note The struct will be reset on any succesful function call
 		*/
 		InfoError getLastError() const;
-
-		/*!
-		* @brief Read the content of the sstream
-		* @param stream Stream to read
-		*/
-		bool load(std::istream& stream);
 
 		/*!
 		* @brief Load a file located at path
@@ -173,7 +166,5 @@ namespace hz
 		m::u32 m_stack;
 		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 	};
-
 }
 #endif
-
