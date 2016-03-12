@@ -1,4 +1,3 @@
-
 #include <fstream>
 
 #include <Muon/System/Log.hpp>
@@ -37,7 +36,7 @@ bool loadFile(const char* filename, char* outbuffer)
 
 int main(int argc, char** argv)
 {
-	if(!m::meta::MetaDatabase::isInstantiated())
+	if (!m::meta::MetaDatabase::isInstantiated())
 	{
 		m::meta::MetaDatabase::createInstance();
 	}
@@ -93,10 +92,13 @@ int main(int argc, char** argv)
 		const char* eval = MUON_STR(
 			// declare a variable
 			a = 0;
-			// declare function
-			function foo(a) { print(a); }
-			foo(a);
-			return 64;
+		// declare function
+		function foo(a)
+		{
+			print(a);
+		}
+		foo(a);
+		return 64;
 		);
 
 		//HAIZE_TITLE(m::String::join("Evaluating Script: \"", eval, "\""));
@@ -131,27 +133,27 @@ int main(int argc, char** argv)
 	// ************************
 	// Test that should work :)
 	FileModule scriptSuccessTests[] = {
-		{"unittests/scripts/functions_noArg_noRet.hz", "Function: No Arguments, No Return"},
-		{"unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return"},
-		{"unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return"},
-		{"unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return"},
+		{ "unittests/scripts/functions_noArg_noRet.hz", "Function: No Arguments, No Return" },
+		{ "unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return" },
+		{ "unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return" },
+		{ "unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return" },
 
-		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
-		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
-		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
-		{"unittests/scripts/expr_Namespace.hz", "Namespaces"},
+		{ "unittests/scripts/expr_Comments.hz", "Comments" },
+		{ "unittests/scripts/expr_Unop.hz", "Unary Operator" },
+		{ "unittests/scripts/expr_Binop.hz", "Binary Operator" },
+		{ "unittests/scripts/expr_Namespace.hz", "Namespaces" },
 
-		{"unittests/scripts/class_Empty.hz", "Empty Class"},
-		{"unittests/scripts/class_Member.hz", "Class with Member"},
-		{"unittests/scripts/class_Function.hz", "Class with Function"},
-		{"unittests/scripts/class_Full.hz", "Class with both Member and Function"},
+		{ "unittests/scripts/class_Empty.hz", "Empty Class" },
+		{ "unittests/scripts/class_Member.hz", "Class with Member" },
+		{ "unittests/scripts/class_Function.hz", "Class with Function" },
+		{ "unittests/scripts/class_Full.hz", "Class with both Member and Function" },
 
-		{"unittests/scripts/logic_if.hz", "Control Flow: if"},
-		{"unittests/scripts/logic_for.hz", "Control Flow: for"},
-		{"unittests/scripts/logic_while.hz", "Control Flow: while"},
-		{"unittests/scripts/logic_switch.hz", "Control Flow: switch"},
+		{ "unittests/scripts/logic_if.hz", "Control Flow: if" },
+		{ "unittests/scripts/logic_for.hz", "Control Flow: for" },
+		{ "unittests/scripts/logic_while.hz", "Control Flow: while" },
+		{ "unittests/scripts/logic_switch.hz", "Control Flow: switch" },
 
-		{"",""}
+		{ "", "" }
 	};
 
 	for (scriptIndex = 0; scriptSuccessTests[scriptIndex].file != ""; ++scriptIndex)
@@ -166,16 +168,16 @@ int main(int argc, char** argv)
 		ok = context->load(file.cStr());
 		infoError = context->getLastError();
 		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if(!ok) continue;
+		if (!ok) continue;
 
 		ok = context->compile();
 		infoError = context->getLastError();
 		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if(!ok) continue;
+		if (!ok) continue;
 
 		//TODO:
 		//Preparation
-		if(!ok) continue;
+		if (!ok) continue;
 
 		//TODO:
 		//ok = context->execute();
