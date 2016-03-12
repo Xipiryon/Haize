@@ -1,4 +1,3 @@
-
 #include <Muon/System/Log.hpp>
 
 #include "Haize/Context.hpp"
@@ -79,20 +78,19 @@ namespace hz
 {
 	bool Context::readToken(parser::Token& out, m::u32 index)
 	{
-		if(index < m_tokenList->size())
+		if (index < m_tokenList->size())
 		{
 			out = (*m_tokenList)[m_tokenList->size() - (index + 1)];
 			return true;
 		}
 		return false;
-
 	}
 
 	bool Context::popToken(m::u32 count)
 	{
-		if(count <= m_tokenList->size())
+		if (count <= m_tokenList->size())
 		{
-			for(m::u32 i = 0; i < count; ++i)
+			for (m::u32 i = 0; i < count; ++i)
 			{
 				m_tokenList->pop_back();
 			}
@@ -127,7 +125,7 @@ namespace hz
 			return true;
 		}
 
-		while(!m_tokenList->empty())
+		while (!m_tokenList->empty())
 		{
 			bool ok = true;
 			parser::Token token = m_tokenList->back();
@@ -319,7 +317,7 @@ namespace hz
 		popToken(1);
 		ok = readToken(token, 0);
 		popToken(1);
-		if(!ok || token.type != parser::V_IDENTIFIER)
+		if (!ok || token.type != parser::V_IDENTIFIER)
 		{
 			tokenError(token, "Expected identifier after 'namespace'!");
 			return false;
@@ -336,7 +334,7 @@ namespace hz
 		// {
 		ok = readToken(token, 0);
 		popToken(1);
-		if(!ok || token.type != parser::S_LBRACE)
+		if (!ok || token.type != parser::S_LBRACE)
 		{
 			tokenError(token, "Missing '{' after namespace declaration!");
 			return false;
@@ -359,12 +357,12 @@ namespace hz
 		// Check function identifer (the function name)
 		ok = readToken(token, 0);
 		popToken(1);
-		if(ok && token.type == parser::V_IDENTIFIER)
+		if (ok && token.type == parser::V_IDENTIFIER)
 		{
 			classNode->name = token.value.get<m::String>();
 			ok = readToken(token, 0);
 			popToken(1);
-			if(ok && token.type == parser::S_LBRACE)
+			if (ok && token.type == parser::S_LBRACE)
 			{
 				impl->phaseNode->addChild(classNode);
 				impl->phaseNode = classNode;
@@ -386,6 +384,7 @@ namespace hz
 		InfoSyntaxic* impl = (InfoSyntaxic*)info;
 		parser::Token token;
 		bool ok;
+		bool dstr = false;
 
 		// Update phase
 		parser::ASTNode* funcNode = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_DECL);
@@ -398,11 +397,24 @@ namespace hz
 
 		// update node info if constructor/destructor
 		// else look for function name
-		if(impl->funcCstrDstr)
+		if (impl->funcCstrDstr)
 		{
 			m::String keyword = token.value.get<m::String>();
 			funcNode->name = keyword;
-			funcNode->token.type = (keyword == "constructor" ? parser::NT_CLASS_CONSTRUCTOR : parser::NT_CLASS_DESTRUCTOR);
+			if (keyword == "constructor")
+			{
+				funcNode->token.type = parser::NT_CLASS_CONSTRUCTOR;
+			}
+			else if (keyword == "destructor")
+			{
+				funcNode->token.type = parser::NT_CLASS_DESTRUCTOR;
+				dstr = true;
+			}
+			else
+			{
+				tokenError(token, unexpectedToken(token));
+				return false;
+			}
 		}
 		else
 		{
@@ -423,16 +435,14 @@ namespace hz
 		// (
 		ok = readToken(token, 0);
 		popToken(1);
-		if(!ok || token.type != parser::S_LPARENT)
+		if (!ok || token.type != parser::S_LPARENT)
 		{
 			tokenError(token, "Missing '(' after function name!");
 			return false;
 		}
 
-		// Check arguments, they follow the EBNF pattern:
-		// [ V_IDENTIFIER V_IDENTIFIER {S_COMMA V_IDENTIFIER V_IDENTIFIER [S_COMMA]}]
-		// (the reason for the double identifier is because "varType varName", a trailing comma is allowed)
-		// Just check we have at least something, else directly jump to ')'
+		// Check arguments, unless where currently parsing a destructor
+		if (!dstr)
 		{
 			//In any cases, push a NT_FUNCTION_ARGS node
 			parser::ASTNode* args = MUON_NEW(parser::ASTNode, parser::NT_FUNCTION_ARGS);
@@ -449,7 +459,7 @@ namespace hz
 
 				// read token without poping it
 				ok = readToken(token, 0);
-				if(!ok)
+				if (!ok)
 				{
 					MUON_DELETE(funcNode);
 					tokenError(token, "Expected token for function argument list!");
@@ -458,15 +468,15 @@ namespace hz
 
 				if (token.type != parser::S_RPARENT)
 				{
-					if(token.type == parser::S_KEYWORD)
+					if (token.type == parser::S_KEYWORD)
 					{
 						m::String keyword = token.value.get<m::String>();
-						if(keyword == "ref")
+						if (keyword == "ref")
 						{
 							refNode = MUON_NEW(parser::ASTNode, token);
 							popToken(1); // remove 'ref'
 							ok = readToken(token, 0);
-							if(!ok)
+							if (!ok)
 							{
 								MUON_DELETE(funcNode);
 								tokenError(token, "Expected return type after 'ref' keyword!");
@@ -481,14 +491,14 @@ namespace hz
 						}
 					}
 
-					if(token.type == parser::V_IDENTIFIER)
+					if (token.type == parser::V_IDENTIFIER)
 					{
 						retType = MUON_NEW(parser::ASTNode, token);
 						popToken(1); // remove rettype
 
 						ok = readToken(token, 0);
 						popToken(1);
-						if(!ok || token.type != parser::V_IDENTIFIER)
+						if (!ok || token.type != parser::V_IDENTIFIER)
 						{
 							MUON_DELETE(funcNode);
 							tokenError(token, "Expected variable name for function argument!");
@@ -509,13 +519,13 @@ namespace hz
 					}
 
 					ok = readToken(token, 0);
-					if(!ok)
+					if (!ok)
 					{
 						MUON_DELETE(funcNode);
 						tokenError(token, "Unexpected EOF in function argument list!");
 						return false;
 					}
-					else if(token.type == parser::S_COMMA)
+					else if (token.type == parser::S_COMMA)
 					{
 						// Just consume it.
 						// This allow an argument list ending by a ,
@@ -524,11 +534,20 @@ namespace hz
 				}
 			} while (token.type != parser::S_RPARENT);
 		}
+		else
+		{
+			ok = readToken(token, 0);
+			if (!ok || token.type == parser::S_RPARENT)
+			{
+				tokenError(token, unexpectedToken(token));
+				return false;
+			}
+		}
 
 		// )
 		ok = readToken(token, 0);
 		popToken(1);
-		if(!ok || token.type != parser::S_RPARENT)
+		if (!ok || token.type != parser::S_RPARENT)
 		{
 			MUON_DELETE(funcNode);
 			tokenError(token, "Missing ')' to end function parameter list!");
@@ -538,7 +557,7 @@ namespace hz
 		// {
 		ok = readToken(token, 0);
 		popToken(1);
-		if(!ok || token.type != parser::S_LBRACE)
+		if (!ok || token.type != parser::S_LBRACE)
 		{
 			MUON_DELETE(funcNode);
 			tokenError(token, "Missing '{' after function parameter list!");
@@ -569,7 +588,7 @@ namespace hz
 		impl->phaseNode = exprRootNode;
 
 		// Allowed tokens are identifier, unary and binary operator, or keyword (control flow)
-		while(ok && parseExpr)
+		while (ok && parseExpr)
 		{
 			ok = readToken(token, 0);
 			// don't even parse if token are missing
@@ -582,18 +601,26 @@ namespace hz
 			if (token.type == parser::S_KEYWORD)
 			{
 				m::String keyword = token.value.get<m::String>();
-				if(keyword == "return")
+				if (keyword == "return")
 				{
-					parser::ASTNode* retNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR_RETURN);
-					retNode->token = token;
-					impl->phaseNode->addChild(retNode);
-					impl->phaseNode = retNode;
+					parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_RETURN);
+					node->token = token;
+					impl->phaseNode->addChild(node);
+					impl->phaseNode = node;
 				}
-				else if(keyword == "new")
+				else if (keyword == "new")
 				{
+					parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_CSTR);
+					node->token = token;
+					impl->phaseNode->addChild(node);
+					impl->phaseNode = node;
 				}
-				else if(keyword == "delete")
+				else if (keyword == "delete")
 				{
+					parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_DSTR);
+					node->token = token;
+					impl->phaseNode->addChild(node);
+					impl->phaseNode = node;
 				}
 				else
 				{
@@ -614,15 +641,15 @@ namespace hz
 				}
 			}
 			// Closing instructions
-			else if(token.type == parser::S_SEPARATOR)
+			else if (token.type == parser::S_SEPARATOR)
 			{
 				// Return to parent node
 				impl->phaseNode = impl->phaseNode->parent;
 			}
 			// Closing braces
-			else if(token.type == parser::S_RBRACE)
+			else if (token.type == parser::S_RBRACE)
 			{
-				if(openBraces == 0)
+				if (openBraces == 0)
 				{
 					parseExpr = false;
 					continue;
@@ -655,7 +682,7 @@ namespace hz
 		//INFO_IMPL->stackValue.erase(INFO_IMPL->stackValue.begin() + (--i)); // erase left
 		}
 		// */
-		if(!ok)
+		if (!ok)
 		{
 			tokenError(token, unexpectedToken(token));
 			return false;
@@ -738,4 +765,3 @@ const OpAttribute InfoSyntaxic::precAttrib[hz::parser::E_TERMINALTOKEN_END] =
 
 	s_OpDefault, //E_ASN_OP_END,
 };
-
