@@ -59,36 +59,9 @@ namespace hz
 	bool Context::load(const m::String& filename)
 	{
 		checkCompiler();
-		/*
+		m_error.clear();
 		m_error.step = Error::LOADING;
-		std::ifstream file(filename.cStr());
-		if (!file)
-		{
-		m_error.clear();
-		m_error.message = "Couldn't open the file!";
-		return false;
-		}
-
-		if (!file.eof())
-		{
-		// Get stream size
-		file.seekg(0, file.end);
-		m::u64 length = (m::u64)file.tellg();
-		file.seekg(0, file.beg);
-
-		char* buffer = (char*)malloc((m::u32)length + 1);
-		file.read(buffer, length);
-		buffer[file.gcount()] = 0;
-		m_loadBuffer += buffer;
-		free(buffer);
-
-		m_error.clear();
-		return true;
-		}
-		m_error.clear();
-		m_error.message = "File stream seems to be empty: encountered EOF at beginning!";
-		//*/
-		return false;
+		return m_compiler->load(filename, m_error);
 	}
 
 	bool Context::compile()
