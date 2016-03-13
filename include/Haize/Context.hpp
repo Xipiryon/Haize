@@ -99,10 +99,19 @@ namespace hz
 		*/
 		bool run(const ByteCode* instr);
 
+		/*!
+		* @brief Override the default compiler
+		* Set a custom compiler.
+		* Previous compiler will be deleting.
+		*/
+		template<typename CompilerClass>
+		void overrideCompiler();
+
 	private:
 		m::String m_name;
 		Error m_error;
 
+		void checkCompiler();
 		parser::ICompiler* m_compiler;
 		// EXECUTION
 		// ****************************
@@ -110,5 +119,15 @@ namespace hz
 		m::u32 m_stack;
 		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 	};
+
+	template<typename CompilerClass>
+	void Context::overrideCompiler()
+	{
+		if (m_compiler)
+		{
+			MUON_DELETE(m_compiler);
+		}
+		m_compiler = MUON_NEW(CompilerClass);
+	}
 }
 #endif

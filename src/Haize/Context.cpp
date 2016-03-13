@@ -14,16 +14,19 @@ namespace hz
 {
 	Context::Context(const char* name)
 		: m_name(name)
+		, m_compiler(NULL)
 		//	, m_stack(0)
 	{
 		//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 		m_error.clear();
-		m_compiler = MUON_NEW(parser::priv::DefaultCompiler);
 	}
 
 	Context::~Context()
 	{
-		MUON_DELETE(m_compiler);
+		if (m_compiler)
+		{
+			MUON_DELETE(m_compiler);
+		}
 		//	MUON_DELETE(m_byteCodeModules);
 	}
 
@@ -45,8 +48,17 @@ namespace hz
 	//			COMPILATION
 	//==================================
 
+	void Context::checkCompiler()
+	{
+		if (!m_compiler)
+		{
+			m_compiler = MUON_NEW(parser::priv::DefaultCompiler);
+		}
+	}
+
 	bool Context::load(const m::String& filename)
 	{
+		checkCompiler();
 		/*
 		m_error.step = Error::LOADING;
 		std::ifstream file(filename.cStr());
@@ -81,6 +93,7 @@ namespace hz
 
 	bool Context::compile()
 	{
+		checkCompiler();
 		/*
 		m_tokenList = MUON_NEW(std::vector<parser::Token>);
 		m_nodeRoot = MUON_NEW(parser::ASTNode);
@@ -125,20 +138,11 @@ namespace hz
 
 	bool Context::prepare(const m::String& func)
 	{
-		m_error.step = Error::PREPARATION;
 		return false;
 	}
 
 	bool Context::execute()
 	{
-		m_error.step = Error::EXECUTION;
-		/*
-		auto it = m_byteCodeModules->find(module);
-		if(it != m_byteCodeModules->end())
-		{
-		return run(it->second);
-		}
-		//*/
 		return false;
 	}
 

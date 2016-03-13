@@ -52,11 +52,6 @@ namespace hz
 		*/
 		bool destroyContext(const char* name);
 
-		/*!
-		* @brief Override the default compiler
-		* Set a custom compiler, if you really want something
-		*/
-
 	private:
 		typedef std::map<m::String, Context*> ModuleContextMap;
 
