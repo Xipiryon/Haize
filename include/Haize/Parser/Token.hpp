@@ -216,6 +216,24 @@ namespace hz
 			{
 			}
 
+			Token(const Token& t)
+			{
+				*this = t;
+			}
+
+			Token& operator=(const Token& t)
+			{
+				if (&t != this)
+				{
+					type = t.type;
+					value = t.value;
+					section = t.section;
+					line = t.line;
+					column = t.column;
+				};
+				return *this;
+			}
+
 			eTokenType type;
 			m::Variant value;
 
