@@ -67,6 +67,12 @@ namespace hz
 	bool Context::compile()
 	{
 		checkCompiler();
+		if (m_error.state == Error::ERROR && m_error.step == Error::LOADING)
+		{
+			return false;
+		}
+		m_error.clear();
+		m_error.step = Error::COMPILATION;
 		/*
 		m_tokenList = MUON_NEW(std::vector<parser::Token>);
 		m_nodeRoot = MUON_NEW(parser::ASTNode);
@@ -111,11 +117,23 @@ namespace hz
 
 	bool Context::prepare(const m::String& func)
 	{
+		if (m_error.state == Error::ERROR && m_error.step == Error::COMPILATION)
+		{
+			return false;
+		}
+		m_error.clear();
+		m_error.step = Error::PREPARATION;
 		return false;
 	}
 
 	bool Context::execute()
 	{
+		if (m_error.state == Error::ERROR && m_error.step == Error::PREPARATION)
+		{
+			return false;
+		}
+		m_error.clear();
+		m_error.step = Error::EXECUTION;
 		return false;
 	}
 
