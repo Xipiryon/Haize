@@ -543,8 +543,6 @@ namespace hz
 				impl.token.type = parser::S_EOF;
 				pushToken(&impl, eof);
 
-				// Now reverse every token to be read from "back to front"
-				std::reverse(m_tokenList->begin(), m_tokenList->end());
 				error.clear();
 				return true;
 			}

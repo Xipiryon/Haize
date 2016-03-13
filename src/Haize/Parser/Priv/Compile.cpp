@@ -11,7 +11,7 @@ namespace hz
 		{
 			bool DefaultCompiler::compile(Error& error)
 			{
-				m_tokenList = MUON_NEW(std::deque<parser::Token>);
+				m_tokenList = MUON_NEW(std::vector<parser::Token>);
 				m_nodeRoot = MUON_NEW(parser::ASTNode);
 
 				// avoid a macro, and avoid duplicating code

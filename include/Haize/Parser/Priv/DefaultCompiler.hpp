@@ -42,8 +42,8 @@ namespace hz
 				void pushSeparatorToken(SharedData*, m::String&);
 				// Syntaxic
 				void tokenError(Error& err, const parser::Token&, const m::String&);
-				bool readToken(parser::Token&, m::u32);
-				bool popToken(m::u32);
+				bool readToken(SharedData*, parser::Token&, m::u32);
+				bool popToken(SharedData*, m::u32);
 
 				bool parseExpression(SharedData*);
 				bool parseGlobal(SharedData*);

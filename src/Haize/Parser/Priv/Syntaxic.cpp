@@ -69,7 +69,7 @@ namespace
 
 		hz::Error& error;
 		std::deque<ParserPhase> phases;
-		m::u32 readIndex;
+		m::u32 readTokenIndex;
 
 		std::deque<hz::parser::Token> exprTokens;
 		std::deque<hz::parser::ASTNode*> exprNodes;
@@ -86,24 +86,25 @@ namespace hz
 	{
 		namespace priv
 		{
-			bool DefaultCompiler::readToken(parser::Token& out, m::u32 index)
+			bool DefaultCompiler::readToken(SharedData* sd, parser::Token& out, m::u32 index)
 			{
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
+				index += sds->readTokenIndex;
 				if (index < m_tokenList->size())
 				{
-					out = (*m_tokenList)[m_tokenList->size() - (index + 1)];
+					out = m_tokenList->at(index);
 					return true;
 				}
 				return false;
 			}
 
-			bool DefaultCompiler::popToken(m::u32 count)
+			bool DefaultCompiler::popToken(SharedData* sd, m::u32 count)
 			{
-				if (count <= m_tokenList->size())
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
+
+				if ((sds->readTokenIndex + count) <= m_tokenList->size())
 				{
-					for (m::u32 i = 0; i < count; ++i)
-					{
-						m_tokenList->pop_back();
-					}
+					sds->readTokenIndex += count;
 					return true;
 				}
 				return false;
@@ -134,44 +135,45 @@ namespace hz
 				m_nodeRoot->name = "#ROOT#";
 				m_nodeRoot->token.type = parser::NT_ROOT;
 
-				SharedDataSyntaxic impl(error);
-				impl.phases.push_back(PHASE_ROOT);
-				impl.readIndex = 0;
-				impl.phaseNode = m_nodeRoot;
-				impl.funcCstrDstr = false;
+				SharedDataSyntaxic sds(error);
+				sds.phases.push_back(PHASE_ROOT);
+				sds.readTokenIndex = 0;
+				sds.phaseNode = m_nodeRoot;
+				sds.funcCstrDstr = false;
 
 				// Skip empty Token list
-				if (m_tokenList->empty()
-					|| m_tokenList->back().type == parser::S_EOF)
+				if (m_tokenList->empty())
 				{
 					return true;
 				}
 
-				while (!m_tokenList->empty())
+				parser::Token token;
+				while (sds.readTokenIndex < m_tokenList->size())
 				{
 					bool ok = true;
-					parser::Token token = m_tokenList->back();
-					ParserPhase phase = impl.phases.back();
+					readToken(&sds, token, 0);
+
+					ParserPhase phase = sds.phases.back();
 
 					// Pop token that have no real value
 					if (token.type == parser::S_SEPARATOR
 						|| token.type == parser::S_EOF)
 					{
-						popToken(1);
+						popToken(&sds, 1);
 						return true;
 					}
 
 					// It may be a closing from a previous parse, check it here
 					if (token.type == parser::S_RBRACE)
 					{
-						if (impl.phases.empty())
+						if (sds.phases.empty())
 						{
 							tokenError(error, token, "Unexpected token \"" + token.value.get<m::String>() + "\"");
 							return false;
 						}
 
-						impl.phases.pop_back();
-						popToken(1);
+						sds.phases.pop_back();
+						popToken(&sds, 1);
 						return true;
 					}
 
@@ -185,15 +187,15 @@ namespace hz
 								m::String keyword = token.value.get<m::String>();
 								if (keyword == "class")
 								{
-									ok = parseClass(&impl);
+									ok = parseClass(&sds);
 								}
 								else if (keyword == "namespace")
 								{
-									ok = parseNamespace(&impl);
+									ok = parseNamespace(&sds);
 								}
 								else if (keyword == "global")
 								{
-									ok = parseGlobal(&impl);
+									ok = parseGlobal(&sds);
 								}
 								else
 								{
@@ -204,7 +206,7 @@ namespace hz
 							// Else if identifier, it can only be a function
 							else if (token.type == parser::V_IDENTIFIER)
 							{
-								ok = parseFunction(&impl);
+								ok = parseFunction(&sds);
 							}
 							else
 							{
@@ -217,7 +219,7 @@ namespace hz
 						{
 							parser::Token retType;
 							parser::Token identifier;
-							ok = readToken(retType, 0); // return type, or constructor/destructor
+							ok = readToken(&sds, retType, 0); // return type, or constructor/destructor
 							if (ok)
 							{
 								if (retType.type == parser::S_KEYWORD)
@@ -225,9 +227,9 @@ namespace hz
 									m::String keyword = retType.value.get<m::String>();
 									if (keyword == "constructor" || keyword == "destructor")
 									{
-										impl.funcCstrDstr = true;
-										ok = parseFunction(&impl);
-										impl.funcCstrDstr = false;
+										sds.funcCstrDstr = true;
+										ok = parseFunction(&sds);
+										sds.funcCstrDstr = false;
 										break;
 									}
 									else
@@ -242,11 +244,11 @@ namespace hz
 									break;
 								}
 
-								ok = readToken(identifier, 1); // member/function name
+								ok = readToken(&sds, identifier, 1); // member/function name
 								ok &= identifier.type == parser::V_IDENTIFIER;
 								if (ok)
 								{
-									ok = readToken(token, 2);
+									ok = readToken(&sds, token, 2);
 									// ( means a function
 									// ; means an attribute
 									// else, error
@@ -254,15 +256,15 @@ namespace hz
 									{
 										case parser::S_LPARENT:
 										{
-											ok = parseFunction(&impl);
+											ok = parseFunction(&sds);
 											break;
 										}
 										case parser::S_SEPARATOR:
 										{
 											parser::ASTNode* attribNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_MEMBER, identifier.value.get<m::String>());
 											attribNode->addChild(MUON_NEW(parser::ASTNode, retType));
-											impl.phaseNode->addChild(attribNode);
-											popToken(3); // retType identifier separator
+											sds.phaseNode->addChild(attribNode);
+											popToken(&sds, 3); // retType identifier separator
 											break;
 										}
 										default:
@@ -284,7 +286,7 @@ namespace hz
 						}
 						case PHASE_FUNCTION:
 						{
-							ok = parseExpression(&impl);
+							ok = parseExpression(&sds);
 							break;
 						}
 						case PHASE_NAMESPACE:
@@ -294,16 +296,16 @@ namespace hz
 								m::String keyword = token.value.get<m::String>();
 								if (keyword == "namespace")
 								{
-									ok = parseNamespace(&impl);
+									ok = parseNamespace(&sds);
 								}
 								else if (keyword == "class")
 								{
-									ok = parseClass(&impl);
+									ok = parseClass(&sds);
 								}
 							}
 							else
 							{
-								ok = parseFunction(&impl);
+								ok = parseFunction(&sds);
 							}
 							break;
 						}
@@ -320,89 +322,89 @@ namespace hz
 				return true;
 			}
 
-			bool DefaultCompiler::parseGlobal(SharedData* info)
+			bool DefaultCompiler::parseGlobal(SharedData* sd)
 			{
-				SharedDataSyntaxic* impl = (SharedDataSyntaxic*)info;
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
 				parser::Token token;
 				bool ok = true;
 
 				return true;
 			}
 
-			bool DefaultCompiler::parseNamespace(SharedData* info)
+			bool DefaultCompiler::parseNamespace(SharedData* sd)
 			{
-				SharedDataSyntaxic* impl = (SharedDataSyntaxic*)info;
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
 				parser::Token token;
 				bool ok = true;
 
-				popToken(1);
-				ok = readToken(token, 0);
-				popToken(1);
+				popToken(sds, 1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (!ok || token.type != parser::V_IDENTIFIER)
 				{
-					tokenError(impl->error, token, "Expected identifier after 'namespace'!");
+					tokenError(sds->error, token, "Expected identifier after 'namespace'!");
 					return false;
 				}
 
 				// Update phase
-				impl->phases.push_back(PHASE_NAMESPACE);
+				sds->phases.push_back(PHASE_NAMESPACE);
 				parser::ASTNode* namespaceNode = MUON_NEW(parser::ASTNode, parser::NT_NAMESPACE, token.value.get<m::String>());
-				impl->phaseNode->addChild(namespaceNode);
+				sds->phaseNode->addChild(namespaceNode);
 
 				// Set namespace as phaseNode
-				impl->phaseNode = namespaceNode;
+				sds->phaseNode = namespaceNode;
 
 				// {
-				ok = readToken(token, 0);
-				popToken(1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (!ok || token.type != parser::S_LBRACE)
 				{
-					tokenError(impl->error, token, "Missing '{' after namespace declaration!");
+					tokenError(sds->error, token, "Missing '{' after namespace declaration!");
 					return false;
 				}
 				return true;
 			}
 
-			bool DefaultCompiler::parseClass(SharedData* info)
+			bool DefaultCompiler::parseClass(SharedData* sd)
 			{
-				SharedDataSyntaxic* impl = (SharedDataSyntaxic*)info;
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
 				parser::Token token;
 				bool ok = true;
 
 				// Extract class keyword
-				popToken(1);
+				popToken(sds, 1);
 
 				// Update phase
 				parser::ASTNode* classNode = MUON_NEW(parser::ASTNode, parser::NT_CLASS_DECL);
 
 				// Check function identifer (the function name)
-				ok = readToken(token, 0);
-				popToken(1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (ok && token.type == parser::V_IDENTIFIER)
 				{
 					classNode->name = token.value.get<m::String>();
-					ok = readToken(token, 0);
-					popToken(1);
+					ok = readToken(sds, token, 0);
+					popToken(sds, 1);
 					if (ok && token.type == parser::S_LBRACE)
 					{
-						impl->phaseNode->addChild(classNode);
-						impl->phaseNode = classNode;
-						impl->phases.push_back(PHASE_CLASS);
+						sds->phaseNode->addChild(classNode);
+						sds->phaseNode = classNode;
+						sds->phases.push_back(PHASE_CLASS);
 					}
 				}
 				else
 				{
 					MUON_DELETE(classNode);
-					tokenError(impl->error, token, "Expected identifier for class declaration!");
+					tokenError(sds->error, token, "Expected identifier for class declaration!");
 					return false;
 				}
 
 				return true;
 			}
 
-			bool DefaultCompiler::parseFunction(SharedData* info)
+			bool DefaultCompiler::parseFunction(SharedData* sd)
 			{
-				SharedDataSyntaxic* impl = (SharedDataSyntaxic*)info;
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
 				parser::Token token;
 				bool ok;
 				bool dstr = false;
@@ -412,13 +414,13 @@ namespace hz
 
 				// Current token is a return type, "constructor" or "destructor", pop it,
 				// and create required nodes
-				readToken(token, 0);
-				popToken(1);
+				readToken(sds, token, 0);
+				popToken(sds, 1);
 				funcNode->addChild(MUON_NEW(parser::ASTNode, token));
 
 				// update node info if constructor/destructor
 				// else look for function name
-				if (impl->funcCstrDstr)
+				if (sds->funcCstrDstr)
 				{
 					m::String keyword = token.value.get<m::String>();
 					funcNode->name = keyword;
@@ -433,32 +435,32 @@ namespace hz
 					}
 					else
 					{
-						tokenError(impl->error, token, unexpectedToken(token));
+						tokenError(sds->error, token, unexpectedToken(token));
 						return false;
 					}
 				}
 				else
 				{
 					// Check function identifer (the function name)
-					ok = readToken(token, 0);
-					popToken(1);
+					ok = readToken(sds, token, 0);
+					popToken(sds, 1);
 					if (ok && token.type == parser::V_IDENTIFIER)
 					{
 						funcNode->name = token.value.get<m::String>();
 					}
 					else
 					{
-						tokenError(impl->error, token, "Expected identifier for function declaration!");
+						tokenError(sds->error, token, "Expected identifier for function declaration!");
 						return false;
 					}
 				}
 
 				// (
-				ok = readToken(token, 0);
-				popToken(1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (!ok || token.type != parser::S_LPARENT)
 				{
-					tokenError(impl->error, token, "Missing '(' after function name!");
+					tokenError(sds->error, token, "Missing '(' after function name!");
 					return false;
 				}
 
@@ -479,11 +481,11 @@ namespace hz
 						varName = NULL;
 
 						// read token without poping it
-						ok = readToken(token, 0);
+						ok = readToken(sds, token, 0);
 						if (!ok)
 						{
 							MUON_DELETE(funcNode);
-							tokenError(impl->error, token, "Expected token for function argument list!");
+							tokenError(sds->error, token, "Expected token for function argument list!");
 							return false;
 						}
 
@@ -495,19 +497,19 @@ namespace hz
 								if (keyword == "ref")
 								{
 									refNode = MUON_NEW(parser::ASTNode, token);
-									popToken(1); // remove 'ref'
-									ok = readToken(token, 0);
+									popToken(sds, 1); // remove 'ref'
+									ok = readToken(sds, token, 0);
 									if (!ok)
 									{
 										MUON_DELETE(funcNode);
-										tokenError(impl->error, token, "Expected return type after 'ref' keyword!");
+										tokenError(sds->error, token, "Expected return type after 'ref' keyword!");
 										return false;
 									}
 								}
 								else
 								{
 									MUON_DELETE(funcNode);
-									tokenError(impl->error, token, "Unexpected token for function argument! (Expected ref, got something else)");
+									tokenError(sds->error, token, "Unexpected token for function argument! (Expected ref, got something else)");
 									return false;
 								}
 							}
@@ -515,14 +517,14 @@ namespace hz
 							if (token.type == parser::V_IDENTIFIER)
 							{
 								retType = MUON_NEW(parser::ASTNode, token);
-								popToken(1); // remove rettype
+								popToken(sds, 1); // remove rettype
 
-								ok = readToken(token, 0);
-								popToken(1);
+								ok = readToken(sds, token, 0);
+								popToken(sds, 1);
 								if (!ok || token.type != parser::V_IDENTIFIER)
 								{
 									MUON_DELETE(funcNode);
-									tokenError(impl->error, token, "Expected variable name for function argument!");
+									tokenError(sds->error, token, "Expected variable name for function argument!");
 									return false;
 								}
 
@@ -535,66 +537,66 @@ namespace hz
 							else
 							{
 								MUON_DELETE(funcNode);
-								tokenError(impl->error, token, "Unexpected token in function argument list!");
+								tokenError(sds->error, token, "Unexpected token in function argument list!");
 								return false;
 							}
 
-							ok = readToken(token, 0);
+							ok = readToken(sds, token, 0);
 							if (!ok)
 							{
 								MUON_DELETE(funcNode);
-								tokenError(impl->error, token, "Unexpected EOF in function argument list!");
+								tokenError(sds->error, token, "Unexpected EOF in function argument list!");
 								return false;
 							}
 							else if (token.type == parser::S_COMMA)
 							{
 								// Just consume it.
 								// This allow an argument list ending by a ,
-								popToken(1);
+								popToken(sds, 1);
 							}
 						}
 					} while (token.type != parser::S_RPARENT);
 				}
 				else
 				{
-					ok = readToken(token, 0);
+					ok = readToken(sds, token, 0);
 					if (!ok || token.type == parser::S_RPARENT)
 					{
-						tokenError(impl->error, token, unexpectedToken(token));
+						tokenError(sds->error, token, unexpectedToken(token));
 						return false;
 					}
 				}
 
 				// )
-				ok = readToken(token, 0);
-				popToken(1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (!ok || token.type != parser::S_RPARENT)
 				{
 					MUON_DELETE(funcNode);
-					tokenError(impl->error, token, "Missing ')' to end function parameter list!");
+					tokenError(sds->error, token, "Missing ')' to end function parameter list!");
 					return false;
 				}
 
 				// {
-				ok = readToken(token, 0);
-				popToken(1);
+				ok = readToken(sds, token, 0);
+				popToken(sds, 1);
 				if (!ok || token.type != parser::S_LBRACE)
 				{
 					MUON_DELETE(funcNode);
-					tokenError(impl->error, token, "Missing '{' after function parameter list!");
+					tokenError(sds->error, token, "Missing '{' after function parameter list!");
 					return false;
 				}
 
 				// Update phase only if successful
-				impl->phaseNode->addChild(funcNode);
-				impl->phaseNode = funcNode;
-				impl->phases.push_back(PHASE_FUNCTION);
+				sds->phaseNode->addChild(funcNode);
+				sds->phaseNode = funcNode;
+				sds->phases.push_back(PHASE_FUNCTION);
 				return true;
 			}
 
-			bool DefaultCompiler::parseExpression(SharedData* info)
+			bool DefaultCompiler::parseExpression(SharedData* sd)
 			{
-				SharedDataSyntaxic* impl = (SharedDataSyntaxic*)info;
+				SharedDataSyntaxic* sds = (SharedDataSyntaxic*)sd;
 				parser::Token token;
 				bool ok = true;
 				bool parseExpr = true;
@@ -604,14 +606,14 @@ namespace hz
 				m::u32 openBrackets = 0;
 
 				parser::ASTNode* exprRootNode = MUON_NEW(parser::ASTNode, parser::NT_EXPR);
-				impl->phaseNode->addChild(exprRootNode);
-				impl->phases.push_back(PHASE_EXPRESSION);
-				impl->phaseNode = exprRootNode;
+				sds->phaseNode->addChild(exprRootNode);
+				sds->phases.push_back(PHASE_EXPRESSION);
+				sds->phaseNode = exprRootNode;
 
 				// Allowed tokens are identifier, unary and binary operator, or keyword (control flow)
 				while (ok && parseExpr)
 				{
-					ok = readToken(token, 0);
+					ok = readToken(sds, token, 0);
 					// don't even parse if token are missing
 					if (!ok)
 					{
@@ -626,22 +628,22 @@ namespace hz
 						{
 							parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_RETURN);
 							node->token = token;
-							impl->phaseNode->addChild(node);
-							impl->phaseNode = node;
+							sds->phaseNode->addChild(node);
+							sds->phaseNode = node;
 						}
 						else if (keyword == "new")
 						{
 							parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_CSTR);
 							node->token = token;
-							impl->phaseNode->addChild(node);
-							impl->phaseNode = node;
+							sds->phaseNode->addChild(node);
+							sds->phaseNode = node;
 						}
 						else if (keyword == "delete")
 						{
 							parser::ASTNode* node = MUON_NEW(parser::ASTNode, parser::NT_EXPR_DSTR);
 							node->token = token;
-							impl->phaseNode->addChild(node);
-							impl->phaseNode = node;
+							sds->phaseNode->addChild(node);
+							sds->phaseNode = node;
 						}
 						else
 						{
@@ -658,14 +660,14 @@ namespace hz
 						else
 						{
 							parser::ASTNode* node = MUON_NEW(parser::ASTNode, token);
-							impl->phaseNode->addChild(node);
+							sds->phaseNode->addChild(node);
 						}
 					}
 					// Closing instructions
 					else if (token.type == parser::S_SEPARATOR)
 					{
 						// Return to parent node
-						impl->phaseNode = impl->phaseNode->parent;
+						sds->phaseNode = sds->phaseNode->parent;
 					}
 					// Closing braces
 					else if (token.type == parser::S_RBRACE)
@@ -684,7 +686,7 @@ namespace hz
 						continue;
 					}
 
-					popToken(1);
+					popToken(sds, 1);
 				}
 				/*
 				if (token.category == parser::CATEGORY_BINOP)
@@ -705,7 +707,7 @@ namespace hz
 				// */
 				if (!ok)
 				{
-					tokenError(impl->error, token, unexpectedToken(token));
+					tokenError(sds->error, token, unexpectedToken(token));
 					return false;
 				}
 
