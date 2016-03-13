@@ -117,6 +117,9 @@ namespace hz
 		{
 			bool DefaultCompiler::lexical(Error& error)
 			{
+				error.clear();
+				error.step = Error::COMPILATION;
+
 				SharedDataLexical impl;
 
 				m_tokenList->clear();
@@ -507,7 +510,6 @@ namespace hz
 							}
 							else
 							{
-								error.clear();
 								error.state = Error::ERROR;
 								error.line = impl.line;
 								error.column = impl.column;

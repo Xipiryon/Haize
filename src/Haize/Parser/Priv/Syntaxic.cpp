@@ -111,8 +111,6 @@ namespace hz
 
 			void DefaultCompiler::tokenError(Error& error, const parser::Token& token, const m::String& msg)
 			{
-				error.clear();
-				error.step = Error::COMPILATION;
 				error.state = Error::ERROR;
 				error.section = token.section;
 				error.line = token.line;
@@ -122,6 +120,9 @@ namespace hz
 
 			bool DefaultCompiler::syntaxic(Error& error)
 			{
+				error.clear();
+				error.step = Error::COMPILATION;
+
 				// Clean children
 				while (!m_nodeRoot->children->empty())
 				{
@@ -316,7 +317,6 @@ namespace hz
 
 					return true;
 				}
-				error.clear();
 				return true;
 			}
 

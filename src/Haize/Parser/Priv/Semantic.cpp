@@ -15,11 +15,10 @@ namespace hz
 				{
 					return true;
 				}
-
 				error.clear();
-				error.state = Error::ERROR;
-				error.message = "Semantic not implemented yet";
-				return false;
+				error.step = Error::COMPILATION;
+
+				return true;
 			}
 		}
 	}
