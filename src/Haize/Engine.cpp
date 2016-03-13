@@ -1,5 +1,6 @@
-
 #include "Haize/Engine.hpp"
+// Default Compiler
+#include "Haize/Parser/Priv/DefaultCompiler.hpp"
 
 namespace hz
 {
@@ -10,7 +11,7 @@ namespace hz
 
 	Engine::~Engine()
 	{
-		for(auto it = m_moduleContext->begin(); it != m_moduleContext->end(); ++it)
+		for (auto it = m_moduleContext->begin(); it != m_moduleContext->end(); ++it)
 		{
 			Context* c = it->second;
 			MUON_DELETE(c);
@@ -21,7 +22,7 @@ namespace hz
 	Context* Engine::createContext(const char* name)
 	{
 		Context* context = getContext(name);
-		if(!context)
+		if (!context)
 		{
 			context = MUON_NEW(Context, name);
 			m::String sName = name;
@@ -33,7 +34,7 @@ namespace hz
 	Context* Engine::getContext(const char* name)
 	{
 		auto it = m_moduleContext->find(name);
-		if(it != m_moduleContext->end())
+		if (it != m_moduleContext->end())
 		{
 			return it->second;
 		}
@@ -43,7 +44,7 @@ namespace hz
 	bool Engine::destroyContext(const char* name)
 	{
 		auto it = m_moduleContext->find(name);
-		if(it == m_moduleContext->end())
+		if (it == m_moduleContext->end())
 		{
 			return false;
 		}

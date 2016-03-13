@@ -1,7 +1,6 @@
 #ifndef INCLUDE_HAIZE_TOKEN_INCLUDED
 #define INCLUDE_HAIZE_TOKEN_INCLUDED
 
-#include <deque>
 #include <Muon/Variant.hpp>
 #include "Haize/Core/Define.hpp"
 

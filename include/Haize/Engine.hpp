@@ -1,10 +1,11 @@
-
 #ifndef INCLUDE_HAIZE_ENGINE_INCLUDED
 #define INCLUDE_HAIZE_ENGINE_INCLUDED
 
 #include <unordered_map>
 #include <Muon/Helper/Singleton.hpp>
 #include <Muon/Variant.hpp>
+
+#include "Haize/Parser/ICompiler.hpp"
 #include "Haize/Context.hpp"
 
 /*!
@@ -51,11 +52,16 @@ namespace hz
 		*/
 		bool destroyContext(const char* name);
 
+		/*!
+		* @brief Override the default compiler
+		* Set a custom compiler, if you really want something
+		*/
+
 	private:
 		typedef std::map<m::String, Context*> ModuleContextMap;
 
 		ModuleContextMap* m_moduleContext;
+		parser::ICompiler* m_compiler;
 	};
 }
 #endif
-

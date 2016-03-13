@@ -7,41 +7,12 @@
 #include "Haize/VM/ByteCode.hpp"
 #include "Haize/VM/SymbolTable.hpp"
 
+#include "Haize/Parser/ICompiler.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
 namespace hz
 {
-	namespace parser
-	{
-		struct InfoImpl
-		{
-			virtual ~InfoImpl()
-			{
-			}
-		};
-	}
-
 	class Engine;
-
-	/*!
-	*
-	*/
-	struct HAIZE_API Error
-	{
-		enum eStep
-		{
-			LOADING,
-			COMPILATION,
-			PREPARATION,
-			EXECUTION,
-		} step;
-
-		m::String message;
-		m::String section;
-		m::String function;
-		m::u32 line;
-		m::u32 column;
-	};
 
 	/*!
 	* @brief Script execution entry point
@@ -132,32 +103,7 @@ namespace hz
 		m::String m_name;
 		Error m_error;
 
-		// PARSER & COMPILATION
-		// ****************************
-		void clearError(bool);
-		void tokenError(const parser::Token&, const m::String&);
-		bool parseLexical();
-		bool parseSyntaxic();
-		bool parseSemantic();
-		// Variables
-		m::String m_loadBuffer;
-		std::vector<parser::Token>* m_tokenList;
-		parser::ASTNode* m_nodeRoot;
-		SymbolTable m_symbols;
-		// Lexical
-		void pushToken(parser::InfoImpl*, m::String&);
-		void pushSeparatorToken(parser::InfoImpl*, m::String&);
-		// Syntaxic
-		bool readToken(parser::Token&, m::u32);
-		bool popToken(m::u32);
-
-		bool parseExpression(parser::InfoImpl*);
-		bool parseGlobal(parser::InfoImpl*);
-		bool parseNamespace(parser::InfoImpl*);
-		bool parseClass(parser::InfoImpl*);
-		bool parseFunction(parser::InfoImpl*);
-		// Semantic
-
+		parser::ICompiler* m_compiler;
 		// EXECUTION
 		// ****************************
 		ByteCode m_instr;
