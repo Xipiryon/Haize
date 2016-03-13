@@ -123,7 +123,7 @@ namespace hz
 		}
 		m_error.clear();
 		m_error.step = Error::PREPARATION;
-		return false;
+		return true;
 	}
 
 	bool Context::execute()
@@ -134,7 +134,7 @@ namespace hz
 		}
 		m_error.clear();
 		m_error.step = Error::EXECUTION;
-		return false;
+		return true;
 	}
 
 	//==================================
