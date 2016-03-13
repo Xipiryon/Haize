@@ -1,6 +1,6 @@
 
 // Simple function declaration
-bool multipleLoad_A()
+int multipleLoad_A()
 {
-	return true;
+	return 64;
 }
