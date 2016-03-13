@@ -12,7 +12,7 @@
 
 namespace hz
 {
-	Context::Context(const char* name)
+	Context::Context(const m::String& name)
 		: m_name(name)
 		, m_compiler(NULL)
 		//	, m_stack(0)

@@ -31,7 +31,7 @@ namespace hz
 		* @param name Context name
 		* @return Created Context (or the one associated with the given name)
 		*/
-		Context* createContext(const char* name);
+		Context* createContext(const m::String& name);
 
 		/*!
 		* @brief Return a Context
@@ -40,7 +40,7 @@ namespace hz
 		* @param name Context name
 		* @return Context pointer if it exists, NULL otherwhise
 		*/
-		Context* getContext(const char* name);
+		Context* getContext(const m::String& name);
 
 		/*!
 		* @brief Destroy a Context
@@ -50,7 +50,7 @@ namespace hz
 		* @param name Context name
 		* @return True if Context correctly destroyed, false otherwhise
 		*/
-		bool destroyContext(const char* name);
+		bool destroyContext(const m::String& name);
 
 	private:
 		typedef std::map<m::String, Context*> ModuleContextMap;

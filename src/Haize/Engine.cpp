@@ -19,7 +19,7 @@ namespace hz
 		MUON_DELETE(m_moduleContext);
 	}
 
-	Context* Engine::createContext(const char* name)
+	Context* Engine::createContext(const m::String& name)
 	{
 		Context* context = getContext(name);
 		if (!context)
@@ -31,7 +31,7 @@ namespace hz
 		return context;
 	}
 
-	Context* Engine::getContext(const char* name)
+	Context* Engine::getContext(const m::String& name)
 	{
 		auto it = m_moduleContext->find(name);
 		if (it != m_moduleContext->end())
@@ -41,7 +41,7 @@ namespace hz
 		return NULL;
 	}
 
-	bool Engine::destroyContext(const char* name)
+	bool Engine::destroyContext(const m::String& name)
 	{
 		auto it = m_moduleContext->find(name);
 		if (it == m_moduleContext->end())
