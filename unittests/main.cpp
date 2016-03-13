@@ -6,34 +6,6 @@
 
 #include "tinyxml2.h"
 
-namespace
-{
-	const m::u32 FileContentBuffer = 4096;
-}
-
-bool loadFile(const char* filename, char* outbuffer)
-{
-	m::system::Log log("LoadFile");
-
-	std::ifstream file(filename);
-	if (!file)
-	{
-		log(m::LOG_ERROR) << "Couldn't load: " << filename << m::endl;
-		return false;
-	}
-	if (!file.eof())
-	{
-		file.seekg(0, std::ios::end);
-		m::u64 length = (m::u64)file.tellg();
-		file.seekg(0, std::ios::beg);
-		log(m::LOG_INFO) << "Reading " << length << " bytes from \"" << filename << "\"..." << m::endl;
-		MUON_ASSERT_BREAK(length < FileContentBuffer, "File buffer is not big enough!");
-		file.read(outbuffer, length);
-		log(m::LOG_INFO) << "... done !" << m::endl;
-	}
-	return true;
-}
-
 int main(int argc, char** argv)
 {
 	if (!m::meta::MetaDatabase::isInstantiated())
