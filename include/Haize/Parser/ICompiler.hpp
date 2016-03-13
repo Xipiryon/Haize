@@ -13,6 +13,8 @@ namespace hz
 			virtual bool load(const char* buffer, Error& error) = 0;
 			virtual bool load(const m::String& file, Error& error) = 0;
 
+			virtual bool compile(Error& error) = 0;
+		protected:
 			virtual bool lexical(Error& error) = 0;
 			virtual bool syntaxic(Error& error) = 0;
 			virtual bool semantic(Error& error) = 0;

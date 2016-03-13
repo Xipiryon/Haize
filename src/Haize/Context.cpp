@@ -73,42 +73,8 @@ namespace hz
 		}
 		m_error.clear();
 		m_error.step = Error::COMPILATION;
-		/*
-		m_tokenList = MUON_NEW(std::vector<parser::Token>);
-		m_nodeRoot = MUON_NEW(parser::ASTNode);
 
-		// avoid a macro, and avoid duplicating code
-		auto clearVariable = [&]()
-		{
-		m_loadBuffer.clear();
-		MUON_DELETE(m_tokenList);
-		MUON_DELETE(m_nodeRoot);
-		};
-
-		m_error.step = Error::COMPILATION;
-		if (!parseLexical())
-		{
-		clearVariable();
-		return false;
-		}
-		m_loadBuffer.clear();
-
-		if (!parseSyntaxic())
-		{
-		clearVariable();
-		return false;
-		}
-		m_tokenList->clear();
-
-		if (!parseSemantic())
-		{
-		clearVariable();
-		return false;
-		}
-
-		clearVariable();
-		//*/
-		return true;
+		return m_compiler->compile(m_error);
 	}
 
 	//==================================
