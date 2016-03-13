@@ -170,57 +170,66 @@ int main(int argc, char** argv)
 		HAIZE_TITLE("Checking 'Multiple Load' script");
 		bool ok;
 
-		ok = context->load(file_A);
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if (!ok) goto skipMultiplePass;
+		{
+			// Load in multiple passes
+			ok = context->load(file_A);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		ok = context->load(file_B);
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if (!ok) goto skipMultiplePass;
+			ok = context->load(file_B);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		ok = context->compile();
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if (!ok) goto skipMultiplePass;
+			// Compile both
+			ok = context->compile();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		//TODO:
-		//Preparation
-		if (!ok) goto skipMultiplePass;
+			// Prepare function
+			ok = context->prepare("main");
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		//TODO:
-		//ok = context->execute();
-		//infoError = context->getLastError();
-		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			// Execute code
+			ok = context->execute();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+		}
+		{
+			// Post compile
+			HAIZE_TITLE("Checking 'Post Compile' script");
+			m::String postCompile = "unittests/scripts/multiple_PostCompile.hz";
 
-		// Post compile
-		HAIZE_TITLE("Checking 'Post Compile' script");
-		m::String postCompile = "unittests/scripts/multiple_PostCompile.hz";
+			// Load and compile more code in the same context
+			ok = context->load(postCompile);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		ok = context->load(postCompile);
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if (!ok) goto skipMultiplePass;
+			ok = context->compile();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		ok = context->compile();
-		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-		if (!ok) goto skipMultiplePass;
+			//Prepare again
+			ok = context->prepare("postCompile");
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
 
-		//TODO:
-		//Prepare again
-		if (!ok) goto skipMultiplePass;
-
-		//TODO:
-		//ok = context->execute();
-		//infoError = context->getLastError();
-		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
-
+			ok = context->execute();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		}
+	skipMultiplePass:
 		// Finaly clear everything
 		vm.destroyContext(module);
 	}
-skipMultiplePass:
 
 	// END UNIT TEST
 	// ***************

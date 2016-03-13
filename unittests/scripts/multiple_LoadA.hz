@@ -1,6 +1,6 @@
 
 // Simple function declaration
-bool multipleLoad_A()
+i32 multipleLoad_A()
 {
-	return true;
+	return 64;
 }
