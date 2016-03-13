@@ -81,18 +81,18 @@ int main(int argc, char** argv)
 	{
 		HAIZE_TITLE("Context creation / destruction");
 		module = "CreateDestroy";
-		hz::Context* context = vm.createContext(module.cStr());
+		hz::Context* context = vm.createContext(module);
 		HAIZE_CHECK(context != NULL, "Context creation failed!");
-		bool removed = vm.destroyContext(module.cStr());
+		bool removed = vm.destroyContext(module);
 		HAIZE_CHECK(removed, "Context destruction failed!");
-		context = vm.getContext(module.cStr());
+		context = vm.getContext(module);
 		HAIZE_CHECK(context == NULL, "Returning non-null destroyed context!");
 		// Recreate
-		vm.createContext(module.cStr());
-		context = vm.getContext(module.cStr());
+		vm.createContext(module);
+		context = vm.getContext(module);
 		HAIZE_CHECK(context != NULL, "Returning already-created context failed!");
 		// Clean memory
-		vm.destroyContext(module.cStr());
+		vm.destroyContext(module);
 	}
 
 	struct FileModule
@@ -133,11 +133,11 @@ int main(int argc, char** argv)
 		module = scriptSuccessTests[scriptIndex].module;
 		file = scriptSuccessTests[scriptIndex].file;
 
-		hz::Context* context = vm.createContext(module.cStr());
+		hz::Context* context = vm.createContext(module);
 		HAIZE_TITLE("Checking '" + module + "' script");
 		bool ok;
 
-		ok = context->load(file.cStr());
+		ok = context->load(file);
 		infoError = context->getLastError();
 		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		if (!ok) continue;
@@ -156,28 +156,28 @@ int main(int argc, char** argv)
 		//infoError = context->getLastError();
 		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
-		vm.destroyContext(module.cStr());
+		vm.destroyContext(module);
 	}
 
 	// ************************
 	// Multiple Pass
 	{
 		module = "Multiple Pass";
-		const char* file_A = "unittests/scripts/multiple_LoadA.hz";
-		const char* file_B = "unittests/scripts/multiple_LoadB.hz";
+		m::String file_A = "unittests/scripts/multiple_LoadA.hz";
+		m::String file_B = "unittests/scripts/multiple_LoadB.hz";
 
-		hz::Context* context = vm.createContext(module.cStr());
+		hz::Context* context = vm.createContext(module);
 		HAIZE_TITLE("Checking 'Multiple Load' script");
 		bool ok;
 
 		ok = context->load(file_A);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_A, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		if (!ok) goto skipMultiplePass;
 
 		ok = context->load(file_B);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), file_B, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		if (!ok) goto skipMultiplePass;
 
 		ok = context->compile();
@@ -196,11 +196,11 @@ int main(int argc, char** argv)
 
 		// Post compile
 		HAIZE_TITLE("Checking 'Post Compile' script");
-		const char* postCompile = "mutiple_PostCompile.hz";
+		m::String postCompile = "unittests/scripts/multiple_PostCompile.hz";
 
 		ok = context->load(postCompile);
 		infoError = context->getLastError();
-		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), postCompile, infoError.line, infoError.column, infoError.message.cStr());
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 		if (!ok) goto skipMultiplePass;
 
 		ok = context->compile();
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
 
 		// Finaly clear everything
-		vm.destroyContext(module.cStr());
+		vm.destroyContext(module);
 	}
 skipMultiplePass:
 
