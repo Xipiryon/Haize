@@ -8,13 +8,11 @@
 
 #include "Haize/Engine.hpp"
 #include "Haize/Context.hpp"
-#include "Haize/Parser/Priv/DefaultCompiler.hpp"
 
 namespace hz
 {
 	Context::Context(const m::String& name)
 		: m_name(name)
-		, m_compiler(NULL)
 		//	, m_stack(0)
 	{
 		//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
@@ -23,10 +21,6 @@ namespace hz
 
 	Context::~Context()
 	{
-		if (m_compiler)
-		{
-			MUON_DELETE(m_compiler);
-		}
 		//	MUON_DELETE(m_byteCodeModules);
 	}
 
@@ -48,25 +42,15 @@ namespace hz
 	//			COMPILATION
 	//==================================
 
-	void Context::checkCompiler()
-	{
-		if (!m_compiler)
-		{
-			m_compiler = MUON_NEW(parser::priv::DefaultCompiler);
-		}
-	}
-
 	bool Context::load(const m::String& filename)
 	{
-		checkCompiler();
 		m_error.clear();
 		m_error.step = Error::LOADING;
-		return m_compiler->load(filename, m_error);
+		return m_compiler.load(filename, m_error);
 	}
 
 	bool Context::compile()
 	{
-		checkCompiler();
 		if (m_error.state == Error::ERROR && m_error.step == Error::LOADING)
 		{
 			return false;
@@ -74,7 +58,7 @@ namespace hz
 		m_error.clear();
 		m_error.step = Error::COMPILATION;
 
-		return m_compiler->compile(m_error);
+		return m_compiler.compile(m_error);
 	}
 
 	//==================================

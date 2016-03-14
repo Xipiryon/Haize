@@ -5,7 +5,6 @@
 #include <Muon/Helper/Singleton.hpp>
 #include <Muon/Variant.hpp>
 
-#include "Haize/Parser/ICompiler.hpp"
 #include "Haize/Context.hpp"
 
 /*!
@@ -56,7 +55,6 @@ namespace hz
 		typedef std::map<m::String, Context*> ModuleContextMap;
 
 		ModuleContextMap* m_moduleContext;
-		parser::ICompiler* m_compiler;
 	};
 }
 #endif

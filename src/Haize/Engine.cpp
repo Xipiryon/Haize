@@ -1,6 +1,4 @@
 #include "Haize/Engine.hpp"
-// Default Compiler
-#include "Haize/Parser/Priv/DefaultCompiler.hpp"
 
 namespace hz
 {
