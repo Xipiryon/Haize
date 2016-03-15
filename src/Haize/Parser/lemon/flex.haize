@@ -99,7 +99,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 
 {Integer}	{ HZ_CHAR; yyextra->value = (m::i32)atoi(yytext); HZ_TOK(V_NUMBER); }
 {Float}		{ HZ_CHAR; yyextra->value = (m::f32)atof(yytext); HZ_TOK(V_NUMBER); }
-{Identifer}	{ /*HZ_CHAR; lexData->string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT);*/ }
+{Identifer}	{ HZ_CHAR; /*lexData->string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT);*/ }
 
 <INITIAL>{
 	\"			{ BEGIN(StringBlock); }
