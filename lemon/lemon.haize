@@ -1,5 +1,5 @@
 
-%token_type {int}
+%token_type {hz::parser::Token}
 
 %right	MATH_ASN
 		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
