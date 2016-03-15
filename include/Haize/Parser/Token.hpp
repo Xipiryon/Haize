@@ -13,8 +13,8 @@ namespace hz
 		*/
 		enum eTokenType
 		{
-			NT_ROOT = 0,
-			S_EOF,
+			_EOF = 0,	//!< Private
+			_ROOT,		//!<
 
 			S_COMMA,		//!< ','
 			S_ACCESSOR,		//!< '.'
@@ -97,8 +97,8 @@ namespace hz
 		*/
 		static const char* TokenTypeStr[eTokenType::TOTAL_COUNT] =
 		{
-			"NT_ROOT",
-			"S_EOF",
+			"_EOF",
+			"_ROOT",
 
 			"S_COMMA",
 			"S_ACCESSOR",
@@ -180,7 +180,7 @@ namespace hz
 		struct HAIZE_API Token
 		{
 			Token()
-				: type(S_EOF)
+				: type(_EOF)
 				, line(0)
 				, column(0)
 			{

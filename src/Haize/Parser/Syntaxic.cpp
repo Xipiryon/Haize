@@ -54,7 +54,7 @@ namespace hz
 
 			// Reinit token
 			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->token.type = parser::NT_ROOT;
+			m_nodeRoot->token.type = parser::_ROOT;
 
 			// ****************************
 			void* shellParser = ParseAlloc(malloc);

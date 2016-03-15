@@ -70,19 +70,32 @@ namespace hz
 
 			// ****************************
 			yyscan_t scanner;
-			//haize_flex_data data;
-			//yylex_init_extra(&data, &scanner);
-			yylex_init(&scanner);
+			parser::Token sharedToken;
+			sharedToken.line = 1;
+			sharedToken.column = 1;
+			yylex_init_extra(&sharedToken, &scanner);
 			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
-			printf("yylex: %d\n", yylex(scanner));
+
+			do
+			{
+				sharedToken.type = (eTokenType)yylex(scanner);
+				m_tokenList->push_back(sharedToken);
+			} while(sharedToken.type > 0);
+
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 			// ****************************
 
-			parser::Token eof;
-			eof.type = parser::S_EOF;
-			m_tokenList->push_back(eof);
-
+			for(int i = 0; i < m_tokenList->size(); ++i)
+			{
+				sharedToken = m_tokenList->at(i);
+				printf("[%d:%d] yylex: %d | %s \n"
+						, sharedToken.line
+						, sharedToken.column
+						, sharedToken.type
+						, parser::TokenTypeStr[sharedToken.type]);
+			}
+			exit(0);
 			error.clear();
 			return true;
 		}

@@ -1,7 +1,7 @@
 %option reentrant
 %option noyywrap nodefault nounistd never-interactive
 %option warn nodebug
-
+%option extra-type="struct hz::parser::Token*"
 %{
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
 #pragma warning(disable: 4005) // macro redefinition (like INT8_MIN and so on...)
@@ -13,12 +13,8 @@ namespace utils
 	int bin2int(char* str);
 }
 
-#	if 0
-#define HZ_CHAR g_charCount += yyleng
-#	else
-#define HZ_CHAR
-#	endif
-#define HZ_TOK(token) /*if(!g_multiLineComment)*/ return token
+#define HZ_CHAR yyextra->column += yyleng
+#define HZ_TOK(token) return token
 
 #include <Muon/String.hpp>
 #include "Haize/Parser/Token.hpp"
@@ -47,7 +43,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 %%
 
 [ \t]		{ HZ_CHAR; }
-{NewLine}	{ /*++g_lineCount; g_charCount = 0;*/ }
+{NewLine}	{ ++yyextra->line; yyextra->column = 0; }
 {Separator}	{ HZ_CHAR; HZ_TOK(S_SEPARATOR); }
 
 
@@ -57,15 +53,15 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 <MultiLineComment>{
 	\*\/			{ BEGIN(INITIAL); }
 	[^*\r\n]		{ }
-	"*"				{ /*++g_charCount;*/ }
-	{NewLine}		{ /*++g_lineCount; g_charCount = 0;*/ }
+	"*"				{ ++yyextra->column; }
+	{NewLine}		{ ++yyextra->line; yyextra->column = 0; }
 }
-{LineComment}	{ /*++g_lineCount; g_charCount = 0;*/ }
+{LineComment}	{ ++yyextra->line; yyextra->column = 0; }
 
 
-"true"		{ /*HZ_CHAR; lexData->integer = 1; HZ_TOK(V_TRUE);*/ }
-"false"		{ /*HZ_CHAR; lexData->integer = 0; HZ_TOK(V_FALSE);*/ }
-"nil"		{ /*HZ_CHAR; lexData->integer = 0; HZ_TOK(V_NIL);*/ }
+"true"		{ HZ_CHAR; HZ_TOK(V_TRUE); }
+"false"		{ HZ_CHAR; HZ_TOK(V_FALSE); }
+"nil"		{ HZ_CHAR; HZ_TOK(V_NIL); }
 
 "if"		{ HZ_CHAR; HZ_TOK(K_IF); }
 "else"		{ HZ_CHAR; HZ_TOK(K_ELSE); }
@@ -84,25 +80,25 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 "out"		{ HZ_CHAR; HZ_TOK(K_OUT); }
 
 {HexNumber}	{
-	//lexData->integer = utils::hex2int(yytext);
+	yyextra->value = utils::hex2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_NUMBER);
 }
 
 {OctNumber}	{
-	//lexData->integer = utils::oct2int(yytext);
+	yyextra->value = utils::oct2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_NUMBER);
 }
 
 {BinNumber}	{
-	//lexData->integer = utils::bin2int(yytext);
+	yyextra->value = utils::bin2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_NUMBER);
 }
 
-{Integer}	{ /*HZ_CHAR; lexData->integer = atoi(yytext); HZ_TOK(V_NUMBER);*/ }
-{Float}		{ /*HZ_CHAR; lexData->floating = (float)atof(yytext); HZ_TOK(V_FLOATING);*/ }
+{Integer}	{ HZ_CHAR; yyextra->value = (m::i32)atoi(yytext); HZ_TOK(V_NUMBER); }
+{Float}		{ HZ_CHAR; yyextra->value = (m::f32)atof(yytext); HZ_TOK(V_NUMBER); }
 {Identifer}	{ /*HZ_CHAR; lexData->string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT);*/ }
 
 <INITIAL>{
@@ -115,7 +111,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 						HZ_TOK(V_STRING);
 					}
 	[^"\n]+			{ /*g_strBuffer += yytext;*/}
-	{NewLine}		{ /*g_strBuffer += yytext; ++g_lineCount; g_charCount = 0;*/ }
+	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yyextra->line; yyextra->column = 0; }
 }
 
 "."		{ HZ_CHAR; HZ_TOK(S_ACCESSOR); }
