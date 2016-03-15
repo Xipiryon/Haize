@@ -74,7 +74,7 @@ namespace hz
 			//yylex_init_extra(&data, &scanner);
 			yylex_init(&scanner);
 			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
-			yylex(scanner);
+			printf("yylex: %d\n", yylex(scanner));
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 			// ****************************

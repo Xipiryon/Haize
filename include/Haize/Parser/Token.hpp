@@ -37,6 +37,7 @@ namespace hz
 			K_BREAK,
 			K_CONTINUE,
 			K_RETURN,
+			K_GLOBAL,		//!< Specifier for global context variable
 			K_IN,			//!< In specifier for parameter
 			K_OUT,			//!< Out specifier for parameter
 
@@ -120,6 +121,7 @@ namespace hz
 			"K_BREAK",
 			"K_CONTINUE",
 			"K_RETURN",
+			"K_GLOBAL",
 			"K_IN",
 			"K_OUT",
 
