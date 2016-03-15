@@ -33,24 +33,10 @@ namespace hz
 
 		private:
 			// Variables
-			m::String m_loadBuffer;
-			std::vector<parser::Token>* m_tokenList;
-			parser::ASTNode* m_nodeRoot;
-			//SymbolTable m_symbols;
-			// Lexical
-			void pushToken(internal::ISharedData*, m::String&);
-			void pushSeparatorToken(internal::ISharedData*, m::String&);
-			// Syntaxic
-			void tokenError(Error& err, const parser::Token&, const m::String&);
-			bool readToken(internal::ISharedData*, parser::Token&, m::u32);
-			bool popToken(internal::ISharedData*, m::u32);
-
-			bool parseExpression(internal::ISharedData*);
-			bool parseGlobal(internal::ISharedData*);
-			bool parseNamespace(internal::ISharedData*);
-			bool parseClass(internal::ISharedData*);
-			bool parseFunction(internal::ISharedData*);
-			// Semantic
+			m::String m_loadBuffer;						// Load
+			std::vector<parser::Token>* m_tokenList;	// Lexical (Lex)
+			parser::ASTNode* m_nodeRoot;				// Syntaxic (Lemon)
+			//SymbolTable m_symbols;					// Semantic
 		};
 	}
 }

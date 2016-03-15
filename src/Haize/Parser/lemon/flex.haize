@@ -1,4 +1,4 @@
-%option noyywrap nodefault nounistd never-interactive
+%option noyywrap nodefault nounistd never-interactive reentrant
 %option warn nodebug
 
 %{
@@ -8,7 +8,7 @@
 // Generated file will be created in a subfolder called "generated/"
 // As we require some files that are not in "include/" folder,
 // we must look for them in with a relative path way.
-#include "../Extern.hpp"
+
 namespace hz
 {
 	namespace parser
@@ -17,9 +17,9 @@ namespace hz
 	}
 }
 
-namespace muon
+namespace m
 {
-	struct String;
+	class String;
 }
 
 // And as this file will be generated, it will be in the same folder

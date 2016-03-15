@@ -1,5 +1,9 @@
 
-%token_type {hz::parser::Token}
+// **********************************************
+// Configuration
+// **********************************************
+
+%token_type {const char*}
 
 %syntax_error
 {
@@ -8,8 +12,29 @@
 
 %include {
 	#include <iostream>
+	#include <cassert>
 	#include "Haize/Parser/Token.hpp"
 }
+
+// **********************************************
+// Token List
+// **********************************************
+
+%nonassoc 	S_COMMA
+			S_KEYWORD
+			S_LPARENT
+			S_RPARENT
+			S_LBRACKET
+			S_RBRACKET
+			S_LBRACE
+			S_RBRACE.
+
+%nonassoc	V_IDENTIFIER
+			V_NUMBER
+			V_STRING
+			V_NIL
+			V_TRUE
+			V_FALSE.
 
 %right	MATH_ASN
 		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
@@ -26,10 +51,13 @@
 %left	BITWISE_LSH BITWISE_RSH.
 %left	MATH_ADD MATH_SUB.
 %left	MATH_MUL MATH_DIV MATH_MOD.
-%right	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_SIGN.
-%left	MATH_POSTINC MATH_POSTDEC OP_ACCESSOR.
-%left	OP_NAMESPACE.
+%right	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_PLUS UNARY_MINUS.
+%left	MATH_POSTINC MATH_POSTDEC.
+%left	S_ACCESSOR.
 
+// **********************************************
+// Rules
+// **********************************************
 
 chunk ::= .
 
@@ -40,15 +68,15 @@ binop ::= MATH_MUL.
 binop ::= MATH_DIV.
 binop ::= MATH_MOD.
 
-const ::= NIL.
-const ::= TRUE.
-const ::= FALSE.
-const ::= STRING.
-const ::= NUMBER.
+const ::= V_NIL.
+const ::= V_TRUE.
+const ::= V_FALSE.
+const ::= V_STRING.
+const ::= V_NUMBER.
 
-var_type ::= IDENT IDENT.
+var_type ::= V_IDENTIFIER V_IDENTIFIER.
 
-func_call ::= ident S_LPARENT args_call S_RPARENT.
+func_call ::= V_IDENTIFIER S_LPARENT args_call S_RPARENT.
 args_call ::= .
 args_call ::= expr args_call_rec.
 args_call_rec ::= S_COMMA args_call.
