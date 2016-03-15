@@ -1,11 +1,18 @@
 
 -- Library
 -------------------------------------------
-function lemon(ProjectRoot)
-	local lemonPath = ProjectRoot.."/src/Haize/Parser/lemon/"
+function flexlemon(ProjectRoot)
+	local generatedPath = ProjectRoot.."/src/Haize/Parser/lemon/"
 	local lemonFile = "lemon.haize"
 	local lemonGen = "lemon.c"
-	os.chdir(lemonPath)
+	local flexFile = "flex.haize"
+	local flex = "flex"
+	if os.is("windows") then
+		flex = "flex.exe"
+	end
+
+	os.chdir(generatedPath)
+	os.execute(flex.." --outfile="..flexFile..".yy.cpp --header-file="..flexFile..".yy.hpp "..flexFile)
 	os.execute("rm "..lemonGen.."pp") -- remove .cpp
 	os.execute("lemon -s "..lemonFile)
 	os.execute("mv "..lemonGen.." "..lemonGen.."pp") -- rename .c to .cpp
@@ -32,10 +39,10 @@ project "HaizeLibrary"
 		defines { "HAIZE_EXPORTS" }
 
 newaction {
-	trigger	 = "lemon",
+	trigger	 = "flexlemon",
 	description = "Generate Lemon files",
 
 	execute = function ()
-		lemon(ProjectRoot)
+		flexlemon(ProjectRoot)
 	end
 }

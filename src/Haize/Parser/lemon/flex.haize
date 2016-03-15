@@ -39,55 +39,9 @@ namespace m
 // Some Utils functions
 namespace utils
 {
-	int hex2int(char* str)
-	{
-		int val = 0;
-		int i = 2; // Skip 0x
-		int len = strlen(str);
-		for(; i < len; ++i)
-		{
-			val <<= 4;
-			if(str[i] >= '0' && str[i] <= '9')
-			{
-				val |= str[i] - '0';
-			}
-			else if(str[i] >= 'a' && str[i] <= 'f')
-			{
-				val |= str[i] - 'a' + 10;
-			}
-			else
-			{
-				val |= str[i] - 'A' + 10;
-			}
-		}
-		return val;
-	}
-
-	int oct2int(char* str)
-	{
-		int val = 0;
-		int i = 1; // Skip 0
-		int len = strlen(str);
-		for(; i < len; ++i)
-		{
-			val <<= 3;
-			val |= str[i] - '0';
-		}
-		return val;
-	}
-
-	int bin2int(char* str)
-	{
-		int val= 0;
-		int i = 2; // Skip 0b
-		int len = strlen(str);
-		for(; i < len; ++i)
-		{
-			val <<= 1;
-			val |= (str[i] == '1' ? 1 : 0);
-		}
-		return val;
-	}
+	int hex2int(char* str);
+	int oct2int(char* str);
+	int bin2int(char* str);
 }
 
 // Now, let's just include the real type
@@ -95,7 +49,7 @@ namespace utils
 #include <Muon/String.hpp>
 #include "Haize/Parser/ASTNode.hpp"
 
-muon::String g_strBuffer;
+m::String g_strBuffer;
 
 %}
 
