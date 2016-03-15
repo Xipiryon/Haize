@@ -13,7 +13,7 @@ namespace hz
 		*/
 		enum eTokenType
 		{
-			S_INVALID = 0,
+			NT_ROOT = 0,
 			S_EOF,
 
 			S_COMMA,		//!< ','
@@ -27,16 +27,26 @@ namespace hz
 			S_LBRACE,		//!< '{'
 			S_RBRACE,		//!< '}'
 
-			E_VALUE_BEGIN,
+			K_NAMESPACE,
+			K_CLASS,
+			K_IF,
+			K_ELSE,
+			K_FOR,
+			K_WHILE,
+			K_SWITCH,
+			K_BREAK,
+			K_CONTINUE,
+			K_RETURN,
+			K_IN,			//!< In specifier for parameter
+			K_OUT,			//!< Out specifier for parameter
+
 			V_IDENTIFIER,	//!< An alphanumeric identifier
 			V_NUMBER,		//!< A number (in either dec, oct, bin or hex format)
 			V_STRING,		//!< A string contained between two '"' character
 			V_NIL,			//!<
 			V_TRUE,			//!<
 			V_FALSE,		//!<
-			E_VALUE_END,
 
-			E_LOGIC_OP_BEGIN,
 			LOGIC_EQ,		//!< '=='
 			LOGIC_NEQ,		//!< '!=' or 'not' keyword
 			LOGIC_LT,		//!< '<'
@@ -46,21 +56,17 @@ namespace hz
 			LOGIC_NOT,		//!< '!'
 			LOGIC_AND,		//!< '&&' or 'and' keyword
 			LOGIC_OR,		//!< '||' or 'or' keyword
-			E_LOGIC_OP_END,
 
-			E_BITWISE_OP_BEGIN,
 			BITWISE_AND,	//!< '&'
 			BITWISE_OR,		//!< '|'
 			BITWISE_XOR,	//!< '^'
 			BITWISE_NOT,	//!< '~'
 			BITWISE_LSH,	//!< '<<'
 			BITWISE_RSH,	//!< '>>'
-			E_BITWISE_OP_END,
 
 			UNARY_PLUS,		//!< '+' before an expression (is optional: +5 <=> 5)
 			UNARY_MINUS,	//!< '-' before an expression (so -5 is not parsed as 0-5)
 
-			E_MATH_OP_BEGIN,
 			MATH_ADD,		//!< '+'
 			MATH_SUB,		//!< '-'
 			MATH_MUL,		//!< '*'
@@ -68,41 +74,19 @@ namespace hz
 			MATH_MOD,		//!< '%'
 			MATH_INC,		//!< '++'
 			MATH_DEC,		//!< '--'
-			E_MATH_OP_END,
 
-			E_ASN_OP_BEGIN,
 			MATH_ASN,		//!< '='
 			MATH_ASN_ADD,	//!< '+='
 			MATH_ASN_SUB,	//!< '-='
 			MATH_ASN_MUL,	//!< '/='
 			MATH_ASN_DIV,	//!< '*='
 			MATH_ASN_MOD,	//!< '%='
-			MATH_ASN_AND,	//!< '&='
-			MATH_ASN_OR,	//!< '|='
-			MATH_ASN_XOR,	//!< '^='
-			MATH_ASN_NOT,	//!< '~='
-			E_ASN_OP_END,
-
-			E_TERMINALTOKEN_END,
-
-			NT_ROOT,
-			NT_FUNCTION_DECL,
-			NT_FUNCTION_ARGS,
-			NT_CLASS_DECL,
-			NT_CLASS_MEMBER,
-			NT_CLASS_CONSTRUCTOR,
-			NT_CLASS_DESTRUCTOR,
-			NT_GLOBAL,
-			NT_NAMESPACE,
-			NT_EXPR,
-			NT_EXPR_CSTR,
-			NT_EXPR_DSTR,
-			NT_EXPR_FUNC_CALL,
-			NT_EXPR_IF,
-			NT_EXPR_FOR,
-			NT_EXPR_WHILE,
-			NT_EXPR_RETURN,
-			NT_EXPR_BREAK,
+			MATH_ASN_BITWISE_AND,	//!< '&='
+			MATH_ASN_BITWISE_OR,	//!< '|='
+			MATH_ASN_BITWISE_XOR,	//!< '^='
+			MATH_ASN_BITWISE_NOT,	//!< '~='
+			MATH_ASN_BITWISE_LSH,	//!< '<<='
+			MATH_ASN_BITWISE_RSH,	//!< '>>='
 
 			TOTAL_COUNT		//!< '' Total Count of every stored TokenType,
 		};
@@ -112,7 +96,7 @@ namespace hz
 		*/
 		static const char* TokenTypeStr[eTokenType::TOTAL_COUNT] =
 		{
-			"S_INVALID",
+			"NT_ROOT",
 			"S_EOF",
 
 			"S_COMMA",
@@ -126,16 +110,26 @@ namespace hz
 			"S_LBRACE",
 			"S_RBRACE",
 
-			"E_VALUE_BEGIN",
+			"K_NAMESPACE",
+			"K_CLASS",
+			"K_IF",
+			"K_ELSE",
+			"K_FOR",
+			"K_WHILE",
+			"K_SWITCH",
+			"K_BREAK",
+			"K_CONTINUE",
+			"K_RETURN",
+			"K_IN",
+			"K_OUT",
+
 			"V_IDENTIFIER",
 			"V_NUMBER",
 			"V_STRING",
 			"V_NIL",
 			"V_TRUE",
 			"V_FALSE",
-			"E_VALUE_END",
 
-			"",
 			"LOGIC_EQU",
 			"LOGIC_DIFF",
 			"LOGIC_LT",
@@ -145,21 +139,17 @@ namespace hz
 			"LOGIC_NOT",
 			"LOGIC_AND",
 			"LOGIC_OR",
-			"",
 
-			"",
 			"BITWISE_AND",
 			"BITWISE_OR",
 			"BITWISE_XOR",
 			"BITWISE_NOT",
 			"BITWISE_LSH",
 			"BITWISE_RSH",
-			"",
 
 			"UNARY_PLUS",
 			"UNARY_MINUS",
 
-			"",
 			"MATH_ADD",
 			"MATH_SUB",
 			"MATH_MUL",
@@ -167,41 +157,19 @@ namespace hz
 			"MATH_MOD",
 			"MATH_INC",
 			"MATH_DEC",
-			"",
 
-			"",
 			"MATH_ASN",
 			"MATH_ASN_ADD",
 			"MATH_ASN_SUB",
 			"MATH_ASN_MUL",
 			"MATH_ASN_DIV",
 			"MATH_ASN_MOD",
-			"MATH_ASN_AND",
-			"MATH_ASN_OR",
-			"MATH_ASN_XOR",
-			"MATH_ASN_NOT",
-			"",
-
-			"",
-
-			"NT_ROOT",
-			"NT_FUNCTION_DECL",
-			"NT_FUNCTION_ARGS",
-			"NT_CLASS_DECL",
-			"NT_CLASS_MEMBER",
-			"NT_CLASS_CONSTRUCTOR",
-			"NT_CLASS_DESTRUCTOR",
-			"NT_GLOBAL",
-			"NT_NAMESPACE",
-			"NT_EXPR",
-			"NT_EXPR_CSTR",
-			"NT_EXPR_DSTR",
-			"NT_EXPR_FUNC_CALL",
-			"NT_EXPR_IF",
-			"NT_EXPR_FOR",
-			"NT_EXPR_WHILE",
-			"NT_EXPR_RETURN",
-			"NT_EXPR_BREAK",
+			"MATH_ASN_BITWISE_AND",
+			"MATH_ASN_BITWISE_OR",
+			"MATH_ASN_BITWISE_XOR",
+			"MATH_ASN_BITWISE_NOT",
+			"MATH_ASN_BITWISE_LSH",
+			"MATH_ASN_BITWISE_RSH",
 		};
 
 		/*!
@@ -210,9 +178,16 @@ namespace hz
 		struct HAIZE_API Token
 		{
 			Token()
-				: type(S_INVALID)
+				: type(S_EOF)
 				, line(0)
 				, column(0)
+			{
+			}
+
+			Token(eTokenType type_, m::u32 line_, m::u32 column_)
+				: type(type_)
+				, line(line_)
+				, column(column_)
 			{
 			}
 
@@ -227,7 +202,6 @@ namespace hz
 				{
 					type = t.type;
 					value = t.value;
-					section = t.section;
 					line = t.line;
 					column = t.column;
 				};
@@ -237,7 +211,6 @@ namespace hz
 			eTokenType type;
 			m::Variant value;
 
-			m::String section;
 			m::u32 line;
 			m::u32 column;
 		};

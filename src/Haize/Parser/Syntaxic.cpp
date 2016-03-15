@@ -56,16 +56,12 @@ namespace hz
 			m_nodeRoot->name = "#ROOT#";
 			m_nodeRoot->token.type = parser::NT_ROOT;
 
-			/*
+			// ****************************
 			void* shellParser = ParseAlloc(malloc);
-			Parse(shellParser, V_IDENTIFIER, "a");
-			Parse(shellParser, MATH_ASN, "=");
-			Parse(shellParser, V_NUMBER, "1");
-			Parse(shellParser, MATH_ADD, "+");
-			Parse(shellParser, V_NUMBER, "2");
+
 			Parse(shellParser, 0, 0);
 			ParseFree(shellParser, free);
-			//*/
+			// ****************************
 
 			return true;
 		}

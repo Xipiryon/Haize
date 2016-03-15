@@ -1,42 +1,11 @@
-%option noyywrap nodefault nounistd never-interactive reentrant
+%option reentrant
+%option noyywrap nodefault nounistd never-interactive
 %option warn nodebug
 
 %{
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
 #pragma warning(disable: 4005) // macro redefinition (like INT8_MIN and so on...)
 
-// Generated file will be created in a subfolder called "generated/"
-// As we require some files that are not in "include/" folder,
-// we must look for them in with a relative path way.
-
-namespace hz
-{
-	namespace parser
-	{
-		struct ASTNode;
-	}
-}
-
-namespace m
-{
-	class String;
-}
-
-// And as this file will be generated, it will be in the same folder
-// as the current one, so no worries.
-#include "yacc.haize.hpp"
-
-// Define our own processInput function,
-// so we can send either a file or a buffer, instead of relying upon the
-// standard input.
-#undef YY_INPUT
-#define YY_INPUT(b,r,s) processInput(b,(int*)&r,s)
-
-// We'll use a define, because it's shorter
-#define HZ_CHAR g_charCount += yyleng
-#define HZ_TOK(token) if(!g_multiLineComment) return token
-
-// Some Utils functions
 namespace utils
 {
 	int hex2int(char* str);
@@ -44,12 +13,16 @@ namespace utils
 	int bin2int(char* str);
 }
 
-// Now, let's just include the real type
-// (include order and all that stuff)
-#include <Muon/String.hpp>
-#include "Haize/Parser/ASTNode.hpp"
+#	if 0
+#define HZ_CHAR g_charCount += yyleng
+#define HZ_TOK(token) if(!g_multiLineComment) return token
+#	else
+#define HZ_CHAR
+#define HZ_TOK(token)
+#	endif
 
-m::String g_strBuffer;
+#include <Muon/String.hpp>
+#include "Haize/Parser/Token.hpp"
 
 %}
 
@@ -74,7 +47,7 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 %%
 
 [ \t]		{ HZ_CHAR; }
-{NewLine}	{ ++g_lineCount; g_charCount = 0; }
+{NewLine}	{ /*++g_lineCount; g_charCount = 0;*/ }
 {Separator}	{ HZ_CHAR; HZ_TOK(S_SEPARATOR); }
 
 
@@ -84,68 +57,69 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 <MultiLineComment>{
 	\*\/			{ BEGIN(INITIAL); }
 	[^*\r\n]		{ }
-	"*"				{ ++g_charCount; }
-	{NewLine}		{ ++g_lineCount; g_charCount = 0; }
+	"*"				{ /*++g_charCount;*/ }
+	{NewLine}		{ /*++g_lineCount; g_charCount = 0;*/ }
 }
-{LineComment}	{ ++g_lineCount; g_charCount = 0; }
+{LineComment}	{ /*++g_lineCount; g_charCount = 0;*/ }
 
 
-"true"		{ HZ_CHAR; yylval.integer = 1; HZ_TOK(V_TRUE); }
-"false"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_FALSE); }
-"nil"		{ HZ_CHAR; yylval.integer = 0; HZ_TOK(V_NIL); }
+"true"		{ /*HZ_CHAR; lexData->integer = 1; HZ_TOK(V_TRUE);*/ }
+"false"		{ /*HZ_CHAR; lexData->integer = 0; HZ_TOK(V_FALSE);*/ }
+"nil"		{ /*HZ_CHAR; lexData->integer = 0; HZ_TOK(V_NIL);*/ }
 
 "if"		{ HZ_CHAR; HZ_TOK(K_IF); }
 "else"		{ HZ_CHAR; HZ_TOK(K_ELSE); }
 "for"		{ HZ_CHAR; HZ_TOK(K_FOR); }
 "while"		{ HZ_CHAR; HZ_TOK(K_WHILE); }
 "do"		{ HZ_CHAR; HZ_TOK(K_DO); }
-"in"		{ HZ_CHAR; HZ_TOK(K_IN); }
+"switch"	{ HZ_CHAR; HZ_TOK(K_SWITCH); }
+"break"		{ HZ_CHAR; HZ_TOK(K_BREAK); }
+"continue"	{ HZ_CHAR; HZ_TOK(K_CONTINUE); }
 "return"	{ HZ_CHAR; HZ_TOK(K_RETURN); }
 
 "global"	{ HZ_CHAR; HZ_TOK(K_GLOBAL); }
 
 "namespace"	{ HZ_CHAR; HZ_TOK(K_NAMESPACE); }
-"struct"	{ HZ_CHAR; HZ_TOK(K_STRUCT); }
-"attr"		{ HZ_CHAR; HZ_TOK(K_ATTR); }
-"function"	{ HZ_CHAR; HZ_TOK(K_FUNCTION); }
+"class"		{ HZ_CHAR; HZ_TOK(K_CLASS); }
+"in"		{ HZ_CHAR; HZ_TOK(K_IN); }
+"out"		{ HZ_CHAR; HZ_TOK(K_OUT); }
 
 {HexNumber}	{
-	yylval.integer = utils::hex2int(yytext);
+	//lexData->integer = utils::hex2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_INTEGER);
 }
 
 {OctNumber}	{
-	yylval.integer = utils::oct2int(yytext);
+	//lexData->integer = utils::oct2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_INTEGER);
 }
 
 {BinNumber}	{
-	yylval.integer = utils::bin2int(yytext);
+	//lexData->integer = utils::bin2int(yytext);
 	HZ_CHAR;
 	HZ_TOK(V_INTEGER);
 }
 
-{Integer}	{ HZ_CHAR; yylval.integer = atoi(yytext); HZ_TOK(V_INTEGER); }
-{Float}		{ HZ_CHAR; yylval.floating = (float)atof(yytext); HZ_TOK(V_FLOATING); }
-{Identifer}	{ HZ_CHAR; yylval.string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT); }
+{Integer}	{ /*HZ_CHAR; lexData->integer = atoi(yytext); HZ_TOK(V_INTEGER);*/ }
+{Float}		{ /*HZ_CHAR; lexData->floating = (float)atof(yytext); HZ_TOK(V_FLOATING);*/ }
+{Identifer}	{ /*HZ_CHAR; lexData->string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT);*/ }
 
 <INITIAL>{
 	\"			{ BEGIN(StringBlock); }
 }
 <StringBlock>{
 	\"				{	BEGIN(INITIAL);
-						yylval.string = MUON_CNEW(muon::String, g_strBuffer);
-						g_strBuffer.clear();
+						//yylval.string = MUON_CNEW(muon::String, g_strBuffer);
+						//g_strBuffer.clear();
 						HZ_TOK(V_STRING);
 					}
-	[^"\n]+			{ g_strBuffer += yytext;}
-	{NewLine}		{ g_strBuffer += yytext; ++g_lineCount; g_charCount = 0; }
+	[^"\n]+			{ /*g_strBuffer += yytext;*/}
+	{NewLine}		{ /*g_strBuffer += yytext; ++g_lineCount; g_charCount = 0;*/ }
 }
 
-"."		{ HZ_CHAR; HZ_TOK(OP_ACCESSOR); }
-"::"	{ HZ_CHAR; HZ_TOK(OP_NAMESPACE); }
+"."		{ HZ_CHAR; HZ_TOK(S_ACCESSOR); }
 ","		{ HZ_CHAR; HZ_TOK(S_COMMA); }
 "("		{ HZ_CHAR; HZ_TOK(S_LPARENT); }
 ")"		{ HZ_CHAR; HZ_TOK(S_RPARENT); }
@@ -179,16 +153,16 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 
 ">>"	{ HZ_CHAR; HZ_TOK(BITWISE_RSH); }
 "<<"	{ HZ_CHAR; HZ_TOK(BITWISE_LSH); }
-">>="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_RSH); }
-"<<="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_LSH); }
 "&"		{ HZ_CHAR; HZ_TOK(BITWISE_AND); }
 "|"		{ HZ_CHAR; HZ_TOK(BITWISE_OR); }
 "~"		{ HZ_CHAR; HZ_TOK(BITWISE_NOT); }
 "^"		{ HZ_CHAR; HZ_TOK(BITWISE_XOR); }
 "&="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_AND); }
 "|="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_OR); }
-"~="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_NOT); }
 "^="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_XOR); }
+"~="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_NOT); }
+">>="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_RSH); }
+"<<="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_LSH); }
 
 .		{ HZ_CHAR; }
 <<EOF>>	{ yyterminate(); }

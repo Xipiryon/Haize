@@ -3,6 +3,8 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
+#include "./lemon/flex.haize.yy.hpp"
+
 namespace utils
 {
 	int hex2int(char* str)
@@ -66,9 +68,17 @@ namespace hz
 			error.step = Error::COMPILATION;
 			m_tokenList->clear();
 
+			// ****************************
+			yyscan_t scanner;
+			//haize_flex_data data;
+			//yylex_init_extra(&data, &scanner);
+			yylex_init(&scanner);
+			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
+			yylex(scanner);
+			yy_delete_buffer(buffer, scanner);
+			yylex_destroy(scanner);
+			// ****************************
 
-
-			// Push the EOF token
 			parser::Token eof;
 			eof.type = parser::S_EOF;
 			m_tokenList->push_back(eof);
