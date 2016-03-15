@@ -1,6 +1,16 @@
 
 %token_type {hz::parser::Token}
 
+%syntax_error
+{
+	std::cout << "Parsing Error occured!" << std::endl;
+}
+
+%include {
+	#include <iostream>
+	#include "Haize/Parser/Token.hpp"
+}
+
 %right	MATH_ASN
 		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
 		MATH_ASN_BITWISE_OR MATH_ASN_BITWISE_AND
@@ -20,16 +30,8 @@
 %left	MATH_POSTINC MATH_POSTDEC OP_ACCESSOR.
 %left	OP_NAMESPACE.
 
-%include {
-	#include <iostream>
-}
-
-%syntax_error {
-	std::cout << "Syntax error!" << std::endl;
-}
 
 chunk ::= .
-
 
 asnop ::= MATH_ASN.
 binop ::= MATH_ADD.
