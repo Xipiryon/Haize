@@ -34,8 +34,9 @@ BinNumber	0[bB][0-1]+
 
 _IntRange	[0-9]
 Integer		[1-9]{_IntRange}*|0
-Float		{_IntRange}\.{_IntRange}*f?
 Identifer	{_Letters}({_Letters}|{_IntRange})*
+Float		{_IntRange}+\.{_IntRange}*f?
+
 %x StringBlock
 
 %%
