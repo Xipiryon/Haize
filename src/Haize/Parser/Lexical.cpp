@@ -68,7 +68,6 @@ namespace hz
 			error.step = Error::COMPILATION;
 			m_tokenList->clear();
 
-			// ****************************
 			yyscan_t scanner;
 			parser::Token sharedToken;
 			sharedToken.line = 1;
@@ -86,23 +85,8 @@ namespace hz
 
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
-			// ****************************
 
-			for(int i = 0; i < m_tokenList->size(); ++i)
-			{
-				sharedToken = m_tokenList->at(i);
-				printf("[%d:%d] yylex: %d | %s | %s \n"
-						, sharedToken.line
-						, sharedToken.column
-						, sharedToken.type
-						, parser::TokenTypeStr[sharedToken.type]
-						, (sharedToken.value.getMeta() == MUON_META(m::String)
-							? sharedToken.value.get<m::String>().cStr()
-							: sharedToken.value.getMeta()->name())
-					);
-			}
-			exit(0);
-			error.clear();
+			error.state = Error::SUCCESS;
 			return true;
 		}
 	}
