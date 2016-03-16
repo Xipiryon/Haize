@@ -13,13 +13,11 @@ namespace utils
 	int bin2int(char* str);
 }
 
-#define HZ_CHAR yyextra->column += yyleng
-#define HZ_TOK(token) return token
-
 #include <Muon/String.hpp>
 #include "Haize/Parser/Token.hpp"
 
 using namespace hz::parser;
+#define HZ_DEBUG(msg) {printf("[%d:%d] %s\n", yyextra->line, yyextra->column, msg);}
 %}
 
 _Letters	[a-zA-Z_]
@@ -42,122 +40,122 @@ Identifer	{_Letters}({_Letters}|{_IntRange})*
 
 %%
 
-[ \t]		{ HZ_CHAR; }
-{NewLine}	{ ++yyextra->line; yyextra->column = 0; }
-{Separator}	{ HZ_CHAR; HZ_TOK(S_SEPARATOR); }
+[[:blank:]]	{ yyextra->column += yyleng; }
+{NewLine}	{ ++yyextra->line; yyextra->column = 1; }
+{Separator}	{ return S_SEPARATOR; }
 
 
 <INITIAL>{
-	\/\*			{ BEGIN(MultiLineComment); }
+	\/\*			{ BEGIN(MultiLineComment); yyextra->column += yyleng; }
 }
 <MultiLineComment>{
-	\*\/			{ BEGIN(INITIAL); }
-	[^*\r\n]		{ }
-	"*"				{ ++yyextra->column; }
-	{NewLine}		{ ++yyextra->line; yyextra->column = 0; }
+	\*\/			{ BEGIN(INITIAL); yyextra->column += yyleng; }
+	[^*\r\n]		{ yyextra->column += yyleng; }
+	"*"				{ yyextra->column += yyleng; }
+	{NewLine}		{ ++yyextra->line; yyextra->column = 1; }
 }
-{LineComment}	{ ++yyextra->line; yyextra->column = 0; }
+{LineComment}	{ ++yyextra->line; yyextra->column = 1; }
 
 
-"true"		{ HZ_CHAR; HZ_TOK(V_TRUE); }
-"false"		{ HZ_CHAR; HZ_TOK(V_FALSE); }
-"nil"		{ HZ_CHAR; HZ_TOK(V_NIL); }
+"true"		{ return V_TRUE; }
+"false"		{ return V_FALSE; }
+"nil"		{ return V_NIL; }
 
-"if"		{ HZ_CHAR; HZ_TOK(K_IF); }
-"else"		{ HZ_CHAR; HZ_TOK(K_ELSE); }
-"for"		{ HZ_CHAR; HZ_TOK(K_FOR); }
-"while"		{ HZ_CHAR; HZ_TOK(K_WHILE); }
-"switch"	{ HZ_CHAR; HZ_TOK(K_SWITCH); }
-"break"		{ HZ_CHAR; HZ_TOK(K_BREAK); }
-"continue"	{ HZ_CHAR; HZ_TOK(K_CONTINUE); }
-"return"	{ HZ_CHAR; HZ_TOK(K_RETURN); }
+"if"		{ return K_IF; }
+"else"		{ return K_ELSE; }
+"for"		{ return K_FOR; }
+"while"		{ return K_WHILE; }
+"switch"	{ return K_SWITCH; }
+"break"		{ return K_BREAK; }
+"continue"	{ return K_CONTINUE; }
+"return"	{ return K_RETURN; }
 
-"global"	{ HZ_CHAR; HZ_TOK(K_GLOBAL); }
+"global"	{ return K_GLOBAL; }
 
-"namespace"	{ HZ_CHAR; HZ_TOK(K_NAMESPACE); }
-"class"		{ HZ_CHAR; HZ_TOK(K_CLASS); }
-"in"		{ HZ_CHAR; HZ_TOK(K_IN); }
-"out"		{ HZ_CHAR; HZ_TOK(K_OUT); }
+"namespace"	{ return K_NAMESPACE; }
+"class"		{ return K_CLASS; }
+"in"		{ return K_IN; }
+"out"		{ return K_OUT; }
 
 {HexNumber}	{
 	yyextra->value = utils::hex2int(yytext);
-	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	yyextra->column += yyleng;
+	return V_NUMBER;
 }
 
 {OctNumber}	{
 	yyextra->value = utils::oct2int(yytext);
-	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	yyextra->column += yyleng;
+	return V_NUMBER;
 }
 
 {BinNumber}	{
 	yyextra->value = utils::bin2int(yytext);
-	HZ_CHAR;
-	HZ_TOK(V_NUMBER);
+	yyextra->column += yyleng;
+	return V_NUMBER;
 }
 
-{Integer}	{ HZ_CHAR; yyextra->value = (m::i32)atoi(yytext); HZ_TOK(V_NUMBER); }
-{Float}		{ HZ_CHAR; yyextra->value = (m::f32)atof(yytext); HZ_TOK(V_NUMBER); }
-{Identifer}	{ HZ_CHAR; /*lexData->string = MUON_CNEW(muon::String, yytext); HZ_TOK(V_IDENT);*/ }
+{Integer}	{ yyextra->value = (m::i32)atoi(yytext); return V_NUMBER; }
+{Float}		{ yyextra->value = (m::f32)atof(yytext); return V_NUMBER; }
+{Identifer}	{ /*lexData->string = MUON_CNEW(muon::String, yytext);*/ return V_IDENTIFIER; }
 
 <INITIAL>{
-	\"			{ BEGIN(StringBlock); }
+	\"			{ BEGIN(StringBlock); yyextra->column += yyleng; }
 }
 <StringBlock>{
 	\"				{	BEGIN(INITIAL);
 						//yylval.string = MUON_CNEW(muon::String, g_strBuffer);
 						//g_strBuffer.clear();
-						HZ_TOK(V_STRING);
+						return V_STRING;
 					}
-	[^"\n]+			{ /*g_strBuffer += yytext;*/}
-	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yyextra->line; yyextra->column = 0; }
+	[^"\n]+			{ /*g_strBuffer += yytext;*/ yyextra->column += yyleng;}
+	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yyextra->line; yyextra->column = 1; }
 }
 
-"."		{ HZ_CHAR; HZ_TOK(S_ACCESSOR); }
-","		{ HZ_CHAR; HZ_TOK(S_COMMA); }
-"("		{ HZ_CHAR; HZ_TOK(S_LPARENT); }
-")"		{ HZ_CHAR; HZ_TOK(S_RPARENT); }
-"{"		{ HZ_CHAR; HZ_TOK(S_LBRACE); }
-"}"		{ HZ_CHAR; HZ_TOK(S_RBRACE); }
-"["		{ HZ_CHAR; HZ_TOK(S_LBRACKET); }
-"]"		{ HZ_CHAR; HZ_TOK(S_RBRACKET); }
+"."		{ return S_ACCESSOR; }
+","		{ return S_COMMA; }
+"("		{ return S_LPARENT; }
+")"		{ return S_RPARENT; }
+"{"		{ return S_LBRACE; }
+"}"		{ return S_RBRACE; }
+"["		{ return S_LBRACKET; }
+"]"		{ return S_RBRACKET; }
 
-"="		{ HZ_CHAR; HZ_TOK(MATH_ASN); }
-"+"		{ HZ_CHAR; HZ_TOK(MATH_ADD); }
-"-"		{ HZ_CHAR; HZ_TOK(MATH_SUB); }
-"*"		{ HZ_CHAR; HZ_TOK(MATH_MUL); }
-"/"		{ HZ_CHAR; HZ_TOK(MATH_DIV); }
-"%"		{ HZ_CHAR; HZ_TOK(MATH_MOD); }
+"="		{ return MATH_ASN; }
+"+"		{ return MATH_ADD; }
+"-"		{ return MATH_SUB; }
+"*"		{ return MATH_MUL; }
+"/"		{ return MATH_DIV; }
+"%"		{ return MATH_MOD; }
 
-"+="	{ HZ_CHAR; HZ_TOK(MATH_ASN_ADD); }
-"-="	{ HZ_CHAR; HZ_TOK(MATH_ASN_SUB); }
-"*="	{ HZ_CHAR; HZ_TOK(MATH_ASN_MUL); }
-"/="	{ HZ_CHAR; HZ_TOK(MATH_ASN_DIV); }
-"%="	{ HZ_CHAR; HZ_TOK(MATH_ASN_MOD); }
+"+="	{ return MATH_ASN_ADD; }
+"-="	{ return MATH_ASN_SUB; }
+"*="	{ return MATH_ASN_MUL; }
+"/="	{ return MATH_ASN_DIV; }
+"%="	{ return MATH_ASN_MOD; }
 
-"<"		{ HZ_CHAR; HZ_TOK(LOGIC_LT); }
-">"		{ HZ_CHAR; HZ_TOK(LOGIC_GT); }
-"<="	{ HZ_CHAR; HZ_TOK(LOGIC_LET); }
-">="	{ HZ_CHAR; HZ_TOK(LOGIC_GET); }
-"=="	{ HZ_CHAR; HZ_TOK(LOGIC_EQ); }
-"!="	{ HZ_CHAR; HZ_TOK(LOGIC_NEQ); }
-"&&"	{ HZ_CHAR; HZ_TOK(LOGIC_AND); }
-"||"	{ HZ_CHAR; HZ_TOK(LOGIC_OR); }
-"!"		{ HZ_CHAR; HZ_TOK(LOGIC_NOT); }
+"<"		{ return LOGIC_LT; }
+">"		{ return LOGIC_GT; }
+"<="	{ return LOGIC_LET; }
+">="	{ return LOGIC_GET; }
+"=="	{ return LOGIC_EQ; }
+"!="	{ return LOGIC_NEQ; }
+"&&"	{ return LOGIC_AND; }
+"||"	{ return LOGIC_OR; }
+"!"		{ return LOGIC_NOT; }
 
-">>"	{ HZ_CHAR; HZ_TOK(BITWISE_RSH); }
-"<<"	{ HZ_CHAR; HZ_TOK(BITWISE_LSH); }
-"&"		{ HZ_CHAR; HZ_TOK(BITWISE_AND); }
-"|"		{ HZ_CHAR; HZ_TOK(BITWISE_OR); }
-"~"		{ HZ_CHAR; HZ_TOK(BITWISE_NOT); }
-"^"		{ HZ_CHAR; HZ_TOK(BITWISE_XOR); }
-"&="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_AND); }
-"|="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_OR); }
-"^="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_XOR); }
-"~="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_NOT); }
-">>="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_RSH); }
-"<<="	{ HZ_CHAR; HZ_TOK(MATH_ASN_BITWISE_LSH); }
+">>"	{ return BITWISE_RSH; }
+"<<"	{ return BITWISE_LSH; }
+"&"		{ return BITWISE_AND; }
+"|"		{ return BITWISE_OR; }
+"~"		{ return BITWISE_NOT; }
+"^"		{ return BITWISE_XOR; }
+"&="	{ return MATH_ASN_BITWISE_AND; }
+"|="	{ return MATH_ASN_BITWISE_OR; }
+"^="	{ return MATH_ASN_BITWISE_XOR; }
+"~="	{ return MATH_ASN_BITWISE_NOT; }
+">>="	{ return MATH_ASN_BITWISE_RSH; }
+"<<="	{ return MATH_ASN_BITWISE_LSH; }
 
-.		{ HZ_CHAR; }
+.		{ yyextra->column += yyleng; }
 <<EOF>>	{ yyterminate(); }

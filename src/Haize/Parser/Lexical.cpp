@@ -80,6 +80,7 @@ namespace hz
 			{
 				sharedToken.type = (eTokenType)yylex(scanner);
 				m_tokenList->push_back(sharedToken);
+				sharedToken.column += strlen(yyget_text(scanner));
 			} while(sharedToken.type > 0);
 
 			yy_delete_buffer(buffer, scanner);
