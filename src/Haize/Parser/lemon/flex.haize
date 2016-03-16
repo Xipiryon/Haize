@@ -96,9 +96,9 @@ Float		{_IntRange}+\.{_IntRange}*f?
 	return V_NUMBER;
 }
 
-{Integer}	{ yyextra->value = (m::i32)atoi(yytext); return V_NUMBER; }
-{Float}		{ yyextra->value = (m::f32)atof(yytext); return V_NUMBER; }
-{Identifer}	{ /*lexData->string = MUON_CNEW(muon::String, yytext);*/ return V_IDENTIFIER; }
+{Integer}	{ yyextra->value = (m::i32)atoi(yytext);	return V_NUMBER; }
+{Float}		{ yyextra->value = (m::f32)atof(yytext);	return V_NUMBER; }
+{Identifer}	{ yyextra->value = m::String(yytext);		return V_IDENTIFIER; }
 
 <INITIAL>{
 	\"			{ BEGIN(StringBlock); yyextra->column += yyleng; }

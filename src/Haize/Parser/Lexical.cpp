@@ -81,6 +81,7 @@ namespace hz
 				sharedToken.type = (eTokenType)yylex(scanner);
 				m_tokenList->push_back(sharedToken);
 				sharedToken.column += strlen(yyget_text(scanner));
+				sharedToken.value.reset();
 			} while(sharedToken.type > 0);
 
 			yy_delete_buffer(buffer, scanner);
@@ -90,11 +91,15 @@ namespace hz
 			for(int i = 0; i < m_tokenList->size(); ++i)
 			{
 				sharedToken = m_tokenList->at(i);
-				printf("[%d:%d] yylex: %d | %s \n"
+				printf("[%d:%d] yylex: %d | %s | %s \n"
 						, sharedToken.line
 						, sharedToken.column
 						, sharedToken.type
-						, parser::TokenTypeStr[sharedToken.type]);
+						, parser::TokenTypeStr[sharedToken.type]
+						, (sharedToken.value.getMeta() == MUON_META(m::String)
+							? sharedToken.value.get<m::String>().cStr()
+							: sharedToken.value.getMeta()->name())
+					);
 			}
 			exit(0);
 			error.clear();
