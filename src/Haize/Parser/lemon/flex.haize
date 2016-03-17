@@ -15,8 +15,8 @@ namespace utils
 
 #include <Muon/String.hpp>
 #include "Haize/Parser/Token.hpp"
+#include "lemon.h"
 
-using namespace hz::parser;
 #define HZ_DEBUG(msg) {printf("[%d:%d] %s\n", yyextra->line, yyextra->column, msg);}
 %}
 

@@ -9,21 +9,21 @@ namespace hz
 	namespace parser
 	{
 		ASTNode::ASTNode()
-			: name("#ANONYMOUS#")
+			: name("#TOKEN#")
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
 
-		ASTNode::ASTNode(eTokenType type_)
-			: name(TokenTypeStr[type_])
+		ASTNode::ASTNode(m::u32 type_)
+			: name("#TOKEN#")
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 			token.type = type_;
 		}
 
-		ASTNode::ASTNode(eTokenType type_, const m::String& name_)
+		ASTNode::ASTNode(m::u32 type_, const m::String& name_)
 			: name(name_)
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
@@ -32,7 +32,7 @@ namespace hz
 		}
 
 		ASTNode::ASTNode(const Token& token_)
-			: name(TokenTypeStr[token_.type])
+			: name("#TOKEN#")
 			, token(token_)
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
@@ -48,12 +48,12 @@ namespace hz
 			delete children;
 		}
 
-		ASTNode* ASTNode::addChild(eTokenType type)
+		ASTNode* ASTNode::addChild(m::u32 type)
 		{
-			return addChild(type, TokenTypeStr[type]);
+			return addChild(type, "#TOKEN#");
 		}
 
-		ASTNode* ASTNode::addChild(eTokenType type, const m::String& name)
+		ASTNode* ASTNode::addChild(m::u32 type, const m::String& name)
 		{
 			ASTNode* node = MUON_NEW(ASTNode, type, name);
 			node->parent = this;
@@ -63,7 +63,7 @@ namespace hz
 
 		ASTNode* ASTNode::addChild(const Token& token)
 		{
-			ASTNode* c = addChild(token.type, TokenTypeStr[token.type]);
+			ASTNode* c = addChild(token.type);
 			c->token = token;
 			return c;
 		}

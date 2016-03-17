@@ -8,9 +8,7 @@ namespace hz
 {
 	namespace parser
 	{
-		/*!
-		*
-		*/
+		/*
 		enum eTokenType
 		{
 			_EOF = 0,	//!< Private
@@ -92,9 +90,6 @@ namespace hz
 			TOTAL_COUNT		//!< '' Total Count of every stored TokenType,
 		};
 
-		/*!
-		*
-		*/
 		static const char* TokenTypeStr[eTokenType::TOTAL_COUNT] =
 		{
 			"_EOF",
@@ -173,6 +168,7 @@ namespace hz
 			"MATH_ASN_BITWISE_LSH",
 			"MATH_ASN_BITWISE_RSH",
 		};
+		// */
 
 		/*!
 		*
@@ -180,13 +176,13 @@ namespace hz
 		struct HAIZE_API Token
 		{
 			Token()
-				: type(_EOF)
+				: type(0)
 				, line(0)
 				, column(0)
 			{
 			}
 
-			Token(eTokenType type_, m::u32 line_, m::u32 column_)
+			Token(m::u32 type_, m::u32 line_, m::u32 column_)
 				: type(type_)
 				, line(line_)
 				, column(column_)
@@ -210,7 +206,7 @@ namespace hz
 				return *this;
 			}
 
-			eTokenType type;
+			m::u32 type;
 			m::Variant value;
 
 			m::u32 line;

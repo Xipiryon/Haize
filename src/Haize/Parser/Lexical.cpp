@@ -77,7 +77,7 @@ namespace hz
 
 			do
 			{
-				sharedToken.type = (eTokenType)yylex(scanner);
+				sharedToken.type = yylex(scanner);
 				m_tokenList->push_back(sharedToken);
 				sharedToken.column += strlen(yyget_text(scanner));
 				sharedToken.value.reset();

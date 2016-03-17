@@ -4,12 +4,12 @@
 
 #include "lemon/lemon.h"
 void* ParseAlloc(void* (*allocProc)(size_t));
-void Parse(void*, int, const char*);
+void Parse(void*, int, const char*, bool&);
 void ParseFree(void*, void(*freeProc)(void*));
 
 namespace
 {
-	m::String unexpectedToken(const hz::parser::Token& token)
+	void unexpectedToken(const hz::parser::Token& token)
 	{
 		char buffer[32];
 		m::String tokstr;
@@ -30,9 +30,14 @@ namespace
 		}
 		else
 		{
-			tokstr = hz::parser::TokenTypeStr[token.type];
+			tokstr = "?";//hz::parser::TokenTypeStr[token.type];
 		}
-		return m::String("Unexpected token \"" + tokstr + "\"");
+
+		m::system::Log error(m::LOG_ERROR);
+		error()	<< "[" << token.line << ":" << token.column << "] "
+				<< "Unexpected \"" << tokstr << "\""
+				<< m::endl;
+		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
 	}
 }
 
@@ -54,15 +59,32 @@ namespace hz
 
 			// Reinit token
 			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->token.type = parser::_ROOT;
+			m_nodeRoot->token.type = 0;
 
 			// ****************************
-			void* shellParser = ParseAlloc(malloc);
+			void* parser = ParseAlloc(malloc);
+			bool noError;
+			m::u32 count = 0;
+			parser::Token token;
+			do
+			{
+				token = m_tokenList->at(count);
+				Parse(parser, token.type, NULL, noError);
+				printf("noError: %d\n", noError);
+			}
+			while (++count < m_tokenList->size() && noError);
 
-			Parse(shellParser, 0, 0);
-			ParseFree(shellParser, free);
+			if(!noError)
+			{
+				unexpectedToken(token);
+				return false;
+			}
+
+			//Parse(parser, 0, 0);
+			ParseFree(parser, free);
 			// ****************************
-
+			exit(0);
+			error.state = Error::SUCCESS;
 			return true;
 		}
 	}
