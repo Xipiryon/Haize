@@ -113,8 +113,22 @@ args_call ::=.
 args_call ::= expr S_COMMA.
 args_call ::= args_call expr.
 
+// TODO: COMPLETE
+cond_control ::= K_IF.
+cond_control ::= K_ELSE.
+
+// TODO: COMPLETE
+loop_control ::= K_FOR.
+loop_control ::= K_WHILE.
+loop_control ::= K_SWITCH.
+
+flow_control ::= K_BREAK S_SEPARATOR.
+flow_control ::= K_CONTINUE S_SEPARATOR.
+flow_control ::= K_RETURN expr.
+
+// TODO: COMPLETE
 expr ::= S_LPARENT expr S_RPARENT.
 expr ::= variable.
 expr ::= constant.
-expr ::= expr binop constant.
-expr ::= expr binop variable.
+expr ::= expr binop constant S_SEPARATOR.
+expr ::= expr binop variable S_SEPARATOR.
