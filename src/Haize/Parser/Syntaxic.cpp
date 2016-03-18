@@ -2,14 +2,15 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
+#include "lemon/ExtraParserContext.hpp"
 #include "lemon/lemon.h"
 void* ParseAlloc(void* (*allocProc)(size_t));
-void Parse(void*, int, const char*, bool*);
+void Parse(void*, int, const char*, ExtraParserContext*);
 void ParseFree(void*, void(*freeProc)(void*));
 
 namespace
 {
-	void unexpectedToken(const hz::parser::Token& token)
+	m::String tokenValueToStr(const hz::parser::Token& token)
 	{
 		char buffer[32];
 		m::String tokstr;
@@ -32,10 +33,15 @@ namespace
 		{
 			tokstr = "?";//hz::parser::TokenTypeStr[token.type];
 		}
+		return tokstr;
+	}
 
+	void unexpectedToken(const hz::parser::Token& token)
+	{
+		m::String val = tokenValueToStr(token);
 		m::system::Log error(m::LOG_ERROR);
 		error()	<< "[" << "token.section" << "] "
-				<< "Unexpected \"" << tokstr << "\" token @ "
+				<< "Unexpected \"" << val.cStr() << "\" token @ "
 				<< token.line << ":" << token.column
 				<< m::endl;
 		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
@@ -62,31 +68,32 @@ namespace hz
 			m_nodeRoot->name = "#ROOT#";
 			m_nodeRoot->token.type = 0;
 
-			// ****************************
-			void* parser = ParseAlloc(malloc);
 			bool noError = true;
 			m::u32 count = 0;
 			parser::Token token;
+
+			ExtraParserContext epc;
+			void* parser = ParseAlloc(malloc);
 			do
 			{
 				token = m_tokenList->at(count);
-				Parse(parser, token.type, NULL, &noError);
+				printf("Sending Token: \"%s\" (%d) @ %d:%d\n", tokenValueToStr(token).cStr(), token.type, token.line, token.column);
+				Parse(parser, token.type, "token", &epc);
 			}
 			while (++count < m_tokenList->size() && noError);
+			ParseFree(parser, free);
 
 			if(!noError)
 			{
 				unexpectedToken(token);
-				exit(0);
-				return false;
+			}
+			else
+			{
+				error.state = Error::SUCCESS;
 			}
 
-			//Parse(parser, 0, 0);
-			ParseFree(parser, free);
-			// ****************************
 			exit(0);
-			error.state = Error::SUCCESS;
-			return true;
+			return noError;
 		}
 	}
 }
