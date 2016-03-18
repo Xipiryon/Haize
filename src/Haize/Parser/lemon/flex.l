@@ -17,7 +17,6 @@ namespace utils
 #include "Haize/Parser/Token.hpp"
 #include "lemon.h"
 
-#define HZ_DEBUG(msg) {printf("[%d:%d] %s\n", yyextra->line, yyextra->column, msg);}
 %}
 
 _Letters	[a-zA-Z_]

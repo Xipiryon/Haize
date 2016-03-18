@@ -3,9 +3,9 @@
 -------------------------------------------
 function flexlemon(ProjectRoot)
 	local generatedPath = ProjectRoot.."/src/Haize/Parser/lemon/"
-	local lemonFile = "lemon.haize"
+	local lemonFile = "lemon.y"
 	local lemonGen = "lemon.c"
-	local flexFile = "flex.haize"
+	local flexFile = "flex.l"
 	local flex = "flex"
 	if os.is("windows") then
 		flex = "flex.exe"
@@ -13,9 +13,7 @@ function flexlemon(ProjectRoot)
 
 	os.chdir(generatedPath)
 	os.execute(flex.." --outfile="..flexFile..".yy.cpp --header-file="..flexFile..".yy.hpp "..flexFile)
-	os.execute("rm "..lemonGen.."pp") -- remove .cpp
 	os.execute("lemon -s "..lemonFile)
-	os.execute("mv "..lemonGen.." "..lemonGen.."pp") -- rename .c to .cpp
 	os.chdir(ProjectRoot)
 end
 
@@ -28,6 +26,10 @@ project "HaizeLibrary"
 
 	files {
 		ProjectRoot.."/src/**.cpp",
+		ProjectRoot.."/src/Haize/Parser/lemon/lemon.h",
+		ProjectRoot.."/src/Haize/Parser/lemon/lemon.c",
+		ProjectRoot.."/src/Haize/Parser/lemon/flex.l.yy.hpp",
+		ProjectRoot.."/src/Haize/Parser/lemon/flex.l.yy.cpp",
 		ProjectRoot.."/include/**.hpp",
 	}
 	filter "Debug*"
