@@ -4,7 +4,7 @@
 
 #include "lemon/lemon.h"
 void* ParseAlloc(void* (*allocProc)(size_t));
-void Parse(void*, int, const char*, bool&);
+void Parse(void*, int, const char*, bool*);
 void ParseFree(void*, void(*freeProc)(void*));
 
 namespace
@@ -34,8 +34,9 @@ namespace
 		}
 
 		m::system::Log error(m::LOG_ERROR);
-		error()	<< "[" << token.line << ":" << token.column << "] "
-				<< "Unexpected \"" << tokstr << "\""
+		error()	<< "[" << "token.section" << "] "
+				<< "Unexpected \"" << tokstr << "\" token @ "
+				<< token.line << ":" << token.column
 				<< m::endl;
 		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
 	}
@@ -63,20 +64,20 @@ namespace hz
 
 			// ****************************
 			void* parser = ParseAlloc(malloc);
-			bool noError;
+			bool noError = true;
 			m::u32 count = 0;
 			parser::Token token;
 			do
 			{
 				token = m_tokenList->at(count);
-				Parse(parser, token.type, NULL, noError);
-				printf("noError: %d\n", noError);
+				Parse(parser, token.type, NULL, &noError);
 			}
 			while (++count < m_tokenList->size() && noError);
 
 			if(!noError)
 			{
 				unexpectedToken(token);
+				exit(0);
 				return false;
 			}
 

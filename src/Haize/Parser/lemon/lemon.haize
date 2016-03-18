@@ -4,9 +4,9 @@
 // **********************************************
 
 %token_type { const char* }
-%extra_argument { bool& noError }
+%extra_argument { bool* noError }
 %syntax_error {
-	noError = false;
+	*noError = false;
 }
 
 %include {
