@@ -12,7 +12,7 @@ function flexlemon(ProjectRoot)
 	end
 
 	os.chdir(generatedPath)
-	os.execute(flex.." --outfile="..flexFile..".yy.cpp --header-file="..flexFile..".yy.hpp "..flexFile)
+	os.execute(flex.." --nounistd --outfile="..flexFile..".yy.cpp --header-file="..flexFile..".yy.hpp "..flexFile)
 	os.execute("lemon -s "..lemonFile)
 	os.chdir(ProjectRoot)
 end
