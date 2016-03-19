@@ -2,7 +2,6 @@
 #include <Muon/System/Log.hpp>
 
 #include "Haize/Parser/Compiler.hpp"
-#include "lemon/lemon.h"
 
 namespace hz
 {

@@ -3,7 +3,7 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
-#include "./lemon/flex.l.yy.hpp"
+#include "generated/flex.l.hpp"
 
 namespace utils
 {

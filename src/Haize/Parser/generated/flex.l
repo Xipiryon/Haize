@@ -1,7 +1,9 @@
 %option reentrant
 %option noyywrap nodefault nounistd never-interactive
 %option warn nodebug
-%option extra-type="struct hz::parser::Token*"
+
+%option extra-type="void*"
+
 %{
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
 #pragma warning(disable: 4005) // macro redefinition (like INT8_MIN and so on...)
@@ -15,8 +17,10 @@ namespace utils
 
 #include <Muon/String.hpp>
 #include "Haize/Parser/Token.hpp"
-#include "lemon.h"
+#include "Haize/Parser/ASTNode.hpp"
+#include "yacc.hpp"
 
+#define YYEXTRA_HZ_TOKEN ((hz::parser::Token*)yyextra)
 %}
 
 _Letters	[a-zA-Z_]
@@ -40,21 +44,21 @@ Float		{_IntRange}+\.{_IntRange}*f?
 
 %%
 
-[[:blank:]]	{ yyextra->column += yyleng; }
-{NewLine}	{ ++yyextra->line; yyextra->column = 1; }
+[[:blank:]]	{ YYEXTRA_HZ_TOKEN->column += yyleng; }
+{NewLine}	{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
 {Separator}	{ return S_SEPARATOR; }
 
 
 <INITIAL>{
-	\/\*			{ BEGIN(MultiLineComment); yyextra->column += yyleng; }
+	\/\*			{ BEGIN(MultiLineComment); YYEXTRA_HZ_TOKEN->column += yyleng; }
 }
 <MultiLineComment>{
-	\*\/			{ BEGIN(INITIAL); yyextra->column += yyleng; }
-	[^*\r\n]		{ yyextra->column += yyleng; }
-	"*"				{ yyextra->column += yyleng; }
-	{NewLine}		{ ++yyextra->line; yyextra->column = 1; }
+	\*\/			{ BEGIN(INITIAL); YYEXTRA_HZ_TOKEN->column += yyleng; }
+	[^*\r\n]		{ YYEXTRA_HZ_TOKEN->column += yyleng; }
+	"*"				{ YYEXTRA_HZ_TOKEN->column += yyleng; }
+	{NewLine}		{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
 }
-{LineComment}	{ ++yyextra->line; yyextra->column = 1; }
+{LineComment}	{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
 
 
 "true"		{ return V_TRUE; }
@@ -78,29 +82,29 @@ Float		{_IntRange}+\.{_IntRange}*f?
 "out"		{ return K_OUT; }
 
 {HexNumber}	{
-	yyextra->value = utils::hex2int(yytext);
-	yyextra->column += yyleng;
+	YYEXTRA_HZ_TOKEN->value = utils::hex2int(yytext);
+	YYEXTRA_HZ_TOKEN->column += yyleng;
 	return V_NUMBER;
 }
 
 {OctNumber}	{
-	yyextra->value = utils::oct2int(yytext);
-	yyextra->column += yyleng;
+	YYEXTRA_HZ_TOKEN->value = utils::oct2int(yytext);
+	YYEXTRA_HZ_TOKEN->column += yyleng;
 	return V_NUMBER;
 }
 
 {BinNumber}	{
-	yyextra->value = utils::bin2int(yytext);
-	yyextra->column += yyleng;
+	YYEXTRA_HZ_TOKEN->value = utils::bin2int(yytext);
+	YYEXTRA_HZ_TOKEN->column += yyleng;
 	return V_NUMBER;
 }
 
-{Integer}	{ yyextra->value = (m::i32)atoi(yytext);	return V_NUMBER; }
-{Float}		{ yyextra->value = (m::f32)atof(yytext);	return V_NUMBER; }
-{Identifer}	{ yyextra->value = m::String(yytext);		return V_IDENTIFIER; }
+{Integer}	{ YYEXTRA_HZ_TOKEN->value = (m::i32)atoi(yytext);	return V_NUMBER; }
+{Float}		{ YYEXTRA_HZ_TOKEN->value = (m::f32)atof(yytext);	return V_NUMBER; }
+{Identifer}	{ YYEXTRA_HZ_TOKEN->value = m::String(yytext);		return V_IDENTIFIER; }
 
 <INITIAL>{
-	\"			{ BEGIN(StringBlock); yyextra->column += yyleng; }
+	\"			{ BEGIN(StringBlock); YYEXTRA_HZ_TOKEN->column += yyleng; }
 }
 <StringBlock>{
 	\"				{	BEGIN(INITIAL);
@@ -108,8 +112,8 @@ Float		{_IntRange}+\.{_IntRange}*f?
 						//g_strBuffer.clear();
 						return V_STRING;
 					}
-	[^"\n]+			{ /*g_strBuffer += yytext;*/ yyextra->column += yyleng;}
-	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yyextra->line; yyextra->column = 1; }
+	[^"\n]+			{ /*g_strBuffer += yytext;*/ YYEXTRA_HZ_TOKEN->column += yyleng;}
+	{NewLine}		{ /*g_strBuffer += yytext;*/ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
 }
 
 "."		{ return S_ACCESSOR; }
@@ -157,5 +161,5 @@ Float		{_IntRange}+\.{_IntRange}*f?
 ">>="	{ return MATH_ASN_BITWISE_RSH; }
 "<<="	{ return MATH_ASN_BITWISE_LSH; }
 
-.		{ yyextra->column += yyleng; }
+.		{ YYEXTRA_HZ_TOKEN->column += yyleng; }
 <<EOF>>	{ yyterminate(); }

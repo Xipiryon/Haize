@@ -1,19 +1,18 @@
 
 -- Library
 -------------------------------------------
-function flexlemon(ProjectRoot)
-	local generatedPath = ProjectRoot.."/src/Haize/Parser/lemon/"
-	local lemonFile = "lemon.y"
-	local lemonGen = "lemon.c"
-	local flexFile = "flex.l"
+function genparser(ProjectRoot)
+	local generatedPath = ProjectRoot.."/src/Haize/Parser/generated/"
 	local flex = "flex"
+	local yacc = "bison"
 	if os.is("windows") then
 		flex = "flex.exe"
+		yacc = "bison.exe"
 	end
 
 	os.chdir(generatedPath)
-	os.execute(flex.." --nounistd --outfile="..flexFile..".yy.cpp --header-file="..flexFile..".yy.hpp "..flexFile)
-	os.execute("lemon -s "..lemonFile)
+	os.execute(flex.." --nounistd --outfile=flex.l.cpp --header-file=flex.l.hpp flex.l")
+	os.execute(yacc.." -v -d -o yacc.cpp yacc.y")
 	os.chdir(ProjectRoot)
 end
 
@@ -26,11 +25,11 @@ project "HaizeLibrary"
 
 	files {
 		ProjectRoot.."/src/**.cpp",
-		ProjectRoot.."/src/Haize/Parser/lemon/lemon.h",
-		ProjectRoot.."/src/Haize/Parser/lemon/lemon.c",
-		ProjectRoot.."/src/Haize/Parser/lemon/flex.l.yy.hpp",
-		ProjectRoot.."/src/Haize/Parser/lemon/flex.l.yy.cpp",
 		ProjectRoot.."/include/**.hpp",
+		-- Flex/Bison and related files
+		ProjectRoot.."/src/Haize/Parser/**.hpp",
+		ProjectRoot.."/src/Haize/Parser/generated/yacc.y",
+		ProjectRoot.."/src/Haize/Parser/generated/flex.l",
 	}
 	filter "Debug*"
 		links	{ "Muon-d" }
@@ -41,10 +40,10 @@ project "HaizeLibrary"
 		defines { "HAIZE_EXPORTS" }
 
 newaction {
-	trigger	 = "flexlemon",
+	trigger	 = "genparser",
 	description = "Generate Lemon files",
 
 	execute = function ()
-		flexlemon(ProjectRoot)
+		genparser(ProjectRoot)
 	end
 }

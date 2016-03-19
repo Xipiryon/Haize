@@ -2,11 +2,9 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
-#include "lemon/ExtraParserContext.hpp"
-#include "lemon/lemon.h"
-void* ParseAlloc(void* (*allocProc)(size_t));
-void Parse(void*, int, const char*, ExtraParserContext*);
-void ParseFree(void*, void(*freeProc)(void*));
+#include "generated/ExtraParserContext.hpp"
+#include "generated/flex.l.hpp"
+#include "generated/yacc.hpp"
 
 namespace
 {
@@ -40,12 +38,19 @@ namespace
 	{
 		m::String val = tokenValueToStr(token);
 		m::system::Log error(m::LOG_ERROR);
-		error()	<< "[" << "token.section" << "] "
-				<< "Unexpected \"" << val.cStr() << "\" token @ "
-				<< token.line << ":" << token.column
-				<< m::endl;
+		error() << "[" << "token.section" << "] "
+			<< "Unexpected \"" << val.cStr() << "\" token @ "
+			<< token.line << ":" << token.column
+			<< m::endl;
 		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
 	}
+}
+
+void yyerror(const char* err)
+{
+	m::system::Log log("YACC", m::LOG_ERROR);
+	//log() << "** Error at " << g_lineCount << ":" << g_charCount << " **" << m::endl;
+	log() << "=> " << err << m::endl;
 }
 
 namespace hz
@@ -73,17 +78,17 @@ namespace hz
 			parser::Token token;
 
 			ExtraParserContext epc;
+			/*
 			void* parser = ParseAlloc(malloc);
 			do
 			{
-				token = m_tokenList->at(count);
-				printf("Sending Token: \"%s\" (%d) @ %d:%d\n", tokenValueToStr(token).cStr(), token.type, token.line, token.column);
-				Parse(parser, token.type, "token", &epc);
-			}
-			while (++count < m_tokenList->size() && noError);
+			token = m_tokenList->at(count);
+			printf("Sending Token: \"%s\" (%d) @ %d:%d\n", tokenValueToStr(token).cStr(), token.type, token.line, token.column);
+			Parse(parser, token.type, "token", &epc);
+			} while (++count < m_tokenList->size() && noError);
 			ParseFree(parser, free);
-
-			if(!noError)
+			// */
+			if (!noError)
 			{
 				unexpectedToken(token);
 			}
