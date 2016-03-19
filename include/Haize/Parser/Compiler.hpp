@@ -8,16 +8,6 @@ namespace hz
 {
 	namespace parser
 	{
-		namespace internal
-		{
-			struct ISharedData
-			{
-				virtual ~ISharedData()
-				{
-				}
-			};
-		}
-
 		class HAIZE_API Compiler
 		{
 		public:
@@ -25,11 +15,6 @@ namespace hz
 			virtual bool load(const m::String& file, Error& error);
 
 			virtual bool compile(Error& error);
-
-		protected:
-			virtual bool lexical(Error& error);
-			virtual bool syntaxic(Error& error);
-			virtual bool semantic(Error& error);
 
 		private:
 			// Variables

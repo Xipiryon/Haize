@@ -3,6 +3,107 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
+#include "generated/ExtraParserContext.hpp"
+#include "generated/flex.l.hpp"
+#include "generated/yacc.hpp"
+
+namespace utils
+{
+	int hex2int(char* str)
+	{
+		int val = 0;
+		int i = 2; // Skip 0x
+		int len = strlen(str);
+		for (; i < len; ++i)
+		{
+			val <<= 4;
+			if (str[i] >= '0' && str[i] <= '9')
+			{
+				val |= str[i] - '0';
+			}
+			else if (str[i] >= 'a' && str[i] <= 'f')
+			{
+				val |= str[i] - 'a' + 10;
+			}
+			else
+			{
+				val |= str[i] - 'A' + 10;
+			}
+		}
+		return val;
+	}
+
+	int oct2int(char* str)
+	{
+		int val = 0;
+		int i = 1; // Skip 0
+		int len = strlen(str);
+		for (; i < len; ++i)
+		{
+			val <<= 3;
+			val |= str[i] - '0';
+		}
+		return val;
+	}
+
+	int bin2int(char* str)
+	{
+		int val = 0;
+		int i = 2; // Skip 0b
+		int len = strlen(str);
+		for (; i < len; ++i)
+		{
+			val <<= 1;
+			val |= (str[i] == '1' ? 1 : 0);
+		}
+		return val;
+	}
+
+	m::String tokenValueToStr(const hz::parser::Token& token)
+	{
+		char buffer[32];
+		m::String tokstr;
+		m::meta::MetaData* m = token.value.getMeta();
+		if (MUON_META(m::String) == m)
+		{
+			tokstr = token.value.get<m::String>();
+		}
+		else if (MUON_META(m::f32) == m)
+		{
+			m::ftoa(token.value.get<m::f32>(), buffer);
+			tokstr = buffer;
+		}
+		else if (MUON_META(m::i32) == m)
+		{
+			m::itoa((m::i64)token.value.get<m::i32>(), buffer);
+			tokstr = buffer;
+		}
+		else
+		{
+			tokstr = "?";//hz::parser::TokenTypeStr[token.type];
+		}
+		return tokstr;
+	}
+
+	void unexpectedToken(const hz::parser::Token& token)
+	{
+		m::String val = tokenValueToStr(token);
+		m::system::Log error(m::LOG_ERROR);
+		error() << "[" << "token.section" << "] "
+			<< "Unexpected \"" << val.cStr() << "\" token @ "
+			<< token.line << ":" << token.column
+			<< m::endl;
+		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
+	}
+}
+
+void yyerror(const char* err)
+{
+	m::system::Log log("YACC", m::LOG_ERROR);
+	//log() << "** Error at " << g_lineCount << ":" << g_charCount << " **" << m::endl;
+	log() << "=> " << err << m::endl;
+}
+
 namespace hz
 {
 	namespace parser
@@ -20,26 +121,60 @@ namespace hz
 				MUON_DELETE(m_nodeRoot);
 			};
 
-			if (!lexical(error))
-			{
-				clearVariable();
-				return false;
-			}
-			m_loadBuffer.clear();
+			error.clear();
+			error.step = Error::COMPILATION;
 
-			if (!syntaxic(error))
+			// Clear previous compilation
+			//m_tokenList->clear();
+			while (!m_nodeRoot->children->empty())
 			{
-				clearVariable();
-				return false;
+				MUON_DELETE(m_nodeRoot->children->back());
+				m_nodeRoot->children->pop_back();
 			}
-			m_tokenList->clear();
+			m_nodeRoot->name = "#ROOT#";
+			m_nodeRoot->token.type = 0;
 
+			// Start scanning
+			yyscan_t scanner;
+			parser::Token extraToken;
+			ExtraParserContext epc;
+
+			extraToken.line = 1;
+			extraToken.column = 1;
+			yylex_init_extra(&extraToken, &scanner);
+			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
+
+			do
+			{
+				extraToken.type = yylex(scanner);
+				//m_tokenList->push_back(sharedToken);
+				yyparse(scanner);
+				extraToken.column += strlen(yyget_text(scanner));
+				extraToken.value.reset();
+			} while (extraToken.type > 0);
+
+			yy_delete_buffer(buffer, scanner);
+			yylex_destroy(scanner);
+
+			exit(0);
+			/*
 			if (!semantic(error))
 			{
-				clearVariable();
-				return false;
+			clearVariable();
+			return false;
 			}
+			*/
+			{
+				// Skip empty AST
+				if (m_nodeRoot->children->empty())
+				{
+					return true;
+				}
+				error.clear();
+				error.step = Error::COMPILATION;
 
+				return true;
+			}
 			clearVariable();
 			return true;
 		}
