@@ -1,6 +1,6 @@
 
-#ifndef _HAIZE_OPCODE_INCLUDE
-#define _HAIZE_OPCODE_INCLUDE
+#ifndef INCLUDE_HAIZE_OPCODE_INCLUDE
+#define INCLUDE_HAIZE_OPCODE_INCLUDE
 
 #include "Haize/Core/Config.hpp"
 

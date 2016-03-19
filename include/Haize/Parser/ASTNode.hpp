@@ -1,43 +1,32 @@
-#ifndef _HAIZE_ASTNODE_INCLUDE
-#define _HAIZE_ASTNODE_INCLUDE
+#ifndef INCLUDE_HAIZE_ASTNODE_INCLUDED
+#define INCLUDE_HAIZE_ASTNODE_INCLUDED
 
 #include <deque>
-#include <Muon/String.hpp>
-#include <Muon/Variant.hpp>
-#include "Haize/Core/Define.hpp"
+#include "Haize/Parser/Token.hpp"
 
 namespace hz
 {
 	namespace parser
 	{
-		struct ASTNode;
-		/*!
-		*
-		*/
-		typedef std::deque<ASTNode*> ASTNodeList;
-
 		/*!
 		*
 		*/
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			ASTNode(muon::u32, const char*);
+			ASTNode(m::u32);
+			ASTNode(m::u32, const m::String&);
+			ASTNode(const Token&);
 			~ASTNode();
 
-			const char* name;
-			muon::u32 type;
-			ASTNodeList* children;
+			m::String name;
+			Token token;
+			std::deque<ASTNode*>* children;
 			ASTNode* parent;
-			muon::Variant value;
 
-			muon::String section;
-			muon::String function;
-			muon::u32 line;
-			muon::u32 column;
-
-
-			ASTNode* addChild(muon::u32, const char* = NULL);
+			ASTNode* addChild(m::u32);
+			ASTNode* addChild(m::u32, const m::String&);
+			ASTNode* addChild(const Token&);
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);

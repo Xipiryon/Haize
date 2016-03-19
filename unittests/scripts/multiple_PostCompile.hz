@@ -1,0 +1,6 @@
+
+// just a function which will be compiled
+// and added to a previously existing chunk
+
+int postCompile() { return multipleLoad_B(); }
+

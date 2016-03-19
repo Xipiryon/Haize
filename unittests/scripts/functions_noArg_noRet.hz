@@ -1,0 +1,19 @@
+
+// No arguments
+// No return
+void noArg_noRet() { /* Empty void */ }
+
+// Same but with weird line ending
+// ---------- v
+void
+
+						noArg_noRet_lineEnding				 	 	 	(
+						){
+			  }
+// ---------- ^
+
+void main()
+{
+	noArg_noRet();
+	noArg_noRet_lineEnding();
+}

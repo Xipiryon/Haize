@@ -3,11 +3,11 @@ Haize
 
 C++ Script Language highly WIP.
 
-[![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize)](http://ci.louis-schnellbach.com/job/Haize/)
+[![Build Status](http://ci.louis-schnellbach.com/buildStatus/icon?job=Haize/master)](http://ci.louis-schnellbach.com/job/Haize/branch/master)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xleek/haize/branch/master)
 
-[![CppCheck](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult/graph)](http://ci.louis-schnellbach.com/job/Haize/cppcheckResult)
-[![Valgrind](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/graph)](http://ci.louis-schnellbach.com/job/Haize/valgrindResult/)
+[![CppCheck](http://ci.louis-schnellbach.com/job/Haize/branch/master/cppcheckResult/graph)](http://ci.louis-schnellbach.com/job/Haize/branch/master/cppcheckResult)
+[![Valgrind](http://ci.louis-schnellbach.com/job/Haize/branch/master/valgrindResult/graph)](http://ci.louis-schnellbach.com/job/Haize/branch/master/valgrindResult/)
 
 How to compile
 ====================
@@ -37,15 +37,15 @@ Example with Visual Studio 2013:
 6) Run the `premake5.exe install` command. _(Depending on where you want to install, you may require administrator rights)_
 
 If you've pulled a new version of the project, it is recommanded to regenerate the solution using premake and rebuild.
-Unless major changes in Muon, you should not have the need to rebuild & reinstall the library.
+Unless major changes, you should not have the need to rebuild & reinstall the library.
 
 Note
 ====================
 
-* The `premake5 install` command will install header and libraries (.dll, .lib, .so, ...) files 
+* The `premake5 install` command will install header and libraries (.dll, .lib, .so, ...) files
 	* On Windows, they're installed under the C:\Premake folder
 	* On Unix, they're installed under the /usr/local/ folder _(and may require the use of `sudo` )_
-	
+
 License
 ====================
 This project is licenced under the Creative Commons - Attribution & Share Alike licence

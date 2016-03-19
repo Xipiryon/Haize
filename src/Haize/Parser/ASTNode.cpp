@@ -9,17 +9,32 @@ namespace hz
 	namespace parser
 	{
 		ASTNode::ASTNode()
-			: name(NULL)
-			, type(0)
-			, children(MUON_CNEW(ASTNodeList))
+			: name("#TOKEN#")
+			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
 
-		ASTNode::ASTNode(muon::u32 type_, const char* name_)
+		ASTNode::ASTNode(m::u32 type_)
+			: name("#TOKEN#")
+			, children(MUON_NEW(std::deque<ASTNode*>))
+			, parent(NULL)
+		{
+			token.type = type_;
+		}
+
+		ASTNode::ASTNode(m::u32 type_, const m::String& name_)
 			: name(name_)
-			, type(type_)
-			, children(MUON_CNEW(ASTNodeList))
+			, children(MUON_NEW(std::deque<ASTNode*>))
+			, parent(NULL)
+		{
+			token.type = type_;
+		}
+
+		ASTNode::ASTNode(const Token& token_)
+			: name("#TOKEN#")
+			, token(token_)
+			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
@@ -33,12 +48,24 @@ namespace hz
 			delete children;
 		}
 
-		ASTNode* ASTNode::addChild(muon::u32 type, const char* name)
+		ASTNode* ASTNode::addChild(m::u32 type)
 		{
-			ASTNode* node = MUON_CNEW(ASTNode, type, name);
+			return addChild(type, "#TOKEN#");
+		}
+
+		ASTNode* ASTNode::addChild(m::u32 type, const m::String& name)
+		{
+			ASTNode* node = MUON_NEW(ASTNode, type, name);
 			node->parent = this;
 			this->children->push_back(node);
 			return node;
+		}
+
+		ASTNode* ASTNode::addChild(const Token& token)
+		{
+			ASTNode* c = addChild(token.type);
+			c->token = token;
+			return c;
 		}
 
 		ASTNode* ASTNode::addChild(ASTNode* child)
@@ -50,7 +77,7 @@ namespace hz
 
 		bool ASTNode::removeChild(ASTNode* child)
 		{
-			for (muon::u32 i = 0; i < this->children->size(); ++i)
+			for (m::u32 i = 0; i < this->children->size(); ++i)
 			{
 				if (this->children->at(i) == child)
 				{
@@ -66,7 +93,7 @@ namespace hz
 		{
 			if(removeChild(child))
 			{
-				MUON_CDELETE(child);
+				MUON_DELETE(child);
 				return true;
 			}
 			return false;

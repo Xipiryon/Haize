@@ -1,12 +1,7 @@
-#ifndef _HAIZE_CONFIG_INCLUDE
-#define _HAIZE_CONFIG_INCLUDE
+#ifndef INCLUDE_HAIZE_CONFIG_INCLUDE
+#define INCLUDE_HAIZE_CONFIG_INCLUDE
 
 #include "Haize/Core/Define.hpp"
-
-namespace hz
-{
-	static const muon::i8 GC_CHECK_ALIVE_IN_ROW = 5;
-}
 
 #define HAIZE_VERSION_MAJOR		0
 #define HAIZE_VERSION_MINOR		0

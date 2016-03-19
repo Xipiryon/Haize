@@ -5,6 +5,7 @@
 project "UnitTests"
 	local ProjectRoot = os.getcwd()
 
+	dependson("HaizeLibrary")
 	language "C++"
 	targetname "UnitTests"
 	targetdir (SolutionRoot.."/bin")
@@ -16,7 +17,10 @@ project "UnitTests"
 	end
 
 	files	{
-		ProjectRoot.."/unittests/main.cpp"
+		ProjectRoot.."/unittests/main.cpp",
+		ProjectRoot.."/unittests/tinyxml2.cpp",
+		ProjectRoot.."/unittests/tinyxml2.h",
+		ProjectRoot.."/unittests/**.hz"
 	}
 
 	filter "Debug*"

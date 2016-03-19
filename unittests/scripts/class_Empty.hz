@@ -1,0 +1,10 @@
+
+// Empty class
+class MyClass
+{
+}
+
+void main()
+{
+	new MyClass c;
+}

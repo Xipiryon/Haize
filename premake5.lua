@@ -21,55 +21,36 @@ if SolutionRoot == nil then
 	SolutionRoot = os.getcwd()
 end
 
--- Generate Lex/Yacc files
-function generateParserFiles(executeOsCommand)
-	local parserPath = "src/Haize/Parser/YACC/"
-	if os.is("windows") then
-		lex = "flex.exe"
-		yacc = "bison.exe"
-	else -- Unix
-		lex = "flex"
-		yacc = "bison"
-	end
-	local generatedPath = parserPath.."generated/"
-	if(not os.isdir(generatedPath)) then
-		if os.mkdir(generatedPath) then print("Creating "..generatedPath) end
-	end
-
-	local lexCmd = lex.." -o "..generatedPath.."flex.haize.cpp "..parserPath.."flex.haize.ll"
-	local yaccCmd = yacc.." -v -d -o "..generatedPath.."yacc.haize.cpp "..parserPath.."yacc.haize.yy"
-	print("Executing: "..lexCmd)
-	os.execute(lexCmd)
-	print("Executing: "..yaccCmd)
-	os.execute(yaccCmd)
-end
-
 ------------------------------
 -- Solution
 ------------------------------
 
 solution "Haize"
-	startproject "HaizeExecutable"
+	startproject "Haize"
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
 
 	if os.is("windows") then
 		implibdir "bin/lib"
+		buildoptions { "/GR-" }
+
+		-- Because on Windows, you can't start a program if .dll are not in the same folder...
+		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/*.dll "..SolutionRoot.."/bin/", "/", "\\") }
+
 	else
-		buildoptions { "--std=c++11" }
-		linkoptions { "-Wl,-rpath,"..SolutionRoot.."/bin/lib/" }
+		buildoptions { "--std=c++11 -fno-rtti" }
+		linkoptions { "-Wl,-rpath,bin/lib" }
 	end
 
 	-- If option exists, then override G_Install
 	if _OPTIONS["basedir"] then
 		G_Install.Root = _OPTIONS["basedir"]
 		G_Install.Header = _OPTIONS["basedir"].."/include"
-		G_Install.Lib = _OPTIONS["basedir"].."/lib"
-		print("Install directory has been overwritten to '"..G_Install.Root.."'")
+		G_Install.Lib = _OPTIONS["basedir"].."/bin/lib"
+		print("Base directory has been overwritten to '"..G_Install.Root.."'")
 	end
 
 	includedirs {
 		SolutionRoot.."/include",
-		SolutionRoot.."/extern/Muon/include",
 		G_Install.Header,
 	}
 
@@ -80,11 +61,12 @@ solution "Haize"
 
 	filter "Debug*"
 		targetsuffix "-d"
+		optimize "Debug"
 		flags	{ "Symbols" }
 
 	filter "Release*"
 		optimize "Speed"
-		flags	{ "LinkTimeOptimization", "NoRTTI" }
+		flags	{ "LinkTimeOptimization" }
 
 	filter  "*Lib"
 		kind "StaticLib"
@@ -101,8 +83,6 @@ solution "Haize"
 ------------------------------
 -- Project
 ------------------------------
--- Muon
-include("extern/Muon/project_Lib")
 
 -- Haize
 include("project_Lib")
@@ -125,17 +105,10 @@ newoption {
 	trigger     = "unittests",
 	description = "Enable compilation of unit tests",
 }
+
 ------------------------------
 -- Actions
 ------------------------------
-
-newaction {
-	trigger = "genparser",
-	description = "Generate Flex & Bison files",
-	execute = function()
-		generateParserFiles();
-	end
-}
 
 newaction {
 	trigger	 = "install",
@@ -179,6 +152,7 @@ newaction {
 			exts[1] = ".lib"
 		else
 			exts[0] = ".so"
+			exts[1] = ".a"
 		end
 
 		-- Copy files
@@ -193,16 +167,15 @@ newaction {
 }
 
 if os.is("windows") then
-newaction {
-	trigger	 = "getlib",
-	description = "Retrieve libraries from 'basedir' and put them in bin/ and bin/lib",
-	execute = function ()
-		print("** Retrieving files from: "..G_Install.Lib.." **")
+	newaction {
+		trigger	 = "getlib",
+		description = "Retrieve libraries from 'basedir' and put them in bin/",
+		execute = function ()
+			print("** Retrieving files from: "..G_Install.Lib.." **")
 
-		local libDir = G_Install.Lib
+			local libDir = G_Install.Lib
 
-		for _,dir in pairs({"", "/lib"}) do
-			local destDir = './bin'..dir
+			local destDir = "bin"
 
 			-- Create required folders
 			if(not os.isdir(destDir)) then
@@ -216,6 +189,5 @@ newaction {
 				if os.copyfile(fpath, destFile) then print("Copying "..fpath.." to "..destDir) end
 			end
 		end
-	end
-}
+	}
 end

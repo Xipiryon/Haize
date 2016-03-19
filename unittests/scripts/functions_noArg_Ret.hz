@@ -1,0 +1,10 @@
+
+// No Arguments
+// Return value
+
+int noArg_Ret() { return 64; }
+
+void main()
+{
+	noArg_Ret();
+}

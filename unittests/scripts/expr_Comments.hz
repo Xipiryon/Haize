@@ -1,0 +1,14 @@
+// Some comments
+
+/* Here is
+a multi
+line comment */
+
+/* //
+It's like C/C++ syntax
+// */
+
+void main() 
+{ 
+	// this function does absolutely nothing :)
+}

@@ -1,0 +1,50 @@
+
+// One argument as copy
+// No return
+void Arg_noRet(int a)
+{
+}
+
+// Multiple arguments as copy
+// No return 
+void Args_noRet(int a, int b)
+{
+}
+
+// Multiple arguments as copy, with a trailing comma
+// No return
+void ArgsComma_noRet(int a, int b, int c,)
+{
+}
+
+// One argument as reference
+// No return
+void ArgRef_noRet(ref int a)
+{
+}
+
+// Some arguments as reference
+// No return
+void ArgsRef_noRet(ref int a, ref int b)
+{
+}
+
+// Multiple arguments as copy or reference
+// No return
+void ArgCopyRef_noRet(int a, ref int b)
+{
+}
+
+void main()
+{
+	new int a = 42;
+	new int b = 64;
+
+	Arg_noRet(a);
+	Args_noRet(a, b);
+	Args_noRet(a, 64);
+	ArgsComma_noRet(a, b, c);
+	ArgRef_noRet(a);
+	ArgsRef_noRet(a, b);
+	ArgCopyRef_noRet(64, a);
+}

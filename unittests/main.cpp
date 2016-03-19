@@ -1,67 +1,62 @@
-
 #include <fstream>
 
 #include <Muon/System/Log.hpp>
-#include "Haize/VM.hpp"
+#include <Muon/System/Time.hpp>
+#include "Haize/Engine.hpp"
 
-namespace
-{
-	const muon::u32 FileContentBuffer = 4096;
-}
-
-bool loadFile(const char* filename, char* outbuffer)
-{
-	muon::system::Log log("LoadFile");
-
-	std::ifstream file(filename);
-	if (!file)
-	{
-		log(muon::LOG_ERROR) << "Couldn't load: " << filename << muon::endl;
-		return false;
-	}
-	if (!file.eof())
-	{
-		file.seekg(0, std::ios::end);
-		muon::u64 length = (muon::u64)file.tellg();
-		file.seekg(0, std::ios::beg);
-		log(muon::LOG_INFO) << "Reading " << length << " bytes from \"" << filename << "\"..." << muon::endl;
-		MUON_ASSERT_BREAK(length < FileContentBuffer, "File buffer is not big enough!");
-		file.read(outbuffer, length);
-		log(muon::LOG_INFO) << "... done !" << muon::endl;
-	}
-	return true;
-}
+#include "tinyxml2.h"
 
 int main(int argc, char** argv)
 {
-	if(!muon::meta::MetaDatabase::isInstantiated())
+	if (!m::meta::MetaDatabase::isInstantiated())
 	{
-		muon::meta::MetaDatabase::instantiate();
+		m::meta::MetaDatabase::createInstance();
 	}
-	muon::system::Log::registerDefaultLogImpl();
-	muon::system::Log mainLog("Main", muon::LOG_INFO);
+	m::system::Log::registerDefaultLogImpl();
+	m::system::Log mainLog("Main", m::LOG_INFO);
 
-	mainLog() << "Number of arguments: " << argc << muon::endl;
-	for (muon::i32 i = 0; i < argc; ++i)
+	mainLog() << "Number of arguments: " << argc << m::endl;
+	for (m::i32 i = 0; i < argc; ++i)
 	{
-		mainLog() << "\t: " << argv[i] << muon::endl;
+		mainLog() << "\t: " << argv[i] << m::endl;
 	}
 
-	muon::u32 errorCount = 0;
+	// Required variables
+	m::system::Time clockTest;
+	m::String title;
+	m::u32 errorCount = 0;
+	m::u32 totalTests = 0;
+	tinyxml2::XMLDocument xmlDoc;
+	tinyxml2::XMLElement* xmlRoot = xmlDoc.NewElement("testsuite");
 
-#define HAIZE_TITLE(msg) mainLog() << msg << muon::endl
+#define HAIZE_TITLE(msg) do { mainLog() << msg << m::endl; title = msg; } while(false);
+#define HAIZE_NODE_BEGIN(cond)	++totalTests; tinyxml2::XMLElement* xmlNode = xmlDoc.NewElement("testcase"); \
+									xmlNode->SetAttribute("name", #cond); \
+									xmlNode->SetAttribute("classname", title.cStr()); \
+									xmlNode->SetAttribute("time", clockTest.now()*1000);
+#define HAIZE_NODE_ERR(err)		++errorCount; tinyxml2::XMLElement* xmlErr = xmlDoc.NewElement("failure"); xmlErr->SetText(err); xmlNode->InsertEndChild(xmlErr);
+#define HAIZE_NODE_END			xmlRoot->InsertEndChild(xmlNode); clockTest.start();
 #if defined(MUON_PLATFORM_WINDOWS)
-#	define HAIZE_CHECK(cond, err, ...) if(!(cond)) {++errorCount; MUON_ERROR("\t-> " err, __VA_ARGS__);}
+#	define HAIZE_CHECK(cond, err, ...)  do { HAIZE_NODE_BEGIN(cond) if(!(cond)) { HAIZE_NODE_ERR(err); MUON_ERROR("\t-> " err, __VA_ARGS__);} HAIZE_NODE_END } while(false);
 #else
-#	define HAIZE_CHECK(cond, err, args...) if(!(cond)) {++errorCount; MUON_ERROR("\t-> " err, ##args);}
+#	define HAIZE_CHECK(cond, err, args...) do { HAIZE_NODE_BEGIN(cond) if(!(cond)) { HAIZE_NODE_ERR(err); MUON_ERROR("\t-> " err, ##args);} HAIZE_NODE_END } while(false);
 #endif
 
 	// ***************
 	// BEGIN UNIT TEST
+	clockTest.start();
 
-	hz::VMInstance vm;
-	muon::String file;
-	char buffer[FileContentBuffer];
+	hz::Engine& vm = hz::Engine::createInstance();
+	hz::Error infoError;
+	m::String file;
+	m::String module;
+
+	const char* stepStr[] = {
+		"LOADING",
+		"COMPILATION",
+		"PREPARATION",
+		"EXECUTION"
+	};
 
 	// Eval some scripts
 	{
@@ -69,38 +64,182 @@ int main(int argc, char** argv)
 		const char* eval = MUON_STR(
 			// declare a variable
 			a = 0;
-			// declare function
-			function foo(a) { print(a); }
-			foo(a);
-			return 64;
+		// declare function
+		function foo(a)
+		{
+			print(a);
+		}
+		foo(a);
+		return 64;
 		);
 
-		HAIZE_TITLE(" ** Evaluating Script: \"" << eval << "\" **");
-		HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
+		//HAIZE_TITLE(m::String::join("Evaluating Script: \"", eval, "\""));
+		//HAIZE_CHECK(vm.eval(eval), "VM.eval() function failed!");
 	}
 
-	// Expression
+	// Module Creation / Destruction
 	{
-		file = "unittests/scripts/expressions.hz";
-		HAIZE_TITLE(" ** File loading: " << file << " **");
-		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file!");
-
+		HAIZE_TITLE("Context creation / destruction");
+		module = "CreateDestroy";
+		hz::Context* context = vm.createContext(module);
+		HAIZE_CHECK(context != NULL, "Context creation failed!");
+		bool removed = vm.destroyContext(module);
+		HAIZE_CHECK(removed, "Context destruction failed!");
+		context = vm.getContext(module);
+		HAIZE_CHECK(context == NULL, "Returning non-null destroyed context!");
+		// Recreate
+		vm.createContext(module);
+		context = vm.getContext(module);
+		HAIZE_CHECK(context != NULL, "Returning already-created context failed!");
+		// Clean memory
+		vm.destroyContext(module);
 	}
 
-	// Function
+	struct FileModule
 	{
-		file = "unittests/scripts/functions.hz";
-		HAIZE_TITLE(" ** File loading: " << file << " **");
-		HAIZE_CHECK(loadFile(file.cStr(), buffer), "Couldn't load file!");
+		m::String file;
+		m::String module;
+	};
+	m::i32 scriptIndex = 0;
 
+	// ************************
+	// Test that should work :)
+	FileModule scriptSuccessTests[] = {
+		{ "unittests/scripts/functions_noArg_noRet.hz", "Function: No Arguments, No Return" },
+		{ "unittests/scripts/functions_Arg_noRet.hz", "Function: Arguments, No Return" },
+		{ "unittests/scripts/functions_noArg_Ret.hz", "Function: No Arguments, Return" },
+		{ "unittests/scripts/functions_Arg_Ret.hz", "Function: Arguments, Return" },
+
+		{ "unittests/scripts/expr_Comments.hz", "Comments" },
+		{ "unittests/scripts/expr_Unop.hz", "Unary Operator" },
+		{ "unittests/scripts/expr_Binop.hz", "Binary Operator" },
+		{ "unittests/scripts/expr_Namespace.hz", "Namespaces" },
+
+		{ "unittests/scripts/class_Empty.hz", "Empty Class" },
+		{ "unittests/scripts/class_Member.hz", "Class with Member" },
+		{ "unittests/scripts/class_Function.hz", "Class with Function" },
+		{ "unittests/scripts/class_Full.hz", "Class with both Member and Function" },
+
+		{ "unittests/scripts/logic_if.hz", "Control Flow: if" },
+		{ "unittests/scripts/logic_for.hz", "Control Flow: for" },
+		{ "unittests/scripts/logic_while.hz", "Control Flow: while" },
+		{ "unittests/scripts/logic_switch.hz", "Control Flow: switch" },
+
+		{ "", "" }
+	};
+
+	for (scriptIndex = 0; scriptSuccessTests[scriptIndex].file != ""; ++scriptIndex)
+	{
+		module = scriptSuccessTests[scriptIndex].module;
+		file = scriptSuccessTests[scriptIndex].file;
+
+		hz::Context* context = vm.createContext(module);
+		HAIZE_TITLE("Checking '" + module + "' script");
+		bool ok;
+
+		ok = context->load(file);
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) continue;
+
+		ok = context->compile();
+		infoError = context->getLastError();
+		HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		if (!ok) continue;
+
+		//TODO:
+		//Preparation
+		if (!ok) continue;
+
+		//TODO:
+		//ok = context->execute();
+		//infoError = context->getLastError();
+		//HAIZE_CHECK(ok, "[EXECUTION] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+
+		vm.destroyContext(module);
+	}
+
+	// ************************
+	// Multiple Pass
+	{
+		module = "Multiple Pass";
+		m::String file_A = "unittests/scripts/multiple_LoadA.hz";
+		m::String file_B = "unittests/scripts/multiple_LoadB.hz";
+
+		hz::Context* context = vm.createContext(module);
+		HAIZE_TITLE("Checking 'Multiple Load' script");
+		bool ok;
+
+		{
+			// Load in multiple passes
+			ok = context->load(file_A);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			ok = context->load(file_B);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			// Compile both
+			ok = context->compile();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			// Prepare function
+			ok = context->prepare("main");
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			// Execute code
+			ok = context->execute();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+		}
+		{
+			// Post compile
+			HAIZE_TITLE("Checking 'Post Compile' script");
+			m::String postCompile = "unittests/scripts/multiple_PostCompile.hz";
+
+			// Load and compile more code in the same context
+			ok = context->load(postCompile);
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			ok = context->compile();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			//Prepare again
+			ok = context->prepare("postCompile");
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+			if (!ok) goto skipMultiplePass;
+
+			ok = context->execute();
+			infoError = context->getLastError();
+			HAIZE_CHECK(ok, "[%s] Error in section \"%s\" [%d:%d] %s", stepStr[infoError.step], infoError.section.cStr(), infoError.line, infoError.column, infoError.message.cStr());
+		}
+	skipMultiplePass:
+		// Finaly clear everything
+		vm.destroyContext(module);
 	}
 
 	// END UNIT TEST
 	// ***************
+	mainLog(errorCount == 0 ? m::LOG_INFO : m::LOG_ERROR) << "Error Count: " << errorCount << m::endl;
 
-	mainLog(errorCount == 0 ? muon::LOG_INFO : muon::LOG_ERROR) << "Error Count: " << errorCount << muon::endl;
+	xmlRoot->SetAttribute("tests", totalTests);
+	xmlDoc.InsertFirstChild(xmlRoot);
+	xmlDoc.SaveFile("unittests.xml");
 
-	muon::system::Log::close();
+	m::system::Log::close();
 
-	return -((muon::i32)errorCount);
+	return -((m::i32)errorCount);
 }

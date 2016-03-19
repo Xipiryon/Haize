@@ -1,0 +1,6 @@
+
+// Simple function declaration
+int multipleLoad_A()
+{
+	return 64;
+}
