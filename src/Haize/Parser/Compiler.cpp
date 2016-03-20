@@ -108,29 +108,30 @@ namespace hz
 {
 	namespace parser
 	{
+		Compiler::Compiler()
+			: m_nodeRoot(MUON_NEW(parser::ASTNode))
+		{
+		}
+
+		Compiler::~Compiler()
+		{
+			MUON_DELETE(m_nodeRoot);
+		}
+
 		bool Compiler::compile(Error& error)
 		{
-			m_nodeRoot = MUON_NEW(parser::ASTNode);
-
-			// avoid a macro, and avoid duplicating code
-			auto clearVariable = [&]()
-			{
-				m_loadBuffer.clear();
-				MUON_DELETE(m_nodeRoot);
-			};
-
 			error.clear();
 			error.step = Error::COMPILATION;
+			error.state = Error::ERROR;
 
 			// Clear previous compilation
-			//m_tokenList->clear();
 			while (!m_nodeRoot->children->empty())
 			{
 				MUON_DELETE(m_nodeRoot->children->back());
 				m_nodeRoot->children->pop_back();
 			}
 			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->token.type = 0;
+			m_nodeRoot->token.type = NT_ROOT;
 
 			// Start scanning
 			yyscan_t scanner;
@@ -153,26 +154,18 @@ namespace hz
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 
+			m_loadBuffer.clear();
 			exit(0);
-			/*
-			if (!semantic(error))
-			{
-			clearVariable();
-			return false;
-			}
-			*/
-			{
-				// Skip empty AST
-				if (m_nodeRoot->children->empty())
-				{
-					return true;
-				}
-				error.clear();
-				error.step = Error::COMPILATION;
 
+			// Semantic analysis
+			// Skip empty AST
+			if (m_nodeRoot->children->empty())
+			{
+				error.state = Error::SUCCESS;
 				return true;
 			}
-			clearVariable();
+
+			error.state = Error::SUCCESS;
 			return true;
 		}
 	}

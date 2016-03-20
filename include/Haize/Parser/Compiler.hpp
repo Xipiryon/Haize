@@ -11,10 +11,13 @@ namespace hz
 		class HAIZE_API Compiler
 		{
 		public:
-			virtual bool load(const char* buffer, Error& error);
-			virtual bool load(const m::String& file, Error& error);
+			Compiler();
+			~Compiler();
 
-			virtual bool compile(Error& error);
+			bool load(const char* buffer, Error& error);
+			bool load(const m::String& file, Error& error);
+
+			bool compile(Error& error);
 
 		private:
 			// Variables
