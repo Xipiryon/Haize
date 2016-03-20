@@ -18,10 +18,9 @@ namespace hz
 
 		private:
 			// Variables
-			m::String m_loadBuffer;						// Load
-			std::vector<parser::Token>* m_tokenList;	// Lexical (Lex)
-			parser::ASTNode* m_nodeRoot;				// Syntaxic (Lemon)
-			//SymbolTable m_symbols;					// Semantic
+			m::String m_loadBuffer;
+			parser::ASTNode* m_nodeRoot;
+			//SymbolTable m_symbols;
 		};
 	}
 }

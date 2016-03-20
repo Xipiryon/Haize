@@ -110,14 +110,12 @@ namespace hz
 	{
 		bool Compiler::compile(Error& error)
 		{
-			m_tokenList = MUON_NEW(std::vector<parser::Token>);
 			m_nodeRoot = MUON_NEW(parser::ASTNode);
 
 			// avoid a macro, and avoid duplicating code
 			auto clearVariable = [&]()
 			{
 				m_loadBuffer.clear();
-				MUON_DELETE(m_tokenList);
 				MUON_DELETE(m_nodeRoot);
 			};
 
@@ -147,7 +145,6 @@ namespace hz
 			do
 			{
 				extraToken.type = yylex(scanner);
-				//m_tokenList->push_back(sharedToken);
 				yyparse(scanner);
 				extraToken.column += strlen(yyget_text(scanner));
 				extraToken.value.reset();
