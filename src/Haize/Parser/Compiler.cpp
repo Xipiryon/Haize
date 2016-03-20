@@ -3,7 +3,6 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
-#include "generated/ExtraParserContext.hpp"
 #include "generated/flex.l.hpp"
 #include "generated/yacc.hpp"
 
@@ -136,7 +135,6 @@ namespace hz
 			// Start scanning
 			yyscan_t scanner;
 			parser::Token extraToken;
-			ExtraParserContext epc;
 
 			extraToken.line = 1;
 			extraToken.column = 1;
