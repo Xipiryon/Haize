@@ -56,12 +56,9 @@ extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 // NT_ROOT is used inside cpp code
 // ********************
 
-%token <node>	NT_ROOT NT_EMPTY
-%token <node>	NT_STRUCT_BODY NT_ATTR_DECL
-%token <node>	NT_FUNC_CALL NT_ARG_LIST
-%token <node>	NT_STMT
+%token <node>	NT_ROOT 
 
-%token			S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
+%token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
 
 %token <string>		V_IDENTIFIER
@@ -75,68 +72,56 @@ extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 %token <node>	K_GLOBAL K_NAMESPACE K_CLASS 
 
 // ********************
-/*
-%type <node>	block block_empty chunk chunk_empty stmt_decl expr subexpr
-%type <node>	namespace_decl
-%type <node>	param_list param_decl func_decl func_call arg_list
-%type <node>	attr_decl struct_body struct_body_decl struct_decl
-%type <node>	expr_asn_op binop_all expr_bin_op expr_cmp_op expr_bit_op
-%type <node>	conditional_block
-%type <node>	constant variable variable_lval
-*/
+%type <node>	chunk
 
 // **********************************************
 // Rules
 // **********************************************
-%start program
+%start chunk
 %%
 
-program
-	: chunk
-	| // E
-	;
-
 chunk
-	: chunk namespace_decl
+	: /* E */
+	| chunk namespace_decl
 	| chunk func_decl
 	| chunk class_decl
 	;
 
-asnop 
-	: MATH_ASN
-	;
+//asnop 
+//	: MATH_ASN
+//	;
 
-binop 
-	: MATH_ADD
-	| MATH_SUB
-	| MATH_MUL
-	| MATH_DIV
-	| MATH_MOD
-	;
+//binop 
+//	: MATH_ADD
+//	| MATH_SUB
+//	| MATH_MUL
+//	| MATH_DIV
+//	| MATH_MOD
+//	;
 
-unary
-	: UNARY_MINUS expr
-	;
+//unary
+//	: UNARY_MINUS expr
+//	;
 
-constant
-	: V_NIL
-	| V_TRUE
-	| V_FALSE
-	| V_STRING
-	| V_NUMBER
-	;
+//constant
+//	: V_NIL
+//	| V_TRUE
+//	| V_FALSE
+//	| V_STRING
+//	| V_NUMBER
+//	;
 
-variable 
-	: V_IDENTIFIER
-	;
+//variable 
+//	: V_IDENTIFIER
+//	;
 
 var_type 
 	: V_IDENTIFIER V_IDENTIFIER
 	;
 
-var_global 
-	: K_GLOBAL var_type
-	;
+//var_global 
+//	: K_GLOBAL var_type
+//	;
 
 namespace_decl 
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
@@ -146,7 +131,7 @@ func_decl
 	: var_type S_LPARENT args_list_decl S_RPARENT
 	;
 args_list_decl 
-	: // E
+	: /* E */
 	| args_decl
 	;
 args_decl 
@@ -157,7 +142,7 @@ arg_decl
 	: arg_prefix var_type
 	;
 arg_prefix 
-	: // E
+	: /* E */
 	| K_IN
 	| K_OUT
 	;
@@ -166,50 +151,50 @@ class_decl
 	: K_CLASS
 	;
 
-func_call 
-	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE func_body S_RBRACE
-	;
+//func_call 
+//	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE func_body S_RBRACE
+//	;
+//args_call 
+//	: /* E */
+//	| expr S_COMMA
+//	| args_call expr
+//	;
 
-args_call 
-	: // E
-	| expr S_COMMA
-	| args_call expr
-	;
-func_body 
-	: // E
-	| expr
-	;
-
-// TODO: COMPLET
-cond_control 
-	: K_IF
-	| K_ELSE
-	;
+//func_body 
+//	: /* E */
+//	| expr
+//	;
 
 // TODO: COMPLET
-loop_control 
-	: K_FOR
-	| K_WHILE
-	| K_SWITCH
-	;
-
-flow_control 
-	: K_BREAK S_SEPARATOR
-	| K_CONTINUE S_SEPARATOR
-	| K_RETURN expr
-	;
+//cond_control 
+//	: K_IF
+//	| K_ELSE
+//	;
 
 // TODO: COMPLET
-expr 
-	: S_LPARENT expr S_RPARENT
-	| variable
-	| constant
-	| func_call
-	| expr binop constant S_SEPARATOR
-	| expr binop variable S_SEPARATOR
-	;
+//loop_control 
+//	: K_FOR
+//	| K_WHILE
+//	| K_SWITCH
+//	;
+
+//flow_control 
+//	: K_BREAK S_SEPARATOR
+//	| K_CONTINUE S_SEPARATOR
+//	| K_RETURN expr
+//	;
+
+// TODO: COMPLET
+//expr 
+//	: S_LPARENT expr S_RPARENT
+//	| variable
+//	| constant
+//	| func_call
+//	| expr binop constant S_SEPARATOR
+//	| expr binop variable S_SEPARATOR
+//	;
 
 // TODO
-array 
-	: S_LBRACKET S_RBRACKET
-	;
+//array 
+//	: S_LBRACKET S_RBRACKET
+//	;
