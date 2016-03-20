@@ -3,8 +3,8 @@
 
 #include "Haize/Parser/Compiler.hpp"
 
-#include "generated/flex.l.hpp"
 #include "generated/yacc.hpp"
+#include "generated/flex.l.hpp"
 
 namespace utils
 {
@@ -96,11 +96,10 @@ namespace utils
 	}
 }
 
-void yyerror(const char* err)
+void yyerror(YYLTYPE *llocp, void* token, const char* err)
 {
-	m::system::Log log("YACC", m::LOG_ERROR);
-	//log() << "** Error at " << g_lineCount << ":" << g_charCount << " **" << m::endl;
-	log() << "=> " << err << m::endl;
+	m::system::Log log("Compiler", m::LOG_ERROR);
+	log() << "\"" << err << "\" @ " << llocp->first_line << ":" << llocp->first_column << m::endl;
 }
 
 namespace hz
@@ -134,25 +133,26 @@ namespace hz
 
 			// Start scanning
 			yyscan_t scanner;
-			parser::Token extraToken;
-
-			extraToken.line = 1;
-			extraToken.column = 1;
-			yylex_init_extra(&extraToken, &scanner);
+			yylex_init(&scanner);
 			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
+			YYSTYPE yylval;
+			YYLTYPE yylpos;
+			memset(&yylval, 0, sizeof(YYSTYPE));
+			memset(&yylpos, 0, sizeof(YYLTYPE));
 
+			int id;
 			do
 			{
-				extraToken.type = yylex(scanner);
+				id = yylex(&yylval, &yylpos, scanner);
 				yyparse(scanner);
-				extraToken.column += strlen(yyget_text(scanner));
-				extraToken.value.reset();
-			} while (extraToken.type > 0);
+				yylpos.first_column += strlen(yyget_text(scanner));
+			} while (id != 0);
 
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 
 			m_loadBuffer.clear();
+			system("PAUSE");
 			exit(0);
 
 			// Semantic analysis

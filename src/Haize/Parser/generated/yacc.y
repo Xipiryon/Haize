@@ -2,9 +2,19 @@
 // **********************************************
 // Configuration
 // **********************************************
-%define api.pure full
+%pure-parser
+%locations
+%debug
+%verbose
 
-%union  {
+%lex-param		{void* scanner}
+%parse-param	{void* scanner}
+
+%union {
+	void* string;
+	int integer;
+	float floating;
+	bool boolean;
 }
 // **********************************************
 // Include & Declaration
@@ -15,7 +25,10 @@
 #include <Muon/String.hpp>
 #include "flex.l.hpp"
 
-extern void yyerror(const char*);
+extern void yyerror(YYLTYPE*, void*, const char*);
+struct CustomScanner
+{
+};
 %}
 
 
@@ -38,8 +51,8 @@ extern void yyerror(const char*);
 %left	<node>	BITWISE_LSH BITWISE_RSH
 %left	<node>	MATH_ADD MATH_SUB
 %left	<node>	MATH_MUL MATH_DIV MATH_MOD
-%right	<node>	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_SIGN
-%left	<node>	MATH_POSTINC MATH_POSTDEC OP_ACCESSOR
+%right	<node>	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_MINUS UNARY_PLUS
+%left	<node>	MATH_POSTINC MATH_POSTDEC 
 %left	<node>	S_ACCESSOR
 
 // ********************
@@ -83,5 +96,131 @@ extern void yyerror(const char*);
 %%
 
 program
-	:
+	: chunk			{ printf("chunk\n"); }
+	| // E			{ printf("chunk e\n"); }
 	;
+
+chunk
+	: V_IDENTIFIER { printf("identifier\n"); }
+	;
+
+/*
+chunk
+	: chunk namespace_decl
+	| chunk func_decl
+	| chunk class_decl
+	;
+
+asnop 
+	: MATH_ASN
+	;
+
+binop 
+	: MATH_ADD
+	| MATH_SUB
+	| MATH_MUL
+	| MATH_DIV
+	| MATH_MOD
+	;
+
+unary
+	: UNARY_MINUS expr
+	;
+
+constant
+	: V_NIL
+	| V_TRUE
+	| V_FALSE
+	| V_STRING
+	| V_NUMBER
+	;
+
+variable 
+	: V_IDENTIFIER
+	;
+
+var_type 
+	: V_IDENTIFIER V_IDENTIFIER
+	;
+
+var_global 
+	: K_GLOBAL var_type
+	;
+
+namespace_decl 
+	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
+	;
+
+func_decl 
+	: var_type S_LPARENT args_list_decl S_RPARENT
+	;
+args_list_decl 
+	: // E
+	| args_decl
+	;
+args_decl 
+	: arg_decl S_COMMA
+	| args_decl arg_decl
+	;
+arg_decl 
+	: arg_prefix var_type
+	;
+arg_prefix 
+	: // E
+	| K_IN
+	| K_OUT
+	;
+
+class_decl 
+	: K_CLASS
+	;
+
+func_call 
+	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE func_body S_RBRACE
+	;
+
+args_call 
+	: // E
+	| expr S_COMMA
+	| args_call expr
+	;
+func_body 
+	: // E
+	| expr
+	;
+
+// TODO: COMPLET
+cond_control 
+	: K_IF
+	| K_ELSE
+	;
+
+// TODO: COMPLET
+loop_control 
+	: K_FOR
+	| K_WHILE
+	| K_SWITCH
+	;
+
+flow_control 
+	: K_BREAK S_SEPARATOR
+	| K_CONTINUE S_SEPARATOR
+	| K_RETURN expr
+	;
+
+// TODO: COMPLET
+expr 
+	: S_LPARENT expr S_RPARENT
+	| variable
+	| constant
+	| func_call
+	| expr binop constant S_SEPARATOR
+	| expr binop variable S_SEPARATOR
+	;
+
+// TODO
+array 
+	: S_LBRACKET S_RBRACKET
+	;
+// */
+

@@ -1,10 +1,11 @@
-%option reentrant
-%option noyywrap nodefault nounistd never-interactive
-%option warn nodebug
-
-%option extra-type="void*"
+%option reentrant 
+%option bison-bridge bison-locations
+%option noyywrap nodefault 
+%option nounistd never-interactive
+%option warn 
 
 %{
+
 #pragma warning(disable: 4003) // not enough actual parameters for macro 'yywrap'
 #pragma warning(disable: 4005) // macro redefinition (like INT8_MIN and so on...)
 
@@ -20,7 +21,6 @@ namespace utils
 #include "Haize/Parser/ASTNode.hpp"
 #include "yacc.hpp"
 
-#define YYEXTRA_HZ_TOKEN ((hz::parser::Token*)yyextra)
 %}
 
 _Letters	[a-zA-Z_]
@@ -44,21 +44,21 @@ Float		{_IntRange}+\.{_IntRange}*f?
 
 %%
 
-[[:blank:]]	{ YYEXTRA_HZ_TOKEN->column += yyleng; }
-{NewLine}	{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
+[[:blank:]]	{ yylloc->first_column += yyleng; }
+{NewLine}	{ ++yylloc->first_line; yylloc->first_column = 1; }
 {Separator}	{ return S_SEPARATOR; }
 
 
 <INITIAL>{
-	\/\*			{ BEGIN(MultiLineComment); YYEXTRA_HZ_TOKEN->column += yyleng; }
+	\/\*			{ BEGIN(MultiLineComment); yylloc->first_column += yyleng; }
 }
 <MultiLineComment>{
-	\*\/			{ BEGIN(INITIAL); YYEXTRA_HZ_TOKEN->column += yyleng; }
-	[^*\r\n]		{ YYEXTRA_HZ_TOKEN->column += yyleng; }
-	"*"				{ YYEXTRA_HZ_TOKEN->column += yyleng; }
-	{NewLine}		{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
+	\*\/			{ BEGIN(INITIAL); yylloc->first_column += yyleng; }
+	[^*\r\n]		{ yylloc->first_column += yyleng; }
+	"*"				{ yylloc->first_column += yyleng; }
+	{NewLine}		{ ++yylloc->first_line; yylloc->first_column = 1; }
 }
-{LineComment}	{ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
+{LineComment}	{ ++yylloc->first_line; yylloc->first_column = 1; }
 
 
 "true"		{ return V_TRUE; }
@@ -82,38 +82,39 @@ Float		{_IntRange}+\.{_IntRange}*f?
 "out"		{ return K_OUT; }
 
 {HexNumber}	{
-	YYEXTRA_HZ_TOKEN->value = utils::hex2int(yytext);
-	YYEXTRA_HZ_TOKEN->column += yyleng;
+	yylval->integer = utils::hex2int(yytext);
+	yylloc->first_column += yyleng;
 	return V_NUMBER;
 }
 
 {OctNumber}	{
-	YYEXTRA_HZ_TOKEN->value = utils::oct2int(yytext);
-	YYEXTRA_HZ_TOKEN->column += yyleng;
+	yylval->integer = utils::oct2int(yytext);
+	yylloc->first_column += yyleng;
 	return V_NUMBER;
 }
 
 {BinNumber}	{
-	YYEXTRA_HZ_TOKEN->value = utils::bin2int(yytext);
-	YYEXTRA_HZ_TOKEN->column += yyleng;
+	yylval->integer = utils::bin2int(yytext);
+	yylloc->first_column += yyleng;
 	return V_NUMBER;
 }
 
-{Integer}	{ YYEXTRA_HZ_TOKEN->value = (m::i32)atoi(yytext);	return V_NUMBER; }
-{Float}		{ YYEXTRA_HZ_TOKEN->value = (m::f32)atof(yytext);	return V_NUMBER; }
-{Identifer}	{ YYEXTRA_HZ_TOKEN->value = m::String(yytext);		return V_IDENTIFIER; }
+{Integer}	{ yylval->integer = (m::i32)atoi(yytext);		return V_NUMBER; }
+{Float}		{ yylval->floating = (m::f32)atof(yytext);		return V_NUMBER; }
+{Identifer}	{ yylval->string = MUON_NEW(m::String, yytext);	return V_IDENTIFIER; }
 
 <INITIAL>{
-	\"			{ BEGIN(StringBlock); YYEXTRA_HZ_TOKEN->column += yyleng; }
+	\"			{ BEGIN(StringBlock); yylloc->first_column += yyleng; }
 }
 <StringBlock>{
 	\"				{	BEGIN(INITIAL);
+						//yylval->string = MUON_CNEW(muon::String, g_strBuffer);
 						//yylval.string = MUON_CNEW(muon::String, g_strBuffer);
 						//g_strBuffer.clear();
 						return V_STRING;
 					}
-	[^"\n]+			{ /*g_strBuffer += yytext;*/ YYEXTRA_HZ_TOKEN->column += yyleng;}
-	{NewLine}		{ /*g_strBuffer += yytext;*/ ++YYEXTRA_HZ_TOKEN->line; YYEXTRA_HZ_TOKEN->column = 1; }
+	[^"\n]+			{ /*g_strBuffer += yytext;*/ yylloc->first_column += yyleng;}
+	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yylloc->first_line; yylloc->first_column = 1; }
 }
 
 "."		{ return S_ACCESSOR; }
@@ -161,5 +162,5 @@ Float		{_IntRange}+\.{_IntRange}*f?
 ">>="	{ return MATH_ASN_BITWISE_RSH; }
 "<<="	{ return MATH_ASN_BITWISE_LSH; }
 
-.		{ YYEXTRA_HZ_TOKEN->column += yyleng; }
+.		{ yylloc->first_column += yyleng; }
 <<EOF>>	{ yyterminate(); }
