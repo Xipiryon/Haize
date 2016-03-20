@@ -96,10 +96,12 @@ namespace utils
 	}
 }
 
-void yyerror(YYLTYPE *llocp, void* token, const char* err)
+void yyerror(YYLTYPE *llocp, yyscan_t, void* errptr, const char* err)
 {
-	m::system::Log log("Compiler", m::LOG_ERROR);
-	log() << "\"" << err << "\" @ " << llocp->first_line << ":" << llocp->first_column << m::endl;
+	hz::Error* error = (hz::Error*)errptr;
+	error->line = llocp->first_line;
+	error->column = llocp->first_column;
+	error->message = err;
 }
 
 namespace hz
@@ -133,27 +135,26 @@ namespace hz
 
 			// Start scanning
 			yyscan_t scanner;
+
 			yylex_init(&scanner);
 			YY_BUFFER_STATE buffer = yy_scan_string(m_loadBuffer.cStr(), scanner);
 			YYSTYPE yylval;
-			YYLTYPE yylpos;
 			memset(&yylval, 0, sizeof(YYSTYPE));
-			memset(&yylpos, 0, sizeof(YYLTYPE));
 
-			int id;
-			do
-			{
-				id = yylex(&yylval, &yylpos, scanner);
-				yyparse(scanner);
-				yylpos.first_column += strlen(yyget_text(scanner));
-			} while (id != 0);
+			int ret = yyparse(scanner, &error);
 
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 
 			m_loadBuffer.clear();
+
 			system("PAUSE");
 			exit(0);
+			if (ret != 0)
+			{
+				error.state = Error::SUCCESS;
+				return false;
+			}
 
 			// Semantic analysis
 			// Skip empty AST

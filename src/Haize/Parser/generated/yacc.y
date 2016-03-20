@@ -4,11 +4,10 @@
 // **********************************************
 %pure-parser
 %locations
-%debug
-%verbose
 
 %lex-param		{void* scanner}
 %parse-param	{void* scanner}
+%parse-param	{void* errptr}
 
 %union {
 	void* string;
@@ -25,10 +24,7 @@
 #include <Muon/String.hpp>
 #include "flex.l.hpp"
 
-extern void yyerror(YYLTYPE*, void*, const char*);
-struct CustomScanner
-{
-};
+extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 %}
 
 
@@ -96,15 +92,10 @@ struct CustomScanner
 %%
 
 program
-	: chunk			{ printf("chunk\n"); }
-	| // E			{ printf("chunk e\n"); }
+	: chunk
+	| // E
 	;
 
-chunk
-	: V_IDENTIFIER { printf("identifier\n"); }
-	;
-
-/*
 chunk
 	: chunk namespace_decl
 	| chunk func_decl
@@ -222,5 +213,3 @@ expr
 array 
 	: S_LBRACKET S_RBRACKET
 	;
-// */
-

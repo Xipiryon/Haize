@@ -1,8 +1,7 @@
 %option reentrant 
 %option bison-bridge bison-locations
-%option noyywrap nodefault 
+%option noyywrap nounput noinput 
 %option nounistd never-interactive
-%option warn 
 
 %{
 
