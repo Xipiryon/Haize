@@ -7,14 +7,15 @@
 
 %lex-param		{void* scanner}
 %parse-param	{void* scanner}
-%parse-param	{hz::parser::ASTNode* node}
-%parse-param	{hz::Error* errptr}
+%parse-param	{hz::parser::ASTNode* m_node}
+%parse-param	{hz::Error* m_error}
 
 %union {
-	void* string;
+	m::String* string;
 	int integer;
 	float floating;
 	bool boolean;
+	hz::parser::ASTNode* node;
 }
 
 // **********************************************
@@ -91,10 +92,10 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %%
 
 chunk
-	: /* E */
-	| chunk namespace_decl
-	| chunk func_decl
-	| chunk class_decl
+	: /* E */					{ $$ = m_node; }
+	| chunk namespace_decl		{ $$ = $1; }
+	| chunk func_decl			{ $$ = $1; }
+	| chunk class_decl			{ $$ = $1; }
 	;
 
 //asnop
