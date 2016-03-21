@@ -96,6 +96,49 @@ namespace utils
 	}
 }
 
+
+namespace ascii
+{
+	// ASCII Tree variables
+	char depth[2048];
+	m::u32 depthIndex;
+
+	void push(char c)
+	{
+		depth[depthIndex++] = ' ';
+		depth[depthIndex++] = c;
+		depth[depthIndex++] = ' ';
+		depth[depthIndex++] = ' ';
+		depth[depthIndex] = 0;
+	}
+
+	void pop()
+	{
+		depth[depthIndex -= 4] = 0;
+	}
+
+	void display(hz::parser::ASTNode* node)
+	{
+		printf( "%s \n", utils::tokenValueToStr(node->token).cStr());
+		for (m::u32 i = 0; i < node->children->size(); ++i)
+		{
+			hz::parser::ASTNode* n = (*node->children)[i];
+			if(i < node->children->size()-1)
+			{
+				printf( "%s ├─", depth);
+				push('|');
+			}
+			else // Last element
+			{
+				printf( "%s └─", depth);
+				push(' ');
+			}
+			display(n);
+			pop();
+		}
+	}
+}
+
 void yyerror(YYLTYPE *llocp, yyscan_t scanner, hz::parser::ASTNode* node, hz::Error* error, const char* err)
 {
 	error->line = llocp->first_line;
@@ -147,6 +190,7 @@ namespace hz
 
 			m_loadBuffer.clear();
 
+			ascii::display(m_nodeRoot);
 			exit(0);
 			if (ret != 0)
 			{
