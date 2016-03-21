@@ -7,7 +7,8 @@
 
 %lex-param		{void* scanner}
 %parse-param	{void* scanner}
-%parse-param	{void* errptr}
+%parse-param	{hz::parser::ASTNode* node}
+%parse-param	{hz::Error* errptr}
 
 %union {
 	void* string;
@@ -15,16 +16,25 @@
 	float floating;
 	bool boolean;
 }
+
 // **********************************************
 // Include & Declaration
 // **********************************************
+
+%code requires {
+#include <Muon/String.hpp>
+#include "Haize/Error.hpp"
+#include "Haize/Parser/Token.hpp"
+#include "Haize/Parser/ASTNode.hpp"
+}
+
+
 %{
 #pragma warning(disable: 4065) // switch statement contains 'default' but no 'case' labels
 
-#include <Muon/String.hpp>
 #include "flex.l.hpp"
 
-extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
+extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::Error*, const char*);
 %}
 
 
@@ -48,7 +58,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 %left	<node>	MATH_ADD MATH_SUB
 %left	<node>	MATH_MUL MATH_DIV MATH_MOD
 %right	<node>	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_MINUS UNARY_PLUS
-%left	<node>	MATH_POSTINC MATH_POSTDEC 
+%left	<node>	MATH_POSTINC MATH_POSTDEC
 %left	<node>	S_ACCESSOR
 
 // ********************
@@ -56,7 +66,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 // NT_ROOT is used inside cpp code
 // ********************
 
-%token <node>	NT_ROOT 
+%token <node>	NT_ROOT
 
 %token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
@@ -69,7 +79,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, void*, const char*);
 %token <node>	K_IF K_THEN K_ELSE K_FOR K_WHILE K_SWITCH
 %token <node>	K_CONTINUE K_BREAK K_RETURN
 %token <node>	K_IN K_OUT
-%token <node>	K_GLOBAL K_NAMESPACE K_CLASS 
+%token <node>	K_GLOBAL K_NAMESPACE K_CLASS
 
 // ********************
 %type <node>	chunk
@@ -87,11 +97,11 @@ chunk
 	| chunk class_decl
 	;
 
-//asnop 
+//asnop
 //	: MATH_ASN
 //	;
 
-//binop 
+//binop
 //	: MATH_ADD
 //	| MATH_SUB
 //	| MATH_MUL
@@ -111,81 +121,81 @@ chunk
 //	| V_NUMBER
 //	;
 
-//variable 
+//variable
 //	: V_IDENTIFIER
 //	;
 
-var_type 
+var_type
 	: V_IDENTIFIER V_IDENTIFIER
 	;
 
-//var_global 
+//var_global
 //	: K_GLOBAL var_type
 //	;
 
-namespace_decl 
+namespace_decl
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
 	;
 
-func_decl 
+func_decl
 	: var_type S_LPARENT args_list_decl S_RPARENT
 	;
-args_list_decl 
+args_list_decl
 	: /* E */
 	| args_decl
 	;
-args_decl 
+args_decl
 	: arg_decl S_COMMA
 	| args_decl arg_decl
 	;
-arg_decl 
+arg_decl
 	: arg_prefix var_type
 	;
-arg_prefix 
+arg_prefix
 	: /* E */
 	| K_IN
 	| K_OUT
 	;
 
-class_decl 
+class_decl
 	: K_CLASS
 	;
 
-//func_call 
+//func_call
 //	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE func_body S_RBRACE
 //	;
-//args_call 
+//args_call
 //	: /* E */
 //	| expr S_COMMA
 //	| args_call expr
 //	;
 
-//func_body 
+//func_body
 //	: /* E */
 //	| expr
 //	;
 
 // TODO: COMPLET
-//cond_control 
+//cond_control
 //	: K_IF
 //	| K_ELSE
 //	;
 
 // TODO: COMPLET
-//loop_control 
+//loop_control
 //	: K_FOR
 //	| K_WHILE
 //	| K_SWITCH
 //	;
 
-//flow_control 
+//flow_control
 //	: K_BREAK S_SEPARATOR
 //	| K_CONTINUE S_SEPARATOR
 //	| K_RETURN expr
 //	;
 
 // TODO: COMPLET
-//expr 
+//expr
 //	: S_LPARENT expr S_RPARENT
 //	| variable
 //	| constant
@@ -195,6 +205,6 @@ class_decl
 //	;
 
 // TODO
-//array 
+//array
 //	: S_LBRACKET S_RBRACKET
 //	;

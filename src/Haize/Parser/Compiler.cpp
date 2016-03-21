@@ -96,9 +96,8 @@ namespace utils
 	}
 }
 
-void yyerror(YYLTYPE *llocp, yyscan_t, void* errptr, const char* err)
+void yyerror(YYLTYPE *llocp, yyscan_t scanner, hz::parser::ASTNode* node, hz::Error* error, const char* err)
 {
-	hz::Error* error = (hz::Error*)errptr;
 	error->line = llocp->first_line;
 	error->column = llocp->first_column;
 	error->message = err;
@@ -141,14 +140,13 @@ namespace hz
 			YYSTYPE yylval;
 			memset(&yylval, 0, sizeof(YYSTYPE));
 
-			int ret = yyparse(scanner, &error);
+			int ret = yyparse(scanner, m_nodeRoot, &error);
 
 			yy_delete_buffer(buffer, scanner);
 			yylex_destroy(scanner);
 
 			m_loadBuffer.clear();
 
-			system("PAUSE");
 			exit(0);
 			if (ret != 0)
 			{

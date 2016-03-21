@@ -1,6 +1,6 @@
-%option reentrant 
+%option reentrant
 %option bison-bridge bison-locations
-%option noyywrap nounput noinput 
+%option noyywrap nounput noinput
 %option nounistd never-interactive
 
 %{
@@ -16,6 +16,7 @@ namespace utils
 }
 
 #include <Muon/String.hpp>
+#include "Haize/Error.hpp"
 #include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 #include "yacc.hpp"
