@@ -119,7 +119,7 @@ namespace ascii
 
 	void display(hz::parser::ASTNode* node)
 	{
-		printf( "%s \n", utils::tokenValueToStr(node->token).cStr());
+		printf( "%s (%s)\n", node->name.cStr(), utils::tokenValueToStr(node->token).cStr());
 		for (m::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
