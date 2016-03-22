@@ -78,6 +78,9 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 // ********************
 
 %token <node>	NT_ROOT
+				NT_FUNCTION
+				NT_FUNCTION_ARGUMENTS
+				NT_FUNCTION_BODY
 
 %token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
@@ -112,7 +115,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %%
 
 chunk
-	: /* E */					{ $$; }
+	: /* E */					{ $$ = m_node; }
 	| chunk namespace_decl		{ $$->addChild($2); }
 	| chunk func_decl			{ $$->addChild($2); }
 	| chunk class_decl			{ $$->addChild($2); }
@@ -147,7 +150,21 @@ chunk
 //	;
 
 var_type
-	: V_IDENTIFIER V_IDENTIFIER	{ $$ = MUON_NEW(hz::parser::ASTNode, V_IDENTIFIER, "#Type#"); }
+	: V_IDENTIFIER V_IDENTIFIER
+		{
+			m::String type = (*$1);
+			m::String var = (*$2);
+			MUON_DELETE($1);
+			MUON_DELETE($2);
+			// Node name is the variable name
+			// Token value is the return type
+			hz::parser::ASTNode* nodeType = MUON_NEW(hz::parser::ASTNode, V_IDENTIFIER, var);
+			nodeType->token.value = type;
+
+			$$ = nodeType;
+			$$->token.column = yyloc.first_line;
+			$$->token.column = yyloc.first_column;
+		}
 	;
 
 //var_global
@@ -159,15 +176,29 @@ namespace_decl
 	;
 
 func_decl
-	: var_type S_LPARENT args_list_decl S_RPARENT		{ $$ = MUON_NEW(hz::parser::ASTNode); $$->addChild($1); }
+	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE S_RBRACE
+		{
+			$$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION, "#FUNCTION#");
+			$$->addChild($1);
+			$$->addChild($3);
+		}
 	;
 args_list_decl
-	: /* E */				{ $$ = MUON_NEW(hz::parser::ASTNode); }
-	| args_decl				{ $$ = MUON_NEW(hz::parser::ASTNode); }
+	: /* E */				{ $$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION_ARGUMENTS, "#ARGS#"); }
+	| args_decl				{ $$ = $1; /* Node have been created by args_decl */}
 	;
 args_decl
-	: arg_prefix var_type S_COMMA		{ $$ = MUON_NEW(hz::parser::ASTNode); }
-	| args_decl arg_prefix var_type		{ $$ = MUON_NEW(hz::parser::ASTNode); }
+	: arg_prefix var_type
+		{
+			generated::ParamPrefix prefix = (generated::ParamPrefix)$1;
+			$$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION_ARGUMENTS, "#ARGS#");
+			$$->addChild($2);
+		}
+	| args_decl S_COMMA arg_prefix var_type
+		{
+			generated::ParamPrefix prefix = (generated::ParamPrefix)$3;
+			$1->addChild($4);
+		}
 	;
 arg_prefix
 	: /* E */	{ $$ = generated::ParamPrefix::IN; }
