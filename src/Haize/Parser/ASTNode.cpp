@@ -9,14 +9,14 @@ namespace hz
 	namespace parser
 	{
 		ASTNode::ASTNode()
-			: name("#TOKEN#")
+			: name("#?#")
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
 		}
 
 		ASTNode::ASTNode(m::u32 type_)
-			: name("#TOKEN#")
+			: name("#?#")
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
@@ -32,7 +32,7 @@ namespace hz
 		}
 
 		ASTNode::ASTNode(const Token& token_)
-			: name("#TOKEN#")
+			: name("#?#")
 			, token(token_)
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
@@ -50,7 +50,7 @@ namespace hz
 
 		ASTNode* ASTNode::addChild(m::u32 type)
 		{
-			return addChild(type, "#TOKEN#");
+			return addChild(type, "#?#");
 		}
 
 		ASTNode* ASTNode::addChild(m::u32 type, const m::String& name)
