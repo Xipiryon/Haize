@@ -144,6 +144,10 @@ void yyerror(YYLTYPE *llocp, yyscan_t scanner, hz::parser::ASTNode* node, hz::Er
 	error->line = llocp->first_line;
 	error->column = llocp->first_column;
 	error->message = err;
+	if(node->parent)
+	{
+		node->parent->deleteChild(node);
+	}
 }
 
 namespace hz
@@ -191,10 +195,15 @@ namespace hz
 			m_loadBuffer.clear();
 
 			ascii::display(m_nodeRoot);
+			{
+				m::system::Log err("Compilation", m::LOG_ERROR);
+				err() << "[" << error.line << ":" << error.column << "] \"" << error.message << "\"" << m::endl;
+			}
 			exit(0);
+
 			if (ret != 0)
 			{
-				error.state = Error::SUCCESS;
+				error.state = Error::ERROR;
 				return false;
 			}
 
