@@ -80,6 +80,7 @@ Float		{_IntRange}+\.{_IntRange}*f?
 "class"		{ return K_CLASS; }
 "in"		{ return K_IN; }
 "out"		{ return K_OUT; }
+"inout"		{ return K_INOUT; }
 
 {HexNumber}	{
 	yylval->integer = utils::hex2int(yytext);

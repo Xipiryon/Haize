@@ -27,6 +27,16 @@
 #include "Haize/Error.hpp"
 #include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
+
+namespace generated
+{
+	enum ParamPrefix
+	{
+		IN 	= 0x1,
+		OUT	= 0x2,
+	};
+}
+
 }
 
 
@@ -76,14 +86,24 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %token <string>		V_STRING
 %token <floating>	V_FLOATING V_NUMBER
 %token <integer>	V_TRUE V_FALSE V_NIL V_INTEGER
+%token <integer>	K_IN K_OUT K_INOUT
 
 %token <node>	K_IF K_THEN K_ELSE K_FOR K_WHILE K_SWITCH
 %token <node>	K_CONTINUE K_BREAK K_RETURN
-%token <node>	K_IN K_OUT
 %token <node>	K_GLOBAL K_NAMESPACE K_CLASS
 
 // ********************
 %type <node>	chunk
+
+%type <node>	func_decl
+				args_list_decl
+				args_decl
+%type <integer>	arg_prefix
+
+%type <node>	namespace_decl
+				class_decl
+
+%type <node>	var_type
 
 // **********************************************
 // Rules
@@ -92,10 +112,10 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %%
 
 chunk
-	: /* E */					{ $$ = m_node; }
-	| chunk namespace_decl		{ $$ = $1; }
-	| chunk func_decl			{ $$ = $1; }
-	| chunk class_decl			{ $$ = $1; }
+	: /* E */					{ $$; }
+	| chunk namespace_decl		{ $$->addChild($2); }
+	| chunk func_decl			{ $$->addChild($2); }
+	| chunk class_decl			{ $$->addChild($2); }
 	;
 
 //asnop
@@ -127,7 +147,7 @@ chunk
 //	;
 
 var_type
-	: V_IDENTIFIER V_IDENTIFIER
+	: V_IDENTIFIER V_IDENTIFIER	{ $$ = MUON_NEW(hz::parser::ASTNode, V_IDENTIFIER, "#Type#"); }
 	;
 
 //var_global
@@ -139,23 +159,21 @@ namespace_decl
 	;
 
 func_decl
-	: var_type S_LPARENT args_list_decl S_RPARENT
+	: var_type S_LPARENT args_list_decl S_RPARENT		{ $$ = MUON_NEW(hz::parser::ASTNode); $$->addChild($1); }
 	;
 args_list_decl
-	: /* E */
-	| args_decl
+	: /* E */				{ $$ = MUON_NEW(hz::parser::ASTNode); }
+	| args_decl				{ $$ = MUON_NEW(hz::parser::ASTNode); }
 	;
 args_decl
-	: arg_decl S_COMMA
-	| args_decl arg_decl
-	;
-arg_decl
-	: arg_prefix var_type
+	: arg_prefix var_type S_COMMA		{ $$ = MUON_NEW(hz::parser::ASTNode); }
+	| args_decl arg_prefix var_type		{ $$ = MUON_NEW(hz::parser::ASTNode); }
 	;
 arg_prefix
-	: /* E */
-	| K_IN
-	| K_OUT
+	: /* E */	{ $$ = generated::ParamPrefix::IN; }
+	| K_IN		{ $$ = generated::ParamPrefix::IN; }
+	| K_OUT		{ $$ = generated::ParamPrefix::OUT; }
+	| K_INOUT	{ $$ = (generated::ParamPrefix::IN | generated::ParamPrefix::OUT); }
 	;
 
 class_decl
