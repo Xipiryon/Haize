@@ -195,12 +195,7 @@ namespace hz
 			m_loadBuffer.clear();
 
 			ascii::display(m_nodeRoot);
-			{
-				m::system::Log err("Compilation", m::LOG_ERROR);
-				err() << "[" << error.line << ":" << error.column << "] \"" << error.message << "\"" << m::endl;
-			}
 			exit(0);
-
 			if (ret != 0)
 			{
 				error.state = Error::ERROR;
