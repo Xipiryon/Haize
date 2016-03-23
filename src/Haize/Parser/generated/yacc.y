@@ -112,6 +112,13 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 
 %type <node>	var_type
 
+%type <node>	asnop
+				binop
+				unop
+
+%type <node>	stmt_list
+				expr
+				prefixexpr
 // **********************************************
 // Rules
 // **********************************************
@@ -131,33 +138,34 @@ chunk
 	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
 	;
 
-//asnop
-//	: MATH_ASN
-//	;
+asnop
+	: MATH_ASN
+	;
 
-//binop
-//	: MATH_ADD
-//	| MATH_SUB
-//	| MATH_MUL
-//	| MATH_DIV
-//	| MATH_MOD
-//	;
+binop
+	: MATH_ADD
+	| MATH_SUB
+	| MATH_MUL
+	| MATH_DIV
+	| MATH_MOD
+	;
 
-//unary
+//unop
 //	: UNARY_MINUS expr
 //	;
 
-//constant
-//	: V_NIL
-//	| V_TRUE
-//	| V_FALSE
-//	| V_STRING
-//	| V_NUMBER
-//	;
+constant
+	: V_NIL
+	| V_TRUE
+	| V_FALSE
+	| V_STRING
+	| V_NUMBER
+	;
 
-//variable
-//	: V_IDENTIFIER
-//	;
+variable
+	: V_IDENTIFIER
+	| func_call
+	;
 
 var_type
 	: V_IDENTIFIER V_IDENTIFIER
@@ -177,9 +185,9 @@ var_type
 		}
 	;
 
-//var_global
-//	: K_GLOBAL var_type
-//	;
+var_global
+	: K_GLOBAL var_type
+	;
 
 namespace_decl
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
@@ -197,7 +205,7 @@ namespace_decl
 	;
 
 func_decl
-	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE S_RBRACE
+	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE func_body S_RBRACE
 		{
 			$$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION, "#FUNCTION#");
 			$$->addChild($1);
@@ -243,19 +251,21 @@ class_body
 	| func_decl		{ printf("class::func_decl\n"); $$ = $1; }
 	;
 
-//func_call
-//	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE func_body S_RBRACE
-//	;
-//args_call
-//	: /* E */
-//	| expr S_COMMA
-//	| args_call expr
-//	;
+func_call
+	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE args_call S_RBRACE
+		{
+		}
+	;
+args_call
+	: /* E */
+	| expr S_COMMA
+	| args_call expr
+	;
 
-//func_body
-//	: /* E */
-//	| expr
-//	;
+func_body
+	: /* E */
+	| stmt_list
+	;
 
 // TODO: COMPLET
 //cond_control
@@ -276,17 +286,19 @@ class_body
 //	| K_RETURN expr
 //	;
 
-// TODO: COMPLET
-//expr
-//	: S_LPARENT expr S_RPARENT
-//	| variable
-//	| constant
-//	| func_call
-//	| expr binop constant S_SEPARATOR
-//	| expr binop variable S_SEPARATOR
-//	;
-
 // TODO
 //array
 //	: S_LBRACKET S_RBRACKET
 //	;
+
+// TODO: COMPLETE
+expr
+	: S_LPARENT expr S_RPARENT
+	| expr binop prefixexpr
+	;
+
+//prefixexpr
+//	: variable
+//	| constant
+//	;
+
