@@ -77,10 +77,12 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 // NT_ROOT is used inside cpp code
 // ********************
 
-%token <node>	NT_ROOT
+%token <node>	NT_ROOT	NT_CHUNK
+				NT_NAMESPACE
 				NT_FUNCTION
 				NT_FUNCTION_ARGUMENTS
 				NT_FUNCTION_BODY
+				NT_CLASS
 
 %token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
@@ -101,24 +103,32 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %type <node>	func_decl
 				args_list_decl
 				args_decl
+
 %type <integer>	arg_prefix
 
 %type <node>	namespace_decl
 				class_decl
+				class_body
 
 %type <node>	var_type
 
 // **********************************************
 // Rules
 // **********************************************
-%start chunk
+%start program
 %%
+program
+	: /* E */					{ }
+	| program namespace_decl	{ m_node->addChild($2);}
+	| program func_decl			{ m_node->addChild($2);}
+	| program class_decl		{ m_node->addChild($2);}
+	;
 
 chunk
-	: /* E */					{ $$ = m_node; }
-	| chunk namespace_decl		{ $$->addChild($2); }
-	| chunk func_decl			{ $$->addChild($2); }
-	| chunk class_decl			{ $$->addChild($2); }
+	: /* E */					{ $$ = MUON_NEW(hz::parser::ASTNode, NT_CHUNK); }
+	| chunk namespace_decl		{ $1->addChild($2); $$ = $1; }
+	| chunk func_decl			{ $1->addChild($2); $$ = $1; }
+	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
 	;
 
 //asnop
@@ -173,6 +183,17 @@ var_type
 
 namespace_decl
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
+		{
+			m::String name = (*$2);
+			MUON_DELETE($2);
+			$$ = MUON_NEW(hz::parser::ASTNode, NT_NAMESPACE, name);
+			// Extract all child of chunk (as there is a NT_CHUNK token)
+			for(m::u32 i = 0; i < $4->children->size(); ++i)
+			{
+				$$->addChild($4->children->at(i));
+			}
+			MUON_DELETE($4);
+		}
 	;
 
 func_decl
@@ -208,7 +229,18 @@ arg_prefix
 	;
 
 class_decl
-	: K_CLASS
+	: K_CLASS V_IDENTIFIER S_LBRACE class_body S_RBRACE
+		{
+			m::String name = (*$2);
+			MUON_DELETE($2);
+			$$ = MUON_NEW(hz::parser::ASTNode, NT_CLASS, name);
+		}
+	;
+
+class_body
+	: /* E */		{ printf("class::E\n");}
+	| var_type		{ printf("class::var_type\n"); }
+	| func_decl		{ printf("class::func_decl\n"); $$ = $1; }
 	;
 
 //func_call
