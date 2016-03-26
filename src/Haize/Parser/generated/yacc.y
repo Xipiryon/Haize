@@ -111,6 +111,8 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 				class_body
 
 %type <node>	var_type
+				variable
+				constant
 
 %type <node>	asnop
 				binop
@@ -268,37 +270,42 @@ func_body
 	;
 
 // TODO: COMPLET
-//cond_control
-//	: K_IF
-//	| K_ELSE
-//	;
-
-// TODO: COMPLET
-//loop_control
-//	: K_FOR
-//	| K_WHILE
-//	| K_SWITCH
-//	;
-
-//flow_control
-//	: K_BREAK S_SEPARATOR
-//	| K_CONTINUE S_SEPARATOR
-//	| K_RETURN expr
-//	;
-
-// TODO
-//array
-//	: S_LBRACKET S_RBRACKET
-//	;
-
-// TODO: COMPLETE
-expr
-	: S_LPARENT expr S_RPARENT
-	| expr binop prefixexpr
+cond_control
+	: K_IF
+	| K_ELSE
 	;
 
-//prefixexpr
-//	: variable
-//	| constant
-//	;
+// TODO: COMPLET
+loop_control
+	: K_FOR
+	| K_WHILE
+	| K_SWITCH
+	;
+
+flow_control
+	: K_BREAK S_SEPARATOR
+	| K_CONTINUE S_SEPARATOR
+	| K_RETURN expr
+	;
+
+// TODO
+array
+	: S_LBRACKET S_RBRACKET
+	;
+
+// TODO: COMPLETE
+stmt_list
+	: expr S_SEPARATOR		{ $$ = $1; }
+	| stmt_list S_SEPARATOR	{ $$ = $1; }
+	;
+
+expr
+	: S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	| expr binop prefixexpr			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	;
+
+prefixexpr
+	: variable		{ $$ = $1; }
+	| constant		{ $$ = $1; }
+	;
 
