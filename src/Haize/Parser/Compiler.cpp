@@ -96,7 +96,6 @@ namespace utils
 	}
 }
 
-
 namespace ascii
 {
 	// ASCII Tree variables
@@ -119,18 +118,26 @@ namespace ascii
 
 	void display(hz::parser::ASTNode* node)
 	{
-		printf( "%s (%s)\n", node->name.cStr(), utils::tokenValueToStr(node->token).cStr());
+		printf(" %s (%s)\n", node->name.cStr(), utils::tokenValueToStr(node->token).cStr());
 		for (m::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
-			if(i < node->children->size()-1)
+			if (i < node->children->size() - 1)
 			{
+#if defined(MUON_PLATFORM_WINDOWS)
+				printf(" %s |-", depth);
+#else
 				printf( "%s ├─", depth);
+#endif
 				push('|');
 			}
 			else // Last element
 			{
-				printf( "%s └─", depth);
+#if defined(MUON_PLATFORM_WINDOWS)
+				printf(" %s '-", depth);
+#else
+				printf(" %s └─", depth);
+#endif
 				push(' ');
 			}
 			display(n);
@@ -144,7 +151,7 @@ void yyerror(YYLTYPE *llocp, yyscan_t scanner, hz::parser::ASTNode* node, hz::Er
 	error->line = llocp->first_line;
 	error->column = llocp->first_column;
 	error->message = err;
-	if(node->parent)
+	if (node->parent)
 	{
 		node->parent->deleteChild(node);
 	}
