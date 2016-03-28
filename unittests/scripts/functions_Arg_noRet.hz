@@ -11,27 +11,21 @@ void Args_noRet(int a, int b)
 {
 }
 
-// Multiple arguments as copy, with a trailing comma
+// One argument as out
 // No return
-void ArgsComma_noRet(int a, int b, int c,)
+void ArgRef_noRet(out int a)
 {
 }
 
-// One argument as reference
+// Some arguments as out
 // No return
-void ArgRef_noRet(ref int a)
+void ArgsRef_noRet(out int a, out int b)
 {
 }
 
-// Some arguments as reference
+// Multiple arguments as in (implicit, explicit), out, and inout
 // No return
-void ArgsRef_noRet(ref int a, ref int b)
-{
-}
-
-// Multiple arguments as copy or reference
-// No return
-void ArgCopyRef_noRet(int a, ref int b)
+void ArgCopyRef_noRet(int a, in int b, out int c, inout int d)
 {
 }
 
