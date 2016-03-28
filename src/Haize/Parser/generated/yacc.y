@@ -43,9 +43,16 @@ namespace generated
 %{
 #pragma warning(disable: 4065) // switch statement contains 'default' but no 'case' labels
 
+#include <Muon/Core/Define.hpp>
 #include "flex.l.hpp"
 
 extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::Error*, const char*);
+#if defined(MUON_PLATFORM_WINDOWS)
+#	define AST_NODE(...)		MUON_NEW(hz::parser::ASTNode, __VA_ARGS__)
+#else
+#	define AST_NODE(args...)	MUON_NEW(hz::parser::ASTNode, ##args)
+#endif
+#define EXTRACT_STR(str, out) do {out = (m::String)*str; MUON_DELETE(str); } while(false);
 %}
 
 
@@ -80,9 +87,9 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %token <node>	NT_ROOT	NT_CHUNK
 				NT_NAMESPACE
 				NT_FUNCTION
-				NT_FUNCTION_ARGUMENTS
-				NT_FUNCTION_BODY
+				NT_ARGUMENTS
 				NT_CLASS
+				NT_STMT
 
 %token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
@@ -111,14 +118,16 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 				class_body
 
 %type <node>	var_type
-				variable
+				variable variable_accessor
+				func_call
 				constant
 
-%type <node>	asnop
-				binop
-				unop
+%type <node>	assign_op
+				binary_op
+				unary_op
 
 %type <node>	stmt_list
+				stmt
 				expr
 				prefixexpr
 // **********************************************
@@ -134,52 +143,64 @@ program
 	;
 
 chunk
-	: /* E */					{ $$ = MUON_NEW(hz::parser::ASTNode, NT_CHUNK); }
+	: /* E */					{ $$ = AST_NODE(NT_CHUNK); }
 	| chunk namespace_decl		{ $1->addChild($2); $$ = $1; }
 	| chunk func_decl			{ $1->addChild($2); $$ = $1; }
 	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
 	;
 
-asnop
-	: MATH_ASN
+assign_op
+	: MATH_ASN	{ $$ = NULL; }
 	;
 
-binop
-	: MATH_ADD
-	| MATH_SUB
-	| MATH_MUL
-	| MATH_DIV
-	| MATH_MOD
+binary_op
+	: MATH_ADD	{ $$ = NULL; }
+	| MATH_SUB	{ $$ = NULL; }
+	| MATH_MUL	{ $$ = NULL; }
+	| MATH_DIV	{ $$ = NULL; }
+	| MATH_MOD	{ $$ = NULL; }
 	;
 
-//unop
-//	: UNARY_MINUS expr
-//	;
+unary_op
+	: UNARY_MINUS	{ $$ = NULL; }
+	| UNARY_PLUS	{ $$ = NULL; }
+	;
 
 constant
-	: V_NIL
-	| V_TRUE
-	| V_FALSE
+	: V_NIL			{ $$ = AST_NODE(V_NIL); }
+	| V_TRUE		{ $$ = AST_NODE(V_TRUE); }
+	| V_FALSE		{ $$ = AST_NODE(V_FALSE); }
 	| V_STRING
+		{
+			$$ = AST_NODE(V_STRING);
+			EXTRACT_STR($1, $$->token.value);
+		}
 	| V_NUMBER
+		{
+			$$ = AST_NODE(V_NUMBER);
+			$$->token.value = $1;
+		}
 	;
 
 variable
-	: V_IDENTIFIER
-	| func_call
+	: V_IDENTIFIER						{ $$ = AST_NODE(V_IDENTIFIER); EXTRACT_STR($1, $$->token.value); }
+	| variable_accessor V_IDENTIFIER	{ }
+	;
+
+variable_accessor
+	: V_IDENTIFIER S_ACCESSOR						{ }
+	| variable_accessor V_IDENTIFIER S_ACCESSOR		{ }
 	;
 
 var_type
 	: V_IDENTIFIER V_IDENTIFIER
 		{
-			m::String type = (*$1);
 			m::String var = (*$2);
-			MUON_DELETE($1);
 			MUON_DELETE($2);
 			// Node name is the variable name
 			// Token value is the return type
-			hz::parser::ASTNode* nodeType = MUON_NEW(hz::parser::ASTNode, V_IDENTIFIER, var);
-			nodeType->token.value = type;
+			hz::parser::ASTNode* nodeType = AST_NODE(V_IDENTIFIER, var);
+			EXTRACT_STR($1, nodeType->token.value);
 
 			$$ = nodeType;
 			$$->token.column = yyloc.first_line;
@@ -196,7 +217,7 @@ namespace_decl
 		{
 			m::String name = (*$2);
 			MUON_DELETE($2);
-			$$ = MUON_NEW(hz::parser::ASTNode, NT_NAMESPACE, name);
+			$$ = AST_NODE(NT_NAMESPACE, name);
 			// Extract all child of chunk (as there is a NT_CHUNK token)
 			for(m::u32 i = 0; i < $4->children->size(); ++i)
 			{
@@ -207,22 +228,22 @@ namespace_decl
 	;
 
 func_decl
-	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE func_body S_RBRACE
+	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE stmt_list S_RBRACE
 		{
-			$$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION, "#FUNCTION#");
+			$$ = AST_NODE(NT_FUNCTION, "#FUNCTION#");
 			$$->addChild($1);
 			$$->addChild($3);
 		}
 	;
 args_list_decl
-	: /* E */				{ $$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION_ARGUMENTS, "#ARGS#"); }
+	: /* E */				{ $$ = AST_NODE(NT_ARGUMENTS, "#ARGS#"); }
 	| args_decl				{ $$ = $1; /* Node have been created by args_decl */}
 	;
 args_decl
 	: arg_prefix var_type
 		{
 			generated::ParamPrefix prefix = (generated::ParamPrefix)$1;
-			$$ = MUON_NEW(hz::parser::ASTNode, NT_FUNCTION_ARGUMENTS, "#ARGS#");
+			$$ = AST_NODE(NT_ARGUMENTS, "#ARGS#");
 			$$->addChild($2);
 		}
 	| args_decl S_COMMA arg_prefix var_type
@@ -243,7 +264,7 @@ class_decl
 		{
 			m::String name = (*$2);
 			MUON_DELETE($2);
-			$$ = MUON_NEW(hz::parser::ASTNode, NT_CLASS, name);
+			$$ = AST_NODE(NT_CLASS, name);
 		}
 	;
 
@@ -264,18 +285,11 @@ args_call
 	| args_call expr
 	;
 
-func_body
-	: /* E */
-	| stmt_list
-	;
-
-// TODO: COMPLET
 cond_control
 	: K_IF
 	| K_ELSE
 	;
 
-// TODO: COMPLET
 loop_control
 	: K_FOR
 	| K_WHILE
@@ -288,24 +302,36 @@ flow_control
 	| K_RETURN expr
 	;
 
-// TODO
 array
 	: S_LBRACKET S_RBRACKET
 	;
 
 // TODO: COMPLETE
 stmt_list
-	: expr S_SEPARATOR		{ $$ = $1; }
-	| stmt_list S_SEPARATOR	{ $$ = $1; }
+	: /* E */			{ $$ = NULL; }
+	| stmt				{ $$ = $1; }
+	| stmt_list stmt	{ $$ = $1; }
+	;
+
+stmt
+	: expr S_SEPARATOR
+	| loop_control			{ $$; }
+	| cond_control			{ $$; }
+	| asn_expr				{ $$; }
+	;
+
+asn_expr
+	: expr assign_op prefixexpr
 	;
 
 expr
 	: S_LPARENT expr S_RPARENT		{ $$ = $2; }
-	| expr binop prefixexpr			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| expr binary_op prefixexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	;
 
 prefixexpr
 	: variable		{ $$ = $1; }
 	| constant		{ $$ = $1; }
+	| func_call		{ $$ = $1; }
 	;
 
