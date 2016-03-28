@@ -151,10 +151,6 @@ void yyerror(YYLTYPE *llocp, yyscan_t scanner, hz::parser::ASTNode* node, hz::Er
 	error->line = llocp->first_line;
 	error->column = llocp->first_column;
 	error->message = err;
-	if (node->parent)
-	{
-		node->parent->deleteChild(node);
-	}
 }
 
 namespace hz
@@ -204,6 +200,11 @@ namespace hz
 			ascii::display(m_nodeRoot);
 			if (ret != 0)
 			{
+				while (!m_nodeRoot->children->empty())
+				{
+					MUON_DELETE(m_nodeRoot->children->back());
+					m_nodeRoot->children->pop_back();
+				}
 				error.state = Error::ERROR;
 				return false;
 			}
