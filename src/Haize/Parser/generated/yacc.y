@@ -52,6 +52,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 #else
 #	define AST_NODE(args...)	MUON_NEW(hz::parser::ASTNode, ##args)
 #endif
+#define AST_NODE_N(id)	MUON_NEW(hz::parser::ASTNode, id, MUON_STR(id))
 #define EXTRACT_STR(str, out) do {out = (m::String)*str; MUON_DELETE(str); } while(false);
 %}
 
@@ -110,6 +111,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %type <node>	func_decl
 				args_list_decl
 				args_decl
+				args_call
 
 %type <integer>	arg_prefix
 
@@ -126,10 +128,12 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 				binary_op
 				unary_op
 
+%type <node>	expr
+				lvalue
+
 %type <node>	stmt_list
 				stmt
-				expr
-				prefixexpr
+
 // **********************************************
 // Rules
 // **********************************************
@@ -143,53 +147,79 @@ program
 	;
 
 chunk
-	: /* E */					{ $$ = AST_NODE(NT_CHUNK); }
+	: /* E */					{ $$ = AST_NODE_N(NT_CHUNK); }
 	| chunk namespace_decl		{ $1->addChild($2); $$ = $1; }
 	| chunk func_decl			{ $1->addChild($2); $$ = $1; }
 	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
 	;
 
 assign_op
-	: MATH_ASN	{ $$ = NULL; }
+	: MATH_ASN	{ $$ = AST_NODE_N(MATH_ASN); }
 	;
 
 binary_op
-	: MATH_ADD	{ $$ = NULL; }
-	| MATH_SUB	{ $$ = NULL; }
-	| MATH_MUL	{ $$ = NULL; }
-	| MATH_DIV	{ $$ = NULL; }
-	| MATH_MOD	{ $$ = NULL; }
+	: MATH_ADD	{ $$ = AST_NODE_N(MATH_ADD); }
+	| MATH_SUB	{ $$ = AST_NODE_N(MATH_SUB); }
+	| MATH_MUL	{ $$ = AST_NODE_N(MATH_MUL); }
+	| MATH_DIV	{ $$ = AST_NODE_N(MATH_DIV); }
+	| MATH_MOD	{ $$ = AST_NODE_N(MATH_MOD); }
 	;
 
 unary_op
-	: UNARY_MINUS	{ $$ = NULL; }
-	| UNARY_PLUS	{ $$ = NULL; }
+	: UNARY_MINUS	{ $$ = AST_NODE_N(UNARY_MINUS); }
+	| UNARY_PLUS	{ $$ = AST_NODE_N(UNARY_PLUS); }
 	;
 
 constant
-	: V_NIL			{ $$ = AST_NODE(V_NIL); }
-	| V_TRUE		{ $$ = AST_NODE(V_TRUE); }
-	| V_FALSE		{ $$ = AST_NODE(V_FALSE); }
+	: V_NIL			{ $$ = AST_NODE_N(V_NIL); }
+	| V_TRUE		{ $$ = AST_NODE_N(V_TRUE); }
+	| V_FALSE		{ $$ = AST_NODE_N(V_FALSE); }
 	| V_STRING
 		{
-			$$ = AST_NODE(V_STRING);
+			$$ = AST_NODE_N(V_STRING);
 			EXTRACT_STR($1, $$->token.value);
 		}
 	| V_NUMBER
 		{
-			$$ = AST_NODE(V_NUMBER);
+			$$ = AST_NODE_N(V_NUMBER);
 			$$->token.value = $1;
 		}
 	;
 
 variable
-	: V_IDENTIFIER						{ $$ = AST_NODE(V_IDENTIFIER); EXTRACT_STR($1, $$->token.value); }
-	| variable_accessor V_IDENTIFIER	{ }
+	: V_IDENTIFIER						{ $$ = AST_NODE(V_IDENTIFIER); EXTRACT_STR($1, $$->name); }
+	| variable_accessor V_IDENTIFIER	
+		{ 
+			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
+			EXTRACT_STR($2, nIdent->name); 
+			$1->addChild(nIdent);
+			// Variable is the highest "accessor" level
+			hz::parser::ASTNode* accessor = $1;
+			while(accessor->parent && accessor->parent->token.type == S_ACCESSOR)
+			{
+				accessor = accessor->parent;
+			}
+			$$ = accessor;
+		}
 	;
 
 variable_accessor
-	: V_IDENTIFIER S_ACCESSOR						{ }
-	| variable_accessor V_IDENTIFIER S_ACCESSOR		{ }
+	: V_IDENTIFIER S_ACCESSOR
+		{
+			$$ = AST_NODE_N(S_ACCESSOR);
+			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
+			EXTRACT_STR($1, nIdent->name); 
+			$$->addChild(nIdent);
+		}
+	| variable_accessor V_IDENTIFIER S_ACCESSOR
+		{
+			hz::parser::ASTNode* nAccess = AST_NODE_N(S_ACCESSOR); 
+			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
+			EXTRACT_STR($2, nIdent->name); 
+			$1->addChild(nAccess);
+			nAccess->addChild(nIdent);
+			$$ = nAccess;
+		}
 	;
 
 var_type
@@ -209,7 +239,9 @@ var_type
 	;
 
 var_global
-	: K_GLOBAL var_type
+	: K_GLOBAL var_type S_SEPARATOR
+		{
+		}
 	;
 
 namespace_decl
@@ -230,20 +262,21 @@ namespace_decl
 func_decl
 	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE stmt_list S_RBRACE
 		{
-			$$ = AST_NODE(NT_FUNCTION, "#FUNCTION#");
+			$$ = AST_NODE_N(NT_FUNCTION);
 			$$->addChild($1);
 			$$->addChild($3);
+			$$->addChild($6);
 		}
 	;
 args_list_decl
-	: /* E */				{ $$ = AST_NODE(NT_ARGUMENTS, "#ARGS#"); }
+	: /* E */				{ $$ = AST_NODE_N(NT_ARGUMENTS); }
 	| args_decl				{ $$ = $1; /* Node have been created by args_decl */}
 	;
 args_decl
 	: arg_prefix var_type
 		{
 			generated::ParamPrefix prefix = (generated::ParamPrefix)$1;
-			$$ = AST_NODE(NT_ARGUMENTS, "#ARGS#");
+			$$ = AST_NODE_N(NT_ARGUMENTS);
 			$$->addChild($2);
 		}
 	| args_decl S_COMMA arg_prefix var_type
@@ -275,16 +308,20 @@ class_body
 	;
 
 func_call
-	: V_IDENTIFIER S_LPARENT args_call S_RPARENT S_LBRACE args_call S_RBRACE
+	: V_IDENTIFIER S_LPARENT args_call S_RPARENT
 		{
+			$$ = AST_NODE_N(NT_FUNCTION);
+			EXTRACT_STR($1, $$->name);
+			$$->addChild($3);
 		}
 	;
 args_call
-	: /* E */
-	| expr S_COMMA
-	| args_call expr
+	: /* E */				{ $$ = AST_NODE_N(NT_ARGUMENTS); }
+	| lvalue S_COMMA		{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($1); }
+	| args_call lvalue		{ $$ = $1; $$->addChild($2); }
 	;
 
+/*
 cond_control
 	: K_IF
 	| K_ELSE
@@ -305,31 +342,29 @@ flow_control
 array
 	: S_LBRACKET S_RBRACKET
 	;
+// */
 
-// TODO: COMPLETE
 stmt_list
-	: /* E */			{ $$ = NULL; }
-	| stmt				{ $$ = $1; }
-	| stmt_list stmt	{ $$ = $1; }
+	: /* E */						{ $$ = AST_NODE_N(NT_STMT); }
+	| stmt S_SEPARATOR				{ $$ = AST_NODE_N(NT_STMT); $$->addChild($1); }
+	| stmt_list stmt S_SEPARATOR 	{ $$ = $1; $$->addChild($2); }
 	;
 
 stmt
-	: expr S_SEPARATOR
-	| loop_control			{ $$; }
-	| cond_control			{ $$; }
-	| asn_expr				{ $$; }
-	;
-
-asn_expr
-	: expr assign_op prefixexpr
+	: variable assign_op expr 		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+//	| loop_control					{ $$; }
+//	| cond_control					{ $$; }
+	| lvalue						{ $$ = $1; }
 	;
 
 expr
-	: S_LPARENT expr S_RPARENT		{ $$ = $2; }
-	| expr binary_op prefixexpr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	: unary_op expr					{ $$ = $1; $$->addChild($2); }
+	| expr binary_op lvalue			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	| lvalue						{ $$ = $1; }
 	;
 
-prefixexpr
+lvalue
 	: variable		{ $$ = $1; }
 	| constant		{ $$ = $1; }
 	| func_call		{ $$ = $1; }
