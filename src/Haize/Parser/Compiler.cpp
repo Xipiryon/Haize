@@ -202,7 +202,6 @@ namespace hz
 			m_loadBuffer.clear();
 
 			ascii::display(m_nodeRoot);
-			exit(0);
 			if (ret != 0)
 			{
 				error.state = Error::ERROR;
