@@ -226,12 +226,6 @@ var_type
 		}
 	;
 
-var_global
-	: K_GLOBAL var_type S_SEPARATOR
-		{
-		}
-	;
-
 namespace_decl
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
 		{
