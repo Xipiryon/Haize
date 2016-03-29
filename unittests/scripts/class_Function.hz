@@ -6,7 +6,7 @@ class FCstrDstr
 	constructor() { print("FCstrDstr()"); }
 	constructor(int i) { print("FCstrDstr(int)"); }
 	constructor(int i, int j) { print("FCstrDstr(int, int)"); }
-	constructor(int i, ref int j) { print("FCstrDstr(int, ref int)"); }
+	constructor(int i, out int j) { print("FCstrDstr(int, out int)"); }
 	destructor() { print("destructor()"); }
 
 	void f() {}
@@ -19,5 +19,5 @@ void main()
 	new MyClass a0;
 	new MyClass a1(0);
 	new MyClass a2(0, 0); // int,int
-	new MyClass a3(0, i); // int,ref int
+	new MyClass a3(0, i); // int,out int
 }

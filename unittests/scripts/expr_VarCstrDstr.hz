@@ -1,4 +1,12 @@
 
 void main()
 {
+	new int i;
+	delete i;
+
+	new int i = 45;
+	delete(i);
+
+	new int i(64);
+	delete i;
 }

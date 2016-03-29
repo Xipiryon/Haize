@@ -1,4 +1,8 @@
 
 void main()
 {
+	new int i = 64;
+	new int b = -i;
+
+	new int c = +-+-+-b;
 }
