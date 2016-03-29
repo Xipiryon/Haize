@@ -17,7 +17,6 @@ namespace utils
 
 #include <Muon/String.hpp>
 #include "Haize/Error.hpp"
-#include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 #include "yacc.hpp"
 

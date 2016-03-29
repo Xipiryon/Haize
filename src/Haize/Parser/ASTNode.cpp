@@ -1,4 +1,3 @@
-
 #include <Muon/Memory/Allocator.hpp>
 #include <Muon/System/Log.hpp>
 
@@ -20,7 +19,7 @@ namespace hz
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
-			token.type = type_;
+			type = type_;
 		}
 
 		ASTNode::ASTNode(m::u32 type_, const m::String& name_)
@@ -28,15 +27,7 @@ namespace hz
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
-			token.type = type_;
-		}
-
-		ASTNode::ASTNode(const Token& token_)
-			: name("#?#")
-			, token(token_)
-			, children(MUON_NEW(std::deque<ASTNode*>))
-			, parent(NULL)
-		{
+			type = type_;
 		}
 
 		ASTNode::~ASTNode()
@@ -59,13 +50,6 @@ namespace hz
 			node->parent = this;
 			this->children->push_back(node);
 			return node;
-		}
-
-		ASTNode* ASTNode::addChild(const Token& token)
-		{
-			ASTNode* c = addChild(token.type);
-			c->token = token;
-			return c;
 		}
 
 		ASTNode* ASTNode::addChild(ASTNode* child)
@@ -91,7 +75,7 @@ namespace hz
 
 		bool ASTNode::deleteChild(ASTNode* child)
 		{
-			if(removeChild(child))
+			if (removeChild(child))
 			{
 				MUON_DELETE(child);
 				return true;

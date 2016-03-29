@@ -2,7 +2,8 @@
 #define INCLUDE_HAIZE_ASTNODE_INCLUDED
 
 #include <deque>
-#include "Haize/Parser/Token.hpp"
+#include <Muon/Variant.hpp>
+#include "Haize/Core/Define.hpp"
 
 namespace hz
 {
@@ -16,17 +17,16 @@ namespace hz
 			ASTNode();
 			ASTNode(m::u32);
 			ASTNode(m::u32, const m::String&);
-			ASTNode(const Token&);
 			~ASTNode();
 
 			m::String name;
-			Token token;
+			m::u32 type;
+			m::Variant value;
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
 
 			ASTNode* addChild(m::u32);
 			ASTNode* addChild(m::u32, const m::String&);
-			ASTNode* addChild(const Token&);
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);

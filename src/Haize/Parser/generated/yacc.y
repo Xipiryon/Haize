@@ -25,7 +25,6 @@
 %code requires {
 #include <Muon/String.hpp>
 #include "Haize/Error.hpp"
-#include "Haize/Parser/Token.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
 namespace generated
@@ -177,12 +176,12 @@ constant
 	| V_STRING
 		{
 			$$ = AST_NODE_N(V_STRING);
-			EXTRACT_STR($1, $$->token.value);
+			EXTRACT_STR($1, $$->value);
 		}
 	| V_NUMBER
 		{
 			$$ = AST_NODE_N(V_NUMBER);
-			$$->token.value = $1;
+			$$->value = $1;
 		}
 	;
 
@@ -195,7 +194,7 @@ variable
 			$1->addChild(nIdent);
 			// Variable is the highest "accessor" level
 			hz::parser::ASTNode* accessor = $1;
-			while(accessor->parent && accessor->parent->token.type == S_ACCESSOR)
+			while(accessor->parent && accessor->parent->type == S_ACCESSOR)
 			{
 				accessor = accessor->parent;
 			}
@@ -230,11 +229,9 @@ var_type
 			// Node name is the variable name
 			// Token value is the return type
 			hz::parser::ASTNode* nodeType = AST_NODE(V_IDENTIFIER, var);
-			EXTRACT_STR($1, nodeType->token.value);
+			EXTRACT_STR($1, nodeType->value);
 
 			$$ = nodeType;
-			$$->token.column = yyloc.first_line;
-			$$->token.column = yyloc.first_column;
 		}
 	;
 

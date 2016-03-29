@@ -58,23 +58,23 @@ namespace utils
 		return val;
 	}
 
-	m::String tokenValueToStr(const hz::parser::Token& token)
+	m::String tokenValueToStr(const hz::parser::ASTNode* node)
 	{
 		char buffer[32];
 		m::String tokstr;
-		m::meta::MetaData* m = token.value.getMeta();
+		m::meta::MetaData* m = node->value.getMeta();
 		if (MUON_META(m::String) == m)
 		{
-			tokstr = token.value.get<m::String>();
+			tokstr = node->value.get<m::String>();
 		}
 		else if (MUON_META(m::f32) == m)
 		{
-			m::ftoa(token.value.get<m::f32>(), buffer);
+			m::ftoa(node->value.get<m::f32>(), buffer);
 			tokstr = buffer;
 		}
 		else if (MUON_META(m::i32) == m)
 		{
-			m::itoa((m::i64)token.value.get<m::i32>(), buffer);
+			m::itoa((m::i64)node->value.get<m::i32>(), buffer);
 			tokstr = buffer;
 		}
 		else
@@ -82,17 +82,6 @@ namespace utils
 			tokstr = "?";//hz::parser::TokenTypeStr[token.type];
 		}
 		return tokstr;
-	}
-
-	void unexpectedToken(const hz::parser::Token& token)
-	{
-		m::String val = tokenValueToStr(token);
-		m::system::Log error(m::LOG_ERROR);
-		error() << "[" << "token.section" << "] "
-			<< "Unexpected \"" << val.cStr() << "\" token @ "
-			<< token.line << ":" << token.column
-			<< m::endl;
-		//("[%d:%d] Unexpected token \"" + tokstr + "\"");
 	}
 }
 
@@ -118,7 +107,7 @@ namespace ascii
 
 	void display(hz::parser::ASTNode* node)
 	{
-		printf(" %s (%s)\n", node->name.cStr(), utils::tokenValueToStr(node->token).cStr());
+		printf(" %s (%s)\n", node->name.cStr(), utils::tokenValueToStr(node).cStr());
 		for (m::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
@@ -127,7 +116,7 @@ namespace ascii
 #if defined(MUON_PLATFORM_WINDOWS)
 				printf(" %s |-", depth);
 #else
-				printf( "%s ├─", depth);
+				printf("%s ├─", depth);
 #endif
 				push('|');
 			}
@@ -180,7 +169,7 @@ namespace hz
 				m_nodeRoot->children->pop_back();
 			}
 			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->token.type = NT_ROOT;
+			m_nodeRoot->type = NT_ROOT;
 
 			// Start scanning
 			yyscan_t scanner;
