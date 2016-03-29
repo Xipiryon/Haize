@@ -355,6 +355,7 @@ stmt
 	| variable assign_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	| new_variable					{ $$ = $1; }
 	| delete_variable				{ $$ = $1; }
+	| K_RETURN expr					{ $$ = AST_NODE_N(K_RETURN); $$->addChild($2); }
 //	| loop_control					{ $$ = $1; }
 //	| cond_control					{ $$ = $1; }
 	;
