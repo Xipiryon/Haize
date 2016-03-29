@@ -5,12 +5,13 @@ bool Arg_Ret(int a) { return a == 42; }
 
 // Some arguments
 // Return value
-bool Arg_Ret(int a, int b) { return a == b; }
+bool Arg_RetB(int a, int b, out bool ret) { ret = (a==b); return a == b; }
 	
 void main()
 {
 	Arg_Ret(42);
 	Arg_Ret(43);
-	Arg_Ret(64, 64);
-	Arg_Ret(64, 65);
+	new bool b;
+	Arg_RetB(64, 64, b);
+	Arg_RetB(64, 65, b);
 }
