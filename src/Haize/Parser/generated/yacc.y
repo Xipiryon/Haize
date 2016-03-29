@@ -55,30 +55,6 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 #define EXTRACT_STR(str, out) do {out = (m::String)*str; MUON_DELETE(str); } while(false);
 %}
 
-
-// **********************************************
-// Token List
-// **********************************************
-
-%right	<node>	MATH_ASN
-		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
-		MATH_ASN_BITWISE_OR MATH_ASN_BITWISE_AND
-		MATH_ASN_BITWISE_XOR MATH_ASN_BITWISE_NOT
-		MATH_ASN_BITWISE_LSH MATH_ASN_BITWISE_RSH
-%left	<node>	LOGIC_OR
-%left	<node>	LOGIC_AND
-%left	<node>	BITWISE_OR
-%left	<node>	BITWISE_XOR
-%left	<node>	BITWISE_AND
-%left	<node>	LOGIC_EQ LOGIC_NEQ
-%left	<node>	LOGIC_LT LOGIC_GT LOGIC_LET LOGIC_GET
-%left	<node>	BITWISE_LSH BITWISE_RSH
-%left	<node>	MATH_ADD MATH_SUB
-%left	<node>	MATH_MUL MATH_DIV MATH_MOD
-%right	<node>	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_MINUS UNARY_PLUS
-%left	<node>	MATH_POSTINC MATH_POSTDEC
-%left	<node>	S_ACCESSOR
-
 // ********************
 // Non-Terminal or Syntaxic-only Token
 // NT_ROOT is used inside cpp code
@@ -125,13 +101,34 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 
 %type <node>	assign_op
 				binary_op
-				unary_op
-
-%type <node>	expr
+				expr
 				lvalue
 
 %type <node>	stmt_list
 				stmt
+
+// **********************************************
+// Token List
+// **********************************************
+
+%right	<node>	MATH_ASN
+		MATH_ASN_ADD MATH_ASN_SUB MATH_ASN_MUL MATH_ASN_DIV MATH_ASN_MOD
+		MATH_ASN_BITWISE_OR MATH_ASN_BITWISE_AND
+		MATH_ASN_BITWISE_XOR MATH_ASN_BITWISE_NOT
+		MATH_ASN_BITWISE_LSH MATH_ASN_BITWISE_RSH
+%left	<node>	LOGIC_OR
+%left	<node>	LOGIC_AND
+%left	<node>	BITWISE_OR
+%left	<node>	BITWISE_XOR
+%left	<node>	BITWISE_AND
+%left	<node>	LOGIC_EQ LOGIC_NEQ
+%left	<node>	LOGIC_LT LOGIC_GT LOGIC_LET LOGIC_GET
+%left	<node>	BITWISE_LSH BITWISE_RSH
+%left	<node>	MATH_ADD MATH_SUB
+%left	<node>	MATH_MUL MATH_DIV MATH_MOD
+%right	<node>	MATH_PREFINC MATH_PREFDEC LOGIC_NOT BITWISE_NOT UNARY_MINUS UNARY_PLUS
+%left	<node>	MATH_POSTINC MATH_POSTDEC
+%left	<node>	S_ACCESSOR
 
 // **********************************************
 // Rules
@@ -150,23 +147,6 @@ chunk
 	| chunk namespace_decl		{ $1->addChild($2); $$ = $1; }
 	| chunk func_decl			{ $1->addChild($2); $$ = $1; }
 	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
-	;
-
-assign_op
-	: MATH_ASN	{ $$ = AST_NODE_N(MATH_ASN); }
-	;
-
-binary_op
-	: MATH_ADD	{ $$ = AST_NODE_N(MATH_ADD); }
-	| MATH_SUB	{ $$ = AST_NODE_N(MATH_SUB); }
-	| MATH_MUL	{ $$ = AST_NODE_N(MATH_MUL); }
-	| MATH_DIV	{ $$ = AST_NODE_N(MATH_DIV); }
-	| MATH_MOD	{ $$ = AST_NODE_N(MATH_MOD); }
-	;
-
-unary_op
-	: UNARY_MINUS	{ $$ = AST_NODE_N(UNARY_MINUS); }
-	| UNARY_PLUS	{ $$ = AST_NODE_N(UNARY_PLUS); }
 	;
 
 constant
@@ -347,18 +327,37 @@ stmt_list
 	| stmt_list stmt S_SEPARATOR 	{ $$ = $1; $$->addChild($2); }
 	;
 
-stmt
-	: variable assign_op expr 		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-//	| loop_control					{ $$; }
-//	| cond_control					{ $$; }
-	| lvalue						{ $$ = $1; }
+assign_op
+	: MATH_ASN	{ $$ = AST_NODE_N(MATH_ASN); }
 	;
 
+stmt
+	: lvalue						{ $$ = $1; }
+	| variable assign_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
+//	| loop_control					{ $$; }
+//	| cond_control					{ $$; }
+	;
+
+binary_op
+	: MATH_ADD	{ $$ = AST_NODE_N(MATH_ADD); }
+	| MATH_SUB	{ $$ = AST_NODE_N(MATH_SUB); }
+	| MATH_MUL	{ $$ = AST_NODE_N(MATH_MUL); }
+	| MATH_DIV	{ $$ = AST_NODE_N(MATH_DIV); }
+	| MATH_MOD	{ $$ = AST_NODE_N(MATH_MOD); }
+	;
+
+
 expr
-	: unary_op expr					{ $$ = $1; $$->addChild($2); }
-	| expr binary_op lvalue			{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	: MATH_SUB expr					{ $$ = AST_NODE_N(UNARY_MINUS); $$->addChild($2); }	%prec UNARY_MINUS
+	| MATH_ADD expr					{ $$ = $2; }										%prec UNARY_PLUS 
 	| lvalue						{ $$ = $1; }
+	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	| expr binary_op expr
+		{
+			$$ = $2;
+			$$->addChild($1);
+			$$->addChild($3);
+		}
 	;
 
 lvalue
