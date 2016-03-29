@@ -76,6 +76,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %token <integer>	V_TRUE V_FALSE V_NIL V_INTEGER
 %token <integer>	K_IN K_OUT K_INOUT
 
+%token <node>	K_NEW K_DELETE
 %token <node>	K_IF K_THEN K_ELSE K_FOR K_WHILE K_SWITCH
 %token <node>	K_CONTINUE K_BREAK K_RETURN
 %token <node>	K_GLOBAL K_NAMESPACE K_CLASS
@@ -106,6 +107,8 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 
 %type <node>	stmt_list
 				stmt
+				new_variable
+				delete_variable
 
 // **********************************************
 // Token List
@@ -336,11 +339,24 @@ assign_op
 	: MATH_ASN	{ $$ = AST_NODE_N(MATH_ASN); }
 	;
 
+new_variable
+	: K_NEW var_type							{ $$ = AST_NODE_N(K_NEW); $$->addChild($2); }
+	| K_NEW var_type MATH_ASN expr				{ $$ = AST_NODE_N(K_NEW); $$->addChild($2); $$->addChild($4); }
+	| K_NEW var_type S_LPARENT expr	S_RPARENT	{ $$ = AST_NODE_N(K_NEW); $$->addChild($2); $$->addChild($4); }
+	;
+
+delete_variable
+	: K_DELETE S_LPARENT V_IDENTIFIER S_RPARENT		{ $$ = AST_NODE_N(K_DELETE); EXTRACT_STR($3, $$->value); }
+	| K_DELETE V_IDENTIFIER							{ $$ = AST_NODE_N(K_DELETE); EXTRACT_STR($2, $$->value); }
+	;
+
 stmt
 	: lvalue						{ $$ = $1; }
 	| variable assign_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
-//	| loop_control					{ $$; }
-//	| cond_control					{ $$; }
+	| new_variable					{ $$ = $1; }
+	| delete_variable				{ $$ = $1; }
+//	| loop_control					{ $$ = $1; }
+//	| cond_control					{ $$ = $1; }
 	;
 
 binary_op

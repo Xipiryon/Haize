@@ -81,6 +81,9 @@ Float		{_IntRange}+\.{_IntRange}*f?
 "out"		{ return K_OUT; }
 "inout"		{ return K_INOUT; }
 
+"new"		{ return K_NEW; }
+"delete"	{ return K_DELETE; }
+
 {HexNumber}	{
 	yylval->integer = utils::hex2int(yytext);
 	yylloc->first_column += yyleng;
