@@ -229,9 +229,8 @@ var_type
 namespace_decl
 	: K_NAMESPACE V_IDENTIFIER S_LBRACE chunk S_RBRACE
 		{
-			m::String name = (*$2);
-			MUON_DELETE($2);
-			$$ = AST_NODE(NT_NAMESPACE, name);
+			$$ = AST_NODE(NT_NAMESPACE);
+			EXTRACT_STR($2, $$->name);
 			// Extract all child of chunk (as there is a NT_CHUNK token)
 			for(m::u32 i = 0; i < $4->children->size(); ++i)
 			{
@@ -277,9 +276,8 @@ arg_prefix
 class_decl
 	: K_CLASS V_IDENTIFIER S_LBRACE class_body S_RBRACE
 		{
-			m::String name = (*$2);
-			MUON_DELETE($2);
-			$$ = AST_NODE(NT_CLASS, name);
+			$$ = AST_NODE(NT_CLASS);
+			EXTRACT_STR($2, $$->name);
 		}
 	;
 

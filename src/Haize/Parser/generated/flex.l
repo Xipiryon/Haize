@@ -107,17 +107,17 @@ Float		{_IntRange}+\.{_IntRange}*f?
 {Identifer}	{ yylval->string = MUON_NEW(m::String, yytext);	return V_IDENTIFIER; }
 
 <INITIAL>{
-	\"			{ BEGIN(StringBlock); yylloc->first_column += yyleng; }
+	\"			{	BEGIN(StringBlock);
+					yylloc->first_column += yyleng;
+					yylval->string = MUON_NEW(m::String);
+				}
 }
 <StringBlock>{
 	\"				{	BEGIN(INITIAL);
-						//yylval->string = MUON_CNEW(muon::String, g_strBuffer);
-						//yylval.string = MUON_CNEW(muon::String, g_strBuffer);
-						//g_strBuffer.clear();
 						return V_STRING;
 					}
-	[^"\n]+			{ /*g_strBuffer += yytext;*/ yylloc->first_column += yyleng;}
-	{NewLine}		{ /*g_strBuffer += yytext;*/ ++yylloc->first_line; yylloc->first_column = 1; }
+	[^"\n]+			{ *yylval->string += yytext; yylloc->first_column += yyleng;}
+	{NewLine}		{ *yylval->string += yytext; ++yylloc->first_line; yylloc->first_column = 1; }
 }
 
 "."		{ return S_ACCESSOR; }
