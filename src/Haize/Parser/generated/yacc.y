@@ -163,6 +163,11 @@ constant
 			$$ = AST_NODE_N(V_NUMBER);
 			$$->value = $1;
 		}
+	| V_INTEGER
+		{
+			$$ = AST_NODE_N(V_INTEGER);
+			$$->value = $1;
+		}
 	;
 
 variable

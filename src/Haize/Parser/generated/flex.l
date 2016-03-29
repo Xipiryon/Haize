@@ -84,22 +84,22 @@ Float		{_IntRange}+\.{_IntRange}*f?
 {HexNumber}	{
 	yylval->integer = utils::hex2int(yytext);
 	yylloc->first_column += yyleng;
-	return V_NUMBER;
+	return V_INTEGER;
 }
 
 {OctNumber}	{
 	yylval->integer = utils::oct2int(yytext);
 	yylloc->first_column += yyleng;
-	return V_NUMBER;
+	return V_INTEGER;
 }
 
 {BinNumber}	{
 	yylval->integer = utils::bin2int(yytext);
 	yylloc->first_column += yyleng;
-	return V_NUMBER;
+	return V_INTEGER;
 }
 
-{Integer}	{ yylval->integer = (m::i32)atoi(yytext);		return V_NUMBER; }
+{Integer}	{ yylval->integer = (m::i32)atoi(yytext);		return V_INTEGER; }
 {Float}		{ yylval->floating = (m::f32)atof(yytext);		return V_NUMBER; }
 {Identifer}	{ yylval->string = MUON_NEW(m::String, yytext);	return V_IDENTIFIER; }
 
