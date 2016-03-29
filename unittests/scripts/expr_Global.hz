@@ -1,0 +1,7 @@
+
+global int g_Int;
+
+namespace foo
+{
+	global bool g_Bool;
+}

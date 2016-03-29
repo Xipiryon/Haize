@@ -94,6 +94,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %type <node>	namespace_decl
 				class_decl
 				class_body
+				global_decl
 
 %type <node>	var_type
 				variable variable_accessor
@@ -140,9 +141,10 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 %%
 program
 	: /* E */					{ }
-	| program namespace_decl	{ m_node->addChild($2);}
-	| program func_decl			{ m_node->addChild($2);}
-	| program class_decl		{ m_node->addChild($2);}
+	| program namespace_decl	{ m_node->addChild($2); }
+	| program func_decl			{ m_node->addChild($2); }
+	| program class_decl		{ m_node->addChild($2); }
+	| program global_decl		{ m_node->addChild($2); }
 	;
 
 chunk
@@ -150,6 +152,7 @@ chunk
 	| chunk namespace_decl		{ $1->addChild($2); $$ = $1; }
 	| chunk func_decl			{ $1->addChild($2); $$ = $1; }
 	| chunk class_decl			{ $1->addChild($2); $$ = $1; }
+	| chunk global_decl			{ $1->addChild($2); $$ = $1; }
 	;
 
 constant
@@ -329,6 +332,10 @@ array
 	;
 // */
 
+global_decl
+	: K_GLOBAL var_type	S_SEPARATOR		{ $$ = AST_NODE_N(K_GLOBAL); $$->addChild($2); }
+	;
+
 stmt_list
 	: /* E */						{ $$ = AST_NODE_N(NT_STMT); }
 	| stmt S_SEPARATOR				{ $$ = AST_NODE_N(NT_STMT); $$->addChild($1); }
@@ -336,7 +343,18 @@ stmt_list
 	;
 
 assign_op
-	: MATH_ASN	{ $$ = AST_NODE_N(MATH_ASN); }
+	: MATH_ASN					{ $$ = AST_NODE_N(MATH_ASN); }
+	| MATH_ASN_ADD				{ $$ = AST_NODE_N(MATH_ASN_ADD); }
+	| MATH_ASN_SUB				{ $$ = AST_NODE_N(MATH_ASN_SUB); }
+	| MATH_ASN_MUL				{ $$ = AST_NODE_N(MATH_ASN_MUL); }
+	| MATH_ASN_DIV				{ $$ = AST_NODE_N(MATH_ASN_DIV); }
+	| MATH_ASN_MOD				{ $$ = AST_NODE_N(MATH_ASN_MOD); }
+	| MATH_ASN_BITWISE_OR		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_OR); }
+	| MATH_ASN_BITWISE_AND		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_AND); }
+	| MATH_ASN_BITWISE_XOR		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_XOR); }
+	| MATH_ASN_BITWISE_NOT		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_NOT); }
+	| MATH_ASN_BITWISE_LSH		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_LSH); }
+	| MATH_ASN_BITWISE_RSH		{ $$ = AST_NODE_N(MATH_ASN_BITWISE_RSH); }
 	;
 
 new_variable
@@ -366,12 +384,30 @@ binary_op
 	| MATH_MUL	{ $$ = AST_NODE_N(MATH_MUL); }
 	| MATH_DIV	{ $$ = AST_NODE_N(MATH_DIV); }
 	| MATH_MOD	{ $$ = AST_NODE_N(MATH_MOD); }
+
+	| LOGIC_EQ	{ $$ = AST_NODE_N(LOGIC_EQ); }
+	| LOGIC_NEQ	{ $$ = AST_NODE_N(LOGIC_NEQ); }
+	| LOGIC_LT	{ $$ = AST_NODE_N(LOGIC_LT); }
+	| LOGIC_LET	{ $$ = AST_NODE_N(LOGIC_LET); }
+	| LOGIC_GT	{ $$ = AST_NODE_N(LOGIC_GT); }
+	| LOGIC_GET	{ $$ = AST_NODE_N(LOGIC_GET); }
+	| LOGIC_NOT	{ $$ = AST_NODE_N(LOGIC_NOT); }
+
+	| BITWISE_OR	{ $$ = AST_NODE_N(BITWISE_OR); }
+	| BITWISE_XOR	{ $$ = AST_NODE_N(BITWISE_XOR); }
+	| BITWISE_AND	{ $$ = AST_NODE_N(BITWISE_AND); }
+	| BITWISE_LSH	{ $$ = AST_NODE_N(BITWISE_LSH); }
+	| BITWISE_RSH	{ $$ = AST_NODE_N(BITWISE_RSH); }
+	| BITWISE_NOT	{ $$ = AST_NODE_N(BITWISE_NOT); }
+
 	;
 
 
 expr
 	: MATH_SUB expr					{ $$ = AST_NODE_N(UNARY_MINUS); $$->addChild($2); }	%prec UNARY_MINUS
 	| MATH_ADD expr					{ $$ = $2; }										%prec UNARY_PLUS 
+	| MATH_PREFINC expr				{ $$ = AST_NODE_N(MATH_PREFINC); $$->addChild($2); }
+	| MATH_PREFDEC expr				{ $$ = AST_NODE_N(MATH_PREFDEC); $$->addChild($2); }
 	| lvalue						{ $$ = $1; }
 	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
 	| expr binary_op expr
