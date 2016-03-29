@@ -33,6 +33,8 @@ project "HaizeLibrary"
 	}
 	filter "Debug*"
 		links	{ "Muon-d" }
+		defines { "HAIZE_DEBUG" }
+
 	filter "Release*"
 		links { "Muon" }
 

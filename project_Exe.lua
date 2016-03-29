@@ -17,6 +17,7 @@ project "HaizeExecutable"
 
 	filter "Debug*"
 		links	{ "Haize-d", "Muon-d" }
+		defines { "HAIZE_DEBUG" }
 
 	filter "Release*"
 		links { "Haize", "Muon" }

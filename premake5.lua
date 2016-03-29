@@ -74,12 +74,6 @@ solution "Haize"
 	filter  "*DLL"
 		kind "SharedLib"
 
-	filter "Debug*"
-		defines { "MUON_DEBUG"}
-
-	filter "Release*"
-		defines { "MUON_RELEASE"}
-
 ------------------------------
 -- Project
 ------------------------------
