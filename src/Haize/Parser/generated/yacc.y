@@ -84,10 +84,8 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 // ********************
 %type <node>	chunk
 
-%type <node>	func_decl
-				args_list_decl
-				args_decl
-				args_call
+%type <node>	func_decl args_list_decl args_decl
+				func_call args_list_call args_call
 
 %type <integer>	arg_prefix
 
@@ -97,14 +95,12 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 				global_decl
 
 %type <node>	var_type
-				variable variable_accessor
-				func_call
+				variable variable_accessor var_or_func
 				constant
 
 %type <node>	assign_op
 				binary_op
 				expr
-				lvalue
 
 %type <node>	stmt_list
 				stmt
@@ -176,13 +172,16 @@ constant
 		}
 	;
 
+var_or_func
+	: V_IDENTIFIER		{ $$ = AST_NODE(V_IDENTIFIER); EXTRACT_STR($1, $$->name); }
+	| func_call			{ $$ = $1; }
+	;
+
 variable
-	: V_IDENTIFIER						{ $$ = AST_NODE(V_IDENTIFIER); EXTRACT_STR($1, $$->name); }
-	| variable_accessor V_IDENTIFIER	
+	: var_or_func						{ $$ = $1; }
+	| variable_accessor var_or_func
 		{ 
-			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
-			EXTRACT_STR($2, nIdent->name); 
-			$1->addChild(nIdent);
+			$1->addChild($2);
 			// Variable is the highest "accessor" level
 			hz::parser::ASTNode* accessor = $1;
 			while(accessor->parent && accessor->parent->type == S_ACCESSOR)
@@ -194,21 +193,16 @@ variable
 	;
 
 variable_accessor
-	: V_IDENTIFIER S_ACCESSOR
+	: var_or_func S_ACCESSOR
 		{
 			$$ = AST_NODE_N(S_ACCESSOR);
-			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
-			EXTRACT_STR($1, nIdent->name); 
-			$$->addChild(nIdent);
+			$$->addChild($1);
 		}
-	| variable_accessor V_IDENTIFIER S_ACCESSOR
+	| variable_accessor var_or_func S_ACCESSOR
 		{
-			hz::parser::ASTNode* nAccess = AST_NODE_N(S_ACCESSOR); 
-			hz::parser::ASTNode* nIdent = AST_NODE(V_IDENTIFIER); 
-			EXTRACT_STR($2, nIdent->name); 
-			$1->addChild(nAccess);
-			nAccess->addChild(nIdent);
-			$$ = nAccess;
+			$$ = AST_NODE_N(S_ACCESSOR);
+			$1->addChild($$);
+			$$->addChild($2);
 		}
 	;
 
@@ -282,23 +276,26 @@ class_decl
 	;
 
 class_body
-	: /* E */		{ printf("class::E\n");}
-	| var_type		{ printf("class::var_type\n"); }
-	| func_decl		{ printf("class::func_decl\n"); $$ = $1; }
+	: /* E */					{ printf("class::E\n");}
+	| class_body var_type		{ printf("class::var_type\n"); }
+	| class_body func_decl		{ printf("class::func_decl\n"); $$ = $1; }
 	;
 
 func_call
-	: V_IDENTIFIER S_LPARENT args_call S_RPARENT
+	: V_IDENTIFIER S_LPARENT args_list_call S_RPARENT
 		{
 			$$ = AST_NODE_N(NT_FUNCTION);
 			EXTRACT_STR($1, $$->name);
 			$$->addChild($3);
 		}
 	;
-args_call
+args_list_call
 	: /* E */				{ $$ = AST_NODE_N(NT_ARGUMENTS); }
-	| lvalue S_COMMA		{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($1); }
-	| args_call lvalue		{ $$ = $1; $$->addChild($2); }
+	| args_call				{ $$ = $1; /* Node have been created by args_decl */ }
+	;
+args_call
+	: expr 							{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($1); }
+	| args_call S_COMMA expr		{ $$ = $1; $$->addChild($3); }
 	;
 
 /*
@@ -361,7 +358,8 @@ delete_variable
 	;
 
 stmt
-	: lvalue						{ $$ = $1; }
+	: constant						{ $$ = $1; }
+	| variable						{ $$ = $1; }
 	| variable assign_op expr		{ $$ = $2; $$->addChild($1); $$->addChild($3); }
 	| new_variable					{ $$ = $1; }
 	| delete_variable				{ $$ = $1; }
@@ -400,7 +398,8 @@ expr
 	| MATH_ADD expr					{ $$ = $2; }										%prec UNARY_PLUS 
 	| MATH_PREFINC expr				{ $$ = AST_NODE_N(MATH_PREFINC); $$->addChild($2); }
 	| MATH_PREFDEC expr				{ $$ = AST_NODE_N(MATH_PREFDEC); $$->addChild($2); }
-	| lvalue						{ $$ = $1; }
+	| variable		{ $$ = $1; }
+	| constant		{ $$ = $1; }
 	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
 	| expr binary_op expr
 		{
@@ -409,10 +408,3 @@ expr
 			$$->addChild($3);
 		}
 	;
-
-lvalue
-	: variable		{ $$ = $1; }
-	| constant		{ $$ = $1; }
-	| func_call		{ $$ = $1; }
-	;
-
