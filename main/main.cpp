@@ -1,4 +1,3 @@
-
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -52,15 +51,11 @@ void executeProgram();
 
 int main(int argc, char** argv)
 {
-	if(!m::meta::MetaDatabase::isInstantiated())
-	{
-		m::meta::MetaDatabase::createInstance();
-	}
 	m::system::Log::registerDefaultLogImpl();
 	m::system::Log log("", m::LOG_INFO);
 	log << " => Haize v" << HAIZE_VERSION << " (c) 2015" << m::endl << m::endl;
 
-	if(parseArguments(argc, argv))
+	if (parseArguments(argc, argv))
 	{
 		executeProgram();
 	}

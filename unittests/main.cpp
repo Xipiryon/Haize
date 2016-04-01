@@ -8,10 +8,6 @@
 
 int main(int argc, char** argv)
 {
-	if (!m::meta::MetaDatabase::isInstantiated())
-	{
-		m::meta::MetaDatabase::createInstance();
-	}
 	m::system::Log::registerDefaultLogImpl();
 	m::system::Log mainLog("Main", m::LOG_INFO);
 
@@ -46,7 +42,7 @@ int main(int argc, char** argv)
 	// BEGIN UNIT TEST
 	clockTest.start();
 
-	hz::Engine& vm = hz::Engine::createInstance();
+	hz::Engine& vm = hz::Engine::getInstance();
 	hz::Error infoError;
 	m::String file;
 	m::String module;

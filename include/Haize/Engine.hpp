@@ -16,12 +16,12 @@ namespace hz
 	* @brief Main class of the API
 	* Use the Engine to manipulate Context.
 	*/
-	class HAIZE_API Engine : public m::helper::Singleton<Engine>
+	class HAIZE_API Engine : public m::helper::NonCopyable
 	{
-		friend class m::helper::Singleton<Engine>;
 		Engine();
 		~Engine();
 	public:
+		MUON_SINGLETON_GET(Engine);
 
 		/*!
 		* @brief Create a new Context
