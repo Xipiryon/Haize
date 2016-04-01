@@ -377,8 +377,8 @@ expr
 	| expr binary_op expr			{ $$ = $2; $$->addChild($1); $$->addChild($3); printf("%s %s %s\n", $1->name.cStr(), $2->name.cStr(), $3->name.cStr());}
 	| MATH_ASN_INC variable			{ $$ = AST_NODE_N(MATH_PREFINC); $$->addChild($2); }	%prec MATH_PREFINC
 	| MATH_ASN_DEC variable			{ $$ = AST_NODE_N(MATH_PREFDEC); $$->addChild($2); }	%prec MATH_PREFDEC
-	| variable MATH_ASN_INC 		{ $$ = AST_NODE_N(MATH_POSTINC); $$->addChild($2); }	%prec MATH_POSTINC
-	| variable MATH_ASN_DEC 		{ $$ = AST_NODE_N(MATH_POSTDEC); $$->addChild($2); }	%prec MATH_POSTDEC
+	| variable MATH_ASN_INC 		{ $$ = AST_NODE_N(MATH_POSTINC); $$->addChild($1); }	%prec MATH_POSTINC
+	| variable MATH_ASN_DEC 		{ $$ = AST_NODE_N(MATH_POSTDEC); $$->addChild($1); }	%prec MATH_POSTDEC
 	| variable						{ $$ = $1; }
 	| constant						{ $$ = $1; }
 	;
