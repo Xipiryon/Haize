@@ -303,7 +303,7 @@ global_decl
 	;
 
 stmt_list
-	: /* E */						{ $$ = AST_NODE_N(NT_STMT); printf("stmt::E: %p\n", $$); }
+	: /* E */						{ $$ = AST_NODE_N(NT_STMT); }
 	| stmt S_SEPARATOR stmt_list 	{ $$ = $3; $$->addChild($1); }
 	;
 
