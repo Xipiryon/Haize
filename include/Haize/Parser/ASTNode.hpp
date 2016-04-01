@@ -9,6 +9,12 @@ namespace hz
 {
 	namespace parser
 	{
+		enum ParamPrefix
+		{
+			IN = 0x1,
+			OUT = 0x2,
+		};
+
 		/*!
 		*
 		*/

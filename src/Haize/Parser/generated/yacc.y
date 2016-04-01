@@ -27,15 +27,6 @@
 #include "Haize/Error.hpp"
 #include "Haize/Parser/ASTNode.hpp"
 
-namespace generated
-{
-	enum ParamPrefix
-	{
-		IN 	= 0x1,
-		OUT	= 0x2,
-	};
-}
-
 }
 
 
@@ -84,8 +75,8 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 // ********************
 %type <node>	chunk
 
-%type <node>	func_decl args_list_decl args_decl
-				func_call args_list_call args_call
+%type <node>	func_decl args_decl
+				func_call args_call
 
 %type <integer>	arg_prefix
 
@@ -235,7 +226,7 @@ namespace_decl
 	;
 
 func_decl
-	: var_type S_LPARENT args_list_decl S_RPARENT S_LBRACE stmt_list S_RBRACE
+	: var_type S_LPARENT args_decl S_RPARENT S_LBRACE stmt_list S_RBRACE
 		{
 			$$ = AST_NODE_N(NT_FUNCTION);
 			$$->addChild($1);
@@ -243,28 +234,17 @@ func_decl
 			$$->addChild($6);
 		}
 	;
-args_list_decl
-	: /* E */				{ $$ = AST_NODE_N(NT_ARGUMENTS); }
-	| args_decl				{ $$ = $1; /* Node have been created by args_decl */}
-	;
 args_decl
-	: arg_prefix var_type
-		{
-			generated::ParamPrefix prefix = (generated::ParamPrefix)$1;
-			$$ = AST_NODE_N(NT_ARGUMENTS);
-			$$->addChild($2);
-		}
-	| args_decl S_COMMA arg_prefix var_type
-		{
-			generated::ParamPrefix prefix = (generated::ParamPrefix)$3;
-			$1->addChild($4);
-		}
+	: /* E */									{ $$ = AST_NODE_N(NT_ARGUMENTS); }
+	| arg_prefix var_type						{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($2); $$->value = $1; }
+	| args_decl S_COMMA arg_prefix var_type		{ $1->addChild($4); $4->value = $3; }
 	;
+
 arg_prefix
-	: /* E */	{ $$ = generated::ParamPrefix::IN; }
-	| K_IN		{ $$ = generated::ParamPrefix::IN; }
-	| K_OUT		{ $$ = generated::ParamPrefix::OUT; }
-	| K_INOUT	{ $$ = (generated::ParamPrefix::IN | generated::ParamPrefix::OUT); }
+	: /* E */	{ $$ = (m::u32)hz::parser::ParamPrefix::IN; }
+	| K_IN		{ $$ = (m::u32)hz::parser::ParamPrefix::IN; }
+	| K_OUT		{ $$ = (m::u32)hz::parser::ParamPrefix::OUT; }
+	| K_INOUT	{ $$ = (m::u32)(hz::parser::ParamPrefix::IN | hz::parser::ParamPrefix::OUT); }
 	;
 
 class_decl
@@ -282,19 +262,16 @@ class_body
 	;
 
 func_call
-	: V_IDENTIFIER S_LPARENT args_list_call S_RPARENT
+	: V_IDENTIFIER S_LPARENT args_call S_RPARENT
 		{
 			$$ = AST_NODE_N(NT_FUNCTION);
 			EXTRACT_STR($1, $$->name);
 			$$->addChild($3);
 		}
 	;
-args_list_call
-	: /* E */				{ $$ = AST_NODE_N(NT_ARGUMENTS); }
-	| args_call				{ $$ = $1; /* Node have been created by args_decl */ }
-	;
 args_call
-	: expr 							{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($1); }
+	: /* E */						{ $$ = AST_NODE_N(NT_ARGUMENTS); }
+	| expr 							{ $$ = AST_NODE_N(NT_ARGUMENTS); $$->addChild($1); }
 	| args_call S_COMMA expr		{ $$ = $1; $$->addChild($3); }
 	;
 
@@ -326,9 +303,8 @@ global_decl
 	;
 
 stmt_list
-	: /* E */						{ $$ = AST_NODE_N(NT_STMT); }
-	| stmt S_SEPARATOR				{ $$ = AST_NODE_N(NT_STMT); $$->addChild($1); }
-	| stmt_list stmt S_SEPARATOR 	{ $$ = $1; $$->addChild($2); }
+	: /* E */						{ $$ = AST_NODE_N(NT_STMT); printf("stmt::E: %p\n", $$); }
+	| stmt S_SEPARATOR stmt_list 	{ $$ = $3; $$->addChild($1); }
 	;
 
 assign_op
