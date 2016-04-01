@@ -32,7 +32,7 @@ project "HaizeLibrary"
 		ProjectRoot.."/src/Haize/Parser/generated/flex.l",
 	}
 	filter "Debug*"
-		links	{ "Muon-d" }
+		links { "Muon-d" }
 	filter "Release*"
 		links { "Muon" }
 
@@ -41,7 +41,7 @@ project "HaizeLibrary"
 
 newaction {
 	trigger	 = "genparser",
-	description = "Generate Lemon files",
+	description = "Generate Flex/Bison files",
 
 	execute = function ()
 		genparser(ProjectRoot)

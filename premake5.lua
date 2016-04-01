@@ -63,6 +63,7 @@ solution "Haize"
 		targetsuffix "-d"
 		optimize "Debug"
 		flags	{ "Symbols" }
+		defines { "HAIZE_DEBUG"}
 
 	filter "Release*"
 		optimize "Speed"
@@ -73,12 +74,6 @@ solution "Haize"
 
 	filter  "*DLL"
 		kind "SharedLib"
-
-	filter "Debug*"
-		defines { "MUON_DEBUG"}
-
-	filter "Release*"
-		defines { "MUON_RELEASE"}
 
 ------------------------------
 -- Project
