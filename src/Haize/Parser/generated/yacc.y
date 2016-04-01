@@ -60,6 +60,7 @@ extern void yyerror(YYLTYPE*, yyscan_t, struct hz::parser::ASTNode*, struct hz::
 
 %token <node>	S_LPARENT S_RPARENT S_LBRACE S_RBRACE S_LBRACKET S_RBRACKET
 %token <node>	S_COMMA S_SEPARATOR S_NEWLINE
+%token <node>	MATH_ASN_INC MATH_ASN_DEC
 
 %token <string>		V_IDENTIFIER
 %token <string>		V_STRING
@@ -370,17 +371,14 @@ binary_op
 
 
 expr
-	: MATH_SUB expr					{ $$ = AST_NODE_N(UNARY_MINUS); $$->addChild($2); }	%prec UNARY_MINUS
-	| MATH_ADD expr					{ $$ = $2; }										%prec UNARY_PLUS 
-	| MATH_PREFINC expr				{ $$ = AST_NODE_N(MATH_PREFINC); $$->addChild($2); }
-	| MATH_PREFDEC expr				{ $$ = AST_NODE_N(MATH_PREFDEC); $$->addChild($2); }
-	| variable		{ $$ = $1; }
-	| constant		{ $$ = $1; }
-	| S_LPARENT expr S_RPARENT		{ $$ = $2; }
-	| expr binary_op expr
-		{
-			$$ = $2;
-			$$->addChild($1);
-			$$->addChild($3);
-		}
+	: S_LPARENT expr S_RPARENT		{ $$ = $2; }
+	| MATH_SUB expr					{ $$ = AST_NODE_N(UNARY_MINUS); $$->addChild($2); }		%prec UNARY_MINUS
+	| MATH_ADD expr					{ $$ = $2; }											%prec UNARY_PLUS 
+	| expr binary_op expr			{ $$ = $2; $$->addChild($1); $$->addChild($3); printf("%s %s %s\n", $1->name.cStr(), $2->name.cStr(), $3->name.cStr());}
+	| MATH_ASN_INC variable			{ $$ = AST_NODE_N(MATH_PREFINC); $$->addChild($2); }	%prec MATH_PREFINC
+	| MATH_ASN_DEC variable			{ $$ = AST_NODE_N(MATH_PREFDEC); $$->addChild($2); }	%prec MATH_PREFDEC
+	| variable MATH_ASN_INC 		{ $$ = AST_NODE_N(MATH_POSTINC); $$->addChild($2); }	%prec MATH_POSTINC
+	| variable MATH_ASN_DEC 		{ $$ = AST_NODE_N(MATH_POSTDEC); $$->addChild($2); }	%prec MATH_POSTDEC
+	| variable						{ $$ = $1; }
+	| constant						{ $$ = $1; }
 	;

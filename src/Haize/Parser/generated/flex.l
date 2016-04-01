@@ -136,6 +136,9 @@ Float		{_IntRange}+\.{_IntRange}*f?
 "/"		{ return MATH_DIV; }
 "%"		{ return MATH_MOD; }
 
+"++"	{ return MATH_ASN_INC; }
+"--"	{ return MATH_ASN_DEC; }
+
 "+="	{ return MATH_ASN_ADD; }
 "-="	{ return MATH_ASN_SUB; }
 "*="	{ return MATH_ASN_MUL; }
