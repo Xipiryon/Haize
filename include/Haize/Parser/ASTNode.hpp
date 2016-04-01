@@ -3,7 +3,8 @@
 
 #include <deque>
 #include <Muon/Variant.hpp>
-#include "Haize/Core/Define.hpp"
+
+#include "Haize/Parser/Token.hpp"
 
 namespace hz
 {
@@ -23,6 +24,7 @@ namespace hz
 			ASTNode();
 			ASTNode(m::u32);
 			ASTNode(m::u32, const m::String&);
+			ASTNode(const Token&);
 			~ASTNode();
 
 			m::String name;
@@ -30,6 +32,7 @@ namespace hz
 			m::Variant value;
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
+			Token token;
 
 			ASTNode* addChild(m::u32);
 			ASTNode* addChild(m::u32, const m::String&);

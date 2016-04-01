@@ -22,6 +22,14 @@ namespace hz
 			type = type_;
 		}
 
+		ASTNode::ASTNode(const Token& token_)
+			: name(TokenTypeStr[token_.type])
+			, token(token_)
+			, children(MUON_NEW(std::deque<ASTNode*>))
+			, parent(NULL)
+		{
+		}
+
 		ASTNode::ASTNode(m::u32 type_, const m::String& name_)
 			: name(name_)
 			, children(MUON_NEW(std::deque<ASTNode*>))
