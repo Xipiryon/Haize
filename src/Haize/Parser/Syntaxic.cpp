@@ -470,6 +470,10 @@ namespace hz
 
 				return true;
 			}
+#if defined(HAIZE_DEBUG)
+			m::system::Log debug("Syntaxic", m::LOG_DEBUG);
+			ascii::display(m_nodeRoot);
+#endif
 			return true;
 		}
 

@@ -594,7 +594,11 @@ namespace hz
 			impl.token.type = parser::S_EOF;
 			pushToken(&impl, eof);
 
-			error.clear();
+			error.state = Error::SUCCESS;
+#if defined(HAIZE_DEBUG)
+			m::system::Log debug("Lexical", m::LOG_DEBUG);
+			debug << "Parsed " << m_tokenList->size() << " tokens" << m::endl;
+#endif
 			return true;
 		}
 
