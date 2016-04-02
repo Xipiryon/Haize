@@ -53,7 +53,9 @@ int main(int argc, char** argv)
 {
 	m::system::Log::registerDefaultLogImpl();
 	m::system::Log log("", m::LOG_INFO);
-	log << " => Haize v" << HAIZE_VERSION << " (c) 2015" << m::endl << m::endl;
+	log() << " Haize v" << HAIZE_VERSION << ", a C++ Script Language " << m::endl;
+	log() << " Copyright (C) 2015-2016 Louis Schnellbach" << m::endl
+		<< m::endl;
 
 	if (parseArguments(argc, argv))
 	{
