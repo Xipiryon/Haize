@@ -165,7 +165,6 @@ namespace
 
 		s_OpDefault, //S_COMMA,			','
 		{ 85, ASSOC_RIGHT },	//S_ACCESSOR,		'.'
-		{ 90, ASSOC_LEFT },		//S_RESOLUTION,		'::'
 		s_OpDefault, //S_SEPARATOR,		New line, or ';'
 		s_OpDefault, //S_KEYWORD,
 		s_OpDefault, //S_LPARENT,		'('
@@ -175,12 +174,14 @@ namespace
 		s_OpDefault, //S_LBRACE,		'{'
 		s_OpDefault, //S_RBRACE,		'}'
 
+		s_OpDefault, //E_VALUE_BEGIN,
 		s_OpDefault, //V_NUMBER,			A number (in either dec, oct, bin or hex format)
 		s_OpDefault, //V_IDENTIFIER,		An alphanumeric identifier
 		s_OpDefault, //V_STRING,			A string contained between two '"' character
 		s_OpDefault, //V_NIL,
 		s_OpDefault, //V_TRUE,
 		s_OpDefault, //V_FALSE,
+		s_OpDefault, //E_VALUE_END,
 
 		s_OpDefault, //E_LOGIC_OP_BEGIN,
 		{ 55, ASSOC_LEFT },		//LOGIC_EQ,			'=='
