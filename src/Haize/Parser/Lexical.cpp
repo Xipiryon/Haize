@@ -68,6 +68,7 @@ namespace
 		{
 		}
 
+		std::vector<hz::parser::Token>* tokenList;
 		hz::parser::Token token;
 		bool lineComment;
 		bool multiLineComment;
@@ -160,6 +161,88 @@ namespace
 		}
 		return info.stream.peek();
 	}
+
+	void pushToken(InternalDataLexical* impl, m::String& word)
+	{
+		if (impl->token.type != hz::parser::S_INVALID)
+		{
+			impl->token.value = word;
+			if (impl->token.type == hz::parser::V_IDENTIFIER)
+			{
+				if (word == "nil")
+				{
+					impl->token.type = hz::parser::V_NIL;
+				}
+				else if (word == "true")
+				{
+					impl->token.type = hz::parser::V_TRUE;
+				}
+				else if (word == "false")
+				{
+					impl->token.type = hz::parser::V_FALSE;
+				}
+				else if (word == "namespace"
+						 || word == "class"
+						 || word == "constructor"
+						 || word == "destructor"
+						 || word == "ref"
+						 // Logic keyword
+						 || word == "if"
+						 || word == "else"
+						 || word == "for"
+						 || word == "in"
+						 || word == "while"
+						 || word == "switch"
+						 || word == "case"
+						 || word == "default"
+						 || word == "break"
+						 || word == "continue"
+						 // other keyword
+						 || word == "global"
+						 || word == "return"
+						 )
+				{
+					impl->token.type = hz::parser::S_KEYWORD;
+				}
+			}
+			else if (impl->token.type == hz::parser::V_NUMBER)
+			{
+				impl->token.value = impl->fvalue;
+				impl->fvalue = 0.0;
+				impl->fdenOffset = 1;
+				impl->fdenUsed = false;
+			}
+
+			impl->token.line = impl->line;
+			impl->token.column = impl->column;
+			impl->tokenList->push_back(impl->token);
+		}
+		else
+		{
+			//TODO:
+			//Should warn there is an invalid Token
+		}
+		impl->token.type = hz::parser::S_INVALID;
+		impl->token.value.reset();
+		word = "";
+	}
+
+	void pushSeparatorToken(InternalDataLexical* impl, m::String& word)
+	{
+		//Push only a new separator token if not already the last in the list
+		if (impl->tokenList->size() > 0 && impl->tokenList->back().type != hz::parser::S_SEPARATOR)
+		{
+			impl->token.type = hz::parser::S_SEPARATOR;
+			pushToken(impl, word);
+		}
+		else
+		{
+			//Manually revert current token
+			impl->token.type = hz::parser::S_INVALID;
+			impl->token.value.reset();
+			word = "";
+		}
+	}
 }
 
 namespace hz
@@ -174,6 +257,7 @@ namespace hz
 			InternalDataLexical impl;
 
 			m_tokenList->clear();
+			impl.tokenList = m_tokenList;
 			impl.token.value.reset();
 			impl.token.type = hz::parser::S_INVALID;
 			impl.lineComment = false;
@@ -600,91 +684,6 @@ namespace hz
 			debug << "Parsed " << m_tokenList->size() << " tokens" << m::endl;
 #endif
 			return true;
-		}
-
-		void Compiler::pushSeparatorToken(InternalCompilerData* info, m::String& word)
-		{
-			InternalDataLexical* impl = (InternalDataLexical*)info;
-			//Push only a new separator token if not already the last in the list
-			if (m_tokenList->size() > 0 && m_tokenList->back().type != hz::parser::S_SEPARATOR)
-			{
-				impl->token.type = hz::parser::S_SEPARATOR;
-				pushToken(info, word);
-			}
-			else
-			{
-				//Manually revert current token
-				impl->token.type = hz::parser::S_INVALID;
-				impl->token.value.reset();
-				word = "";
-			}
-		}
-
-		void Compiler::pushToken(InternalCompilerData* info, m::String& word)
-		{
-			InternalDataLexical* impl = (InternalDataLexical*)info;
-
-			if (impl->token.type != hz::parser::S_INVALID)
-			{
-				impl->token.value = word;
-				if (impl->token.type == hz::parser::V_IDENTIFIER)
-				{
-					if (word == "nil")
-					{
-						impl->token.type = hz::parser::V_NIL;
-					}
-					else if (word == "true")
-					{
-						impl->token.type = hz::parser::V_TRUE;
-					}
-					else if (word == "false")
-					{
-						impl->token.type = hz::parser::V_FALSE;
-					}
-					else if (word == "namespace"
-							 || word == "class"
-							 || word == "constructor"
-							 || word == "destructor"
-							 || word == "ref"
-							 // Logic keyword
-							 || word == "if"
-							 || word == "else"
-							 || word == "for"
-							 || word == "in"
-							 || word == "while"
-							 || word == "switch"
-							 || word == "case"
-							 || word == "default"
-							 || word == "break"
-							 || word == "continue"
-							 // other keyword
-							 || word == "global"
-							 || word == "return"
-							 )
-					{
-						impl->token.type = hz::parser::S_KEYWORD;
-					}
-				}
-				else if (impl->token.type == hz::parser::V_NUMBER)
-				{
-					impl->token.value = impl->fvalue;
-					impl->fvalue = 0.0;
-					impl->fdenOffset = 1;
-					impl->fdenUsed = false;
-				}
-
-				impl->token.line = impl->line;
-				impl->token.column = impl->column;
-				m_tokenList->push_back(impl->token);
-			}
-			else
-			{
-				//TODO:
-				//Should warn there is an invalid Token
-			}
-			impl->token.type = hz::parser::S_INVALID;
-			impl->token.value.reset();
-			word = "";
 		}
 	}
 }
