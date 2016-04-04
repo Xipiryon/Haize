@@ -422,6 +422,73 @@ namespace
 	bool parseFunctionDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		readToken(impl, token);
+		popToken(impl);
+		auto* functionNode = MUON_NEW(hz::parser::ASTNodeFunctionDecl);
+		functionNode->retTypename = token.value.get<m::String>();
+		impl->currNode->addChild(functionNode);
+
+		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+		{
+			popToken(impl);
+			functionNode->name = token.value.get<m::String>();
+			// Parse arguments
+			if (readToken(impl, token) && token.type == hz::parser::S_LPARENT)
+			{
+				popToken(impl);
+				auto* argsNode = MUON_NEW(hz::parser::ASTNode);
+				argsNode->type = hz::parser::NT_FUNCTION_ARGS_DECL;
+				functionNode->addChild(argsNode);
+				// Quick check for a non argument function
+				if (readToken(impl, token) && token.type == hz::parser::S_RPARENT)
+				{
+					popToken(impl);
+				}
+				else
+				{
+					// Parse arguments
+					impl->currNode = argsNode;
+					if (parseArgsDecl(impl))
+					{
+						if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+						{
+							popToken(impl);
+							impl->currNode = functionNode;
+						}
+						else return false;
+					}
+					else return false;
+				}
+			}
+			// Parse body
+			if (readToken(impl, token) && token.type == hz::parser::S_LBRACE)
+			{
+				popToken(impl);
+				auto* bodyNode = MUON_NEW(hz::parser::ASTNode);
+				bodyNode->type = hz::parser::NT_FUNCTION_BODY;
+				functionNode->addChild(bodyNode);
+				// Same, quick check for an empty body
+				if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+				{
+					popToken(impl);
+					impl->currNode = functionNode->parent;
+					return true;
+				}
+				else
+				{
+					impl->currNode = bodyNode;
+					// Parse body while it can handle tokens
+					while (parseStatement(impl));
+					// the failure of parseStatement means we should have a closing brace
+					if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+					{
+						popToken(impl);
+						impl->currNode = functionNode->parent;
+						return true;
+					}
+				}
+			}
+		}
 
 		return false;
 	}
