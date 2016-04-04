@@ -4,32 +4,6 @@
 
 namespace
 {
-	m::String tokenValueToStr(const hz::parser::Token& token)
-	{
-		char buffer[32];
-		m::String tokstr;
-		m::meta::MetaData* m = token.value.getMeta();
-		if (MUON_META(m::String) == m)
-		{
-			tokstr = token.value.get<m::String>();
-		}
-		else if (MUON_META(m::f32) == m)
-		{
-			m::ftoa(token.value.get<m::f32>(), buffer);
-			tokstr = buffer;
-		}
-		else if (MUON_META(m::i32) == m)
-		{
-			m::itoa((m::i64)token.value.get<m::i32>(), buffer);
-			tokstr = buffer;
-		}
-		else
-		{
-			tokstr = hz::parser::TokenTypeStr[token.type];
-		}
-		return tokstr;
-	}
-
 	// ASCII Tree variables
 	char depth[2048];
 	m::u32 depthIndex;
@@ -51,7 +25,7 @@ namespace
 	void display(hz::parser::ASTNode* node)
 	{
 #if defined(HAIZE_DEBUG)
-		printf(" %s (%s)\n", node->name.cStr(), tokenValueToStr(node->token).cStr());
+		printf(" %s \n", node->toString().cStr());
 		for (m::u32 i = 0; i < node->children->size(); ++i)
 		{
 			hz::parser::ASTNode* n = (*node->children)[i];
@@ -249,7 +223,7 @@ namespace
 
 	void tokenError(InternalSyntaxicData* impl, const hz::parser::Token& token)
 	{
-		tokenError(impl, token, tokenValueToStr(token));
+		tokenError(impl, token, token.valueToStr());
 	}
 
 	// Whole program

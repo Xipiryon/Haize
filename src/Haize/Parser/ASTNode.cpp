@@ -90,5 +90,15 @@ namespace hz
 			}
 			return false;
 		}
+
+		m::String ASTNode::toString()
+		{
+			return name;
+		}
+
+		m::String ASTNodeVarDecl::toString()
+		{
+			return typeName + " " + varName;
+		}
 	}
 }

@@ -234,6 +234,32 @@ namespace hz
 				return *this;
 			}
 
+			m::String valueToStr() const
+			{
+				char buffer[32];
+				m::String tokstr;
+				m::meta::MetaData* m = value.getMeta();
+				if (MUON_META(m::String) == m)
+				{
+					tokstr = value.get<m::String>();
+				}
+				else if (MUON_META(m::f32) == m)
+				{
+					m::ftoa(value.get<m::f32>(), buffer);
+					tokstr = buffer;
+				}
+				else if (MUON_META(m::i32) == m)
+				{
+					m::itoa((m::i64)value.get<m::i32>(), buffer);
+					tokstr = buffer;
+				}
+				else
+				{
+					tokstr = TokenTypeStr[type];
+				}
+				return tokstr;
+			}
+
 			eTokenType type;
 			m::Variant value;
 

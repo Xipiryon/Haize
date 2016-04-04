@@ -39,12 +39,16 @@ namespace hz
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);
+
+			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeVarDecl : ASTNode
 		{
 			m::String typeName;
 			m::String varName;
+
+			virtual m::String toString();
 		};
 	}
 }
