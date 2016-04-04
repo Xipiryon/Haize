@@ -56,7 +56,7 @@ namespace hz
 
 		m::String ASTNode::toString()
 		{
-			return name;
+			return hz::parser::TokenTypeStr[type];
 		}
 
 		m::String ASTNodeNamespaceDecl::toString()
