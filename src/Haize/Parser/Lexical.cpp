@@ -81,6 +81,11 @@ namespace
 		m::u32 line;
 		m::u32 column;		// Token start column
 		m::u32 columnCount; // Absolute column count
+		// Section
+		std::vector<hz::parser::Compiler::Section>* sections;
+		m::u64 charCount;
+		m::u64 nextEndSection;
+		m::u32 currSection;
 	};
 
 	bool isLetter(char c)
@@ -143,23 +148,31 @@ namespace
 		return (c == refc) && (nc == refnc);
 	}
 
-	char get(InternalDataLexical& info)
+	char get(InternalDataLexical& impl)
 	{
 		char c;
-		if (!info.stream.get(c))
+		if (!impl.stream.get(c))
 		{
 			return 0;
+		}
+		if (++impl.charCount >= impl.nextEndSection)
+		{
+			if (impl.currSection < impl.sections->size())
+			{
+				++impl.currSection;
+				impl.nextEndSection = impl.sections->at(impl.currSection)._end;
+			}
 		}
 		return c;
 	}
 
-	char peek(InternalDataLexical& info)
+	char peek(InternalDataLexical& impl)
 	{
-		if (info.stream.eof())
+		if (impl.stream.eof())
 		{
 			return 0;
 		}
-		return info.stream.peek();
+		return impl.stream.peek();
 	}
 
 	void pushToken(InternalDataLexical* impl, m::String& word)
@@ -215,6 +228,7 @@ namespace
 
 			impl->token.line = impl->line;
 			impl->token.column = impl->column;
+			impl->token.section = impl->currSection;
 			impl->tokenList->push_back(impl->token);
 		}
 		else
@@ -268,6 +282,12 @@ namespace hz
 			impl.fdenUsed = false;
 			impl.line = 1;
 			impl.column = 1;
+			impl.columnCount = 1;
+			// Section stuff
+			impl.sections = m_sections;
+			impl.charCount = 0;
+			impl.currSection = 0;
+			impl.nextEndSection = m_sections->at(0)._end;
 
 			m::String word;
 

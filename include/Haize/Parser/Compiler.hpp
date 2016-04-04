@@ -17,6 +17,15 @@ namespace hz
 		class HAIZE_API Compiler
 		{
 		public:
+			Compiler();
+			~Compiler();
+
+			struct Section
+			{
+				m::String name;
+				m::u64 _end;
+			};
+
 			virtual bool load(const char* buffer, Error& error);
 			virtual bool load(const m::String& file, Error& error);
 
@@ -31,6 +40,7 @@ namespace hz
 			// Variables
 			m::String m_loadBuffer;
 			std::vector<parser::Token>* m_tokenList;
+			std::vector<Section>* m_sections;
 			parser::ASTNode* m_nodeRoot;
 			//SymbolTable m_symbols;
 		};

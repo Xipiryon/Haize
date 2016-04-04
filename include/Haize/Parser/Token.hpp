@@ -237,7 +237,7 @@ namespace hz
 			eTokenType type;
 			m::Variant value;
 
-			m::String section;
+			m::u32 section;
 			m::u32 line;
 			m::u32 column;
 		};

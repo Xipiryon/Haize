@@ -8,6 +8,16 @@ namespace hz
 {
 	namespace parser
 	{
+		Compiler::Compiler()
+		{
+			m_sections = MUON_NEW(std::vector<Section>);
+		}
+
+		Compiler::~Compiler()
+		{
+			MUON_DELETE(m_sections);
+		}
+
 		bool Compiler::compile(Error& error)
 		{
 			error.clear();

@@ -108,6 +108,7 @@ namespace
 		}
 
 		std::vector<hz::parser::Token>* tokenList;
+		std::vector<hz::parser::Compiler::Section>* sections;
 		hz::parser::ASTNode* rootNode;
 
 		hz::Error& error;
@@ -207,7 +208,7 @@ namespace
 		{
 			impl->error.line = impl->tokenList->back().line;
 			impl->error.column = impl->tokenList->back().column;
-			impl->error.section = impl->tokenList->back().section;
+			impl->error.section = impl->sections->at(impl->tokenList->back().section).name;
 			impl->error.message = "Unexpected EOF";
 			impl->error.state = hz::Error::ERROR;
 		}
@@ -224,18 +225,18 @@ namespace
 		return false;
 	}
 
-	void tokenError(hz::Error& error, const hz::parser::Token& token, const m::String& msg)
+	void tokenError(InternalSyntaxicData* impl, const hz::parser::Token& token, const m::String& msg)
 	{
-		error.state = hz::Error::ERROR;
-		error.section = token.section;
-		error.line = token.line;
-		error.column = token.column;
-		error.message = msg;
+		impl->error.state = hz::Error::ERROR;
+		impl->error.section = impl->sections->at(token.section).name;
+		impl->error.line = token.line;
+		impl->error.column = token.column;
+		impl->error.message = msg;
 	}
 
-	void tokenError(hz::Error& error, const hz::parser::Token& token)
+	void tokenError(InternalSyntaxicData* impl, const hz::parser::Token& token)
 	{
-		tokenError(error, token, tokenValueToStr(token));
+		tokenError(impl, token, tokenValueToStr(token));
 	}
 
 	// Whole program
@@ -281,6 +282,7 @@ namespace hz
 
 			InternalSyntaxicData impl(error);
 			impl.tokenList = m_tokenList;
+			impl.sections = m_sections;
 			impl.rootNode = m_nodeRoot;
 			impl.readTokenIndex = 0;
 			impl.phaseNode = m_nodeRoot;
@@ -339,7 +341,7 @@ namespace
 				}
 				else
 				{
-					tokenError(impl->error, token);
+					tokenError(impl, token);
 					return false;
 				}
 			}

@@ -39,6 +39,8 @@ namespace hz
 				m_loadBuffer += buffer;
 				free(buffer);
 
+				Section section = { file, length };
+				m_sections->push_back(section);
 				error.state = Error::SUCCESS;
 				return true;
 			}
