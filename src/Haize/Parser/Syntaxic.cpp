@@ -114,6 +114,8 @@ namespace
 		hz::Error& error;
 		m::u32 readTokenIndex;
 
+		hz::parser::Token lastReadToken;
+
 		std::deque<hz::parser::Token> exprTokens;
 		std::deque<hz::parser::ASTNode*> exprNodes;
 		hz::parser::ASTNode* phaseNode;
@@ -201,6 +203,7 @@ namespace
 		if (index < impl->tokenList->size())
 		{
 			out = impl->tokenList->at(index);
+			impl->lastReadToken = out;
 			return true;
 		}
 		// Setup error with last token info, as we have no more token to read
