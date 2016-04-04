@@ -309,8 +309,13 @@ namespace hz
 
 			impl.lastReadToken = m_tokenList->front();
 			parser::Token token;
-			while (impl.readTokenIndex < m_tokenList->size())
+			while (readToken(&impl, token))
 			{
+				if (token.type == S_EOF)
+				{
+					break;
+				}
+
 				if (!parseChunk(&impl))
 				{
 					error.state = Error::ERROR;
