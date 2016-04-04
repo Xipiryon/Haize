@@ -349,8 +349,6 @@ namespace
 		readToken(impl, token); // Global token
 		popToken(impl);
 
-		hz::parser::ASTNode* globalNode = MUON_NEW(hz::parser::ASTNode);
-		globalNode->type = hz::parser::NT_GLOBAL_DECL;
 		m::String typeName;
 		m::String varName;
 
@@ -366,17 +364,16 @@ namespace
 				{
 					popToken(impl);
 					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
+					varNode->type = hz::parser::NT_GLOBAL_DECL;
 					varNode->typeName = typeName;
 					varNode->varName = varName;
 					varNode->global = true;
-					globalNode->addChild(varNode);
-					impl->currNode->addChild(globalNode);
+					impl->currNode->addChild(varNode);
 					return true;
 				}
 			}
 		}
 
-		MUON_DELETE(globalNode);
 		return false;
 	}
 
