@@ -416,7 +416,6 @@ namespace
 			}
 		}
 
-		MUON_DELETE(namespaceNode);
 		return false;
 	}
 
