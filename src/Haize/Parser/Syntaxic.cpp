@@ -234,6 +234,7 @@ namespace
 	bool parseFunctionDecl(InternalSyntaxicData*);
 	bool parseArgsDecl(InternalSyntaxicData*);
 	bool parseClassDecl(InternalSyntaxicData*);
+	bool parseClassCstrDstr(InternalSyntaxicData*);
 	bool parseClassMemberDecl(InternalSyntaxicData*);
 	// Statement and control flow
 	bool parseStatement(InternalSyntaxicData*);
@@ -346,7 +347,6 @@ namespace
 	bool parseGlobalDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		readToken(impl, token); // Global token
 		popToken(impl);
 
 		m::String typeName;
@@ -380,7 +380,6 @@ namespace
 	bool parseNamespaceDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		readToken(impl, token);
 		popToken(impl);
 		hz::parser::ASTNode* namespaceNode = MUON_NEW(hz::parser::ASTNodeNamespaceDecl);
 		namespaceNode->type = hz::parser::NT_NAMESPACE_DECL;
@@ -426,6 +425,7 @@ namespace
 		popToken(impl);
 		auto* functionNode = MUON_NEW(hz::parser::ASTNodeFunctionDecl);
 		functionNode->retTypename = token.value.get<m::String>();
+		functionNode->type = hz::parser::NT_FUNCTION_DECL;
 		impl->currNode->addChild(functionNode);
 
 		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
@@ -565,13 +565,178 @@ namespace
 	bool parseClassDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		popToken(impl);
+
+		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+		{
+			popToken(impl);
+			auto* classNode = MUON_NEW(hz::parser::ASTNode);
+			impl->currNode->addChild(classNode);
+			impl->currNode = classNode;
+			classNode->type = hz::parser::NT_CLASS_DECL;
+			classNode->name = token.value.get<m::String>();
+			if (readToken(impl, token) && token.type == hz::parser::S_LBRACE)
+			{
+				popToken(impl);
+				// Quick check for an empty body
+				if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+				{
+					popToken(impl);
+					impl->currNode = classNode->parent;
+					return true;
+				}
+				else
+				{
+				label_class_body_start:
+					// Read two identifier, the decltype and the name.
+					// The 3rd token determine if either a function ('(') or a member (';')
+					// Special case for 'constructor' and 'destructor'
+					hz::parser::Token declType;
+					hz::parser::Token declName;
+					if (readToken(impl, declType, 1, true)
+						&& readToken(impl, declName, 2, true)
+						&& readToken(impl, token, 3, true))
+					{
+						if (declType.type == hz::parser::S_KEYWORD)
+						{
+							m::String keyword = declType.value.get<m::String>();
+							if (keyword == "constructor" || keyword == "destructor")
+							{
+								if (!parseClassCstrDstr(impl))
+								{
+									return false;
+								}
+							}
+							else
+							{
+								tokenError(impl, declType);
+							}
+						}
+						else if (token.type == hz::parser::S_LPARENT)
+						{
+							if (!parseFunctionDecl(impl))
+							{
+								return false;
+							}
+						}
+						else if (token.type == hz::parser::S_SEPARATOR)
+						{
+							if (!parseClassMemberDecl(impl))
+							{
+								return false;
+							}
+						}
+						else
+						{
+							tokenError(impl, token);
+						}
+
+						// Member / Function has been parsed, check for class end, or reloop
+						if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+						{
+							popToken(impl);
+							impl->currNode = classNode->parent;
+							return true;
+						}
+						else goto label_class_body_start;
+					}
+				}
+			}
+		}
 
 		return false;
 	}
 
 	bool parseClassMemberDecl(InternalSyntaxicData* impl)
 	{
+		// Check has been made in parse class function, so just unwrap and make a node
 		hz::parser::Token token;
+		auto* argDecl = MUON_NEW(hz::parser::ASTNodeVarDecl);
+		argDecl->type = hz::parser::NT_CLASS_MEMBER;
+
+		readToken(impl, token);
+		popToken(impl);
+		argDecl->declTypename = token.value.get<m::String>();
+
+		readToken(impl, token);
+		popToken(impl);
+		argDecl->name = token.value.get<m::String>();
+
+		popToken(impl); // ';'
+
+		return true;
+	}
+
+	bool parseClassCstrDstr(InternalSyntaxicData* impl)
+	{
+		hz::parser::Token token;
+		readToken(impl, token);
+		popToken(impl);
+		m::String keyword = token.value.get<m::String>();
+		auto* cdstrNode = MUON_NEW(hz::parser::ASTNodeFunctionDecl);
+		cdstrNode->type = (keyword == "constructor"
+						   ? hz::parser::NT_CLASS_CONSTRUCTOR
+						   : hz::parser::NT_CLASS_DESTRUCTOR);
+
+		cdstrNode->name = keyword;
+		impl->currNode->addChild(cdstrNode);
+
+		// Parse arguments
+		if (readToken(impl, token) && token.type == hz::parser::S_LPARENT)
+		{
+			popToken(impl);
+			auto* argsNode = MUON_NEW(hz::parser::ASTNode);
+			argsNode->type = hz::parser::NT_FUNCTION_ARGS_DECL;
+			cdstrNode->addChild(argsNode);
+			// Quick check for a non argument function
+			if (readToken(impl, token) && token.type == hz::parser::S_RPARENT)
+			{
+				popToken(impl);
+			}
+			else
+			{
+				// Parse arguments
+				impl->currNode = argsNode;
+				if (parseArgsDecl(impl))
+				{
+					if (readToken(impl, token) && token.type == hz::parser::S_RPARENT)
+					{
+						popToken(impl);
+						impl->currNode = cdstrNode;
+					}
+					else return false;
+				}
+				else return false;
+			}
+		}
+		// Parse body
+		if (readToken(impl, token) && token.type == hz::parser::S_LBRACE)
+		{
+			popToken(impl);
+			auto* bodyNode = MUON_NEW(hz::parser::ASTNode);
+			bodyNode->type = hz::parser::NT_FUNCTION_BODY;
+			cdstrNode->addChild(bodyNode);
+			// Same, quick check for an empty body
+			if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+			{
+				popToken(impl);
+				impl->currNode = cdstrNode->parent;
+				return true;
+			}
+			else
+			{
+				impl->currNode = bodyNode;
+				// Parse body while it can handle tokens
+				while (parseStatement(impl));
+				// the failure of parseStatement means we should have a closing brace
+				if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+				{
+					popToken(impl);
+					impl->currNode = cdstrNode->parent;
+					return true;
+				}
+			}
+		}
 
 		return false;
 	}

@@ -22,7 +22,7 @@ namespace hz
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			~ASTNode();
+			virtual ~ASTNode();
 
 			m::String name;
 			m::u32 type;
