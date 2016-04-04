@@ -222,6 +222,7 @@ namespace
 	{
 		return readToken(impl, out, 1, fillError);
 	}
+
 	bool popToken(InternalSyntaxicData* impl, m::u32 count)
 	{
 		if ((impl->readTokenIndex + count) <= impl->tokenList->size())
@@ -406,7 +407,42 @@ namespace
 	bool parseNamespaceDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		readToken(impl, token);
+		popToken(impl);
+		hz::parser::ASTNode* namespaceNode = MUON_NEW(hz::parser::ASTNode, hz::parser::NT_NAMESPACE_DECL, "");
 
+		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+		{
+			popToken(impl);
+			namespaceNode->name = token.value.get<m::String>();
+			if (readToken(impl, token) && token.type == hz::parser::S_LBRACE)
+			{
+				popToken(impl);
+				// Check for a closing brace: will mean the namespace is empty
+				if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+				{
+					popToken(impl);
+					// Don't even add it, just delete it and return
+					MUON_DELETE(namespaceNode);
+					return true;
+				}
+
+				// Continue parsing, and check for a closing brace
+				impl->currNode->addChild(namespaceNode);
+				impl->currNode = namespaceNode;
+				if (parseChunk(impl))
+				{
+					if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+					{
+						popToken(impl);
+						impl->currNode = namespaceNode->parent;
+						return true;
+					}
+				}
+			}
+		}
+
+		MUON_DELETE(namespaceNode);
 		return false;
 	}
 
