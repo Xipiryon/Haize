@@ -1,7 +1,7 @@
 
 // No arguments
 // No return
-void noArg_noRet() { /* Empty void */ }
+void noArg_noRet() { }
 
 // Same but with weird line ending
 // ---------- v
