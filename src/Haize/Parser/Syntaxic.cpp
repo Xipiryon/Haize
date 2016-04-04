@@ -223,7 +223,7 @@ namespace
 
 	void tokenError(InternalSyntaxicData* impl, const hz::parser::Token& token)
 	{
-		tokenError(impl, token, token.valueToStr());
+		tokenError(impl, token, "Unexpected '" + token.valueToStr() + "' here!");
 	}
 
 	// Whole program
