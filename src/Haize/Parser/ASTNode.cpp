@@ -66,7 +66,17 @@ namespace hz
 
 		m::String ASTNodeVarDecl::toString()
 		{
-			return (global ? "(global) " : "") + typeName + " " + varName;
+			return (global ? "(global) " : "") + declTypename + " " + name;
+		}
+
+		m::String ASTNodeArgDecl::toString()
+		{
+			return ((prefix | IN) ? "IN " : "") + m::String((prefix | OUT) ? "OUT" : "") + declTypename + " " + name;
+		}
+
+		m::String ASTNodeFunctionDecl::toString()
+		{
+			return retTypename + " " + name;
 		}
 	}
 }

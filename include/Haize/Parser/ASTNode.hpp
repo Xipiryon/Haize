@@ -47,8 +47,22 @@ namespace hz
 		struct HAIZE_API ASTNodeVarDecl : ASTNode
 		{
 			bool global;
-			m::String typeName;
-			m::String varName;
+			m::String declTypename;
+
+			virtual m::String toString();
+		};
+
+		struct HAIZE_API ASTNodeArgDecl : ASTNode
+		{
+			ParamPrefix prefix;
+			m::String declTypename;
+
+			virtual m::String toString();
+		};
+
+		struct HAIZE_API ASTNodeFunctionDecl : ASTNode
+		{
+			m::String retTypename;
 
 			virtual m::String toString();
 		};

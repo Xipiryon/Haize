@@ -365,8 +365,8 @@ namespace
 					popToken(impl);
 					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
 					varNode->type = hz::parser::NT_GLOBAL_DECL;
-					varNode->typeName = typeName;
-					varNode->varName = varName;
+					varNode->declTypename = typeName;
+					varNode->name = varName;
 					varNode->global = true;
 					impl->currNode->addChild(varNode);
 					return true;
