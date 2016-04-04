@@ -355,11 +355,11 @@ namespace
 		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 		{
 			typeName = token.value.get<m::String>();
-			popToken(impl, 1);
+			popToken(impl);
 			if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 			{
 				varName = token.value.get<m::String>();
-				popToken(impl, 1);
+				popToken(impl);
 				if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
 				{
 					popToken(impl);
