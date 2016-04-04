@@ -320,7 +320,35 @@ namespace
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		if (readToken(impl, token, 0))
+		{
+			if (token.type == hz::parser::S_KEYWORD)
+			{
+				m::String keyword = token.value.get<m::String>();
+				if (keyword == "namespace")
+				{
+					return parseNamespaceDecl(impl);
+				}
+				else if (keyword == "class")
+				{
+					return parseClassDecl(impl);
+				}
+				else if (keyword == "global")
+				{
+					return parseGlobalDecl(impl);
+				}
+				else
+				{
+					tokenError(impl->error, token);
+					return false;
+				}
+			}
+			else if (token.type == hz::parser::V_IDENTIFIER)
+			{
+				return parseFunctionDecl(impl);
+			}
+		}
+		return false;
 	}
 
 	// Declarations
