@@ -324,7 +324,6 @@ namespace
 	bool parseChunk(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
 		if (readToken(impl, token, 0))
 		{
 			if (token.type == hz::parser::S_KEYWORD)
@@ -360,42 +359,41 @@ namespace
 	bool parseGlobalDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
 		return false;
 	}
 
 	bool parseNamespaceDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseFunctionDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseArgsDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseClassDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseClassMemberDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
@@ -403,21 +401,21 @@ namespace
 	bool parseStatement(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseControlFlow(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseConditionalFlow(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
@@ -425,35 +423,35 @@ namespace
 	bool parseNewVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseDeleteVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseAsnExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseReturnExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 
 	bool parseExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		bool ok = true;
+
 		return false;
 	}
 }
