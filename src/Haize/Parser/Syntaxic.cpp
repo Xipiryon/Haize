@@ -118,7 +118,7 @@ namespace
 
 		std::deque<hz::parser::Token> exprTokens;
 		std::deque<hz::parser::ASTNode*> exprNodes;
-		hz::parser::ASTNode* phaseNode;
+		hz::parser::ASTNode* currNode;
 		bool funcCstrDstr;
 	};
 
@@ -197,9 +197,9 @@ namespace
 		s_OpDefault, //E_ASN_OP_END,
 	};
 
-	bool readToken(InternalSyntaxicData* impl, hz::parser::Token& out, m::u32 index, bool fillError = true)
+	bool readToken(InternalSyntaxicData* impl, hz::parser::Token& out, m::u32 index, bool fillError)
 	{
-		index += impl->readTokenIndex;
+		index += impl->readTokenIndex - 1;
 		if (index < impl->tokenList->size())
 		{
 			out = impl->tokenList->at(index);
@@ -218,6 +218,10 @@ namespace
 		return false;
 	}
 
+	bool readToken(InternalSyntaxicData* impl, hz::parser::Token& out, bool fillError = true)
+	{
+		return readToken(impl, out, 1, fillError);
+	}
 	bool popToken(InternalSyntaxicData* impl, m::u32 count)
 	{
 		if ((impl->readTokenIndex + count) <= impl->tokenList->size())
@@ -226,6 +230,11 @@ namespace
 			return true;
 		}
 		return false;
+	}
+
+	bool popToken(InternalSyntaxicData* impl)
+	{
+		return popToken(impl, 1);
 	}
 
 	void tokenError(InternalSyntaxicData* impl, const hz::parser::Token& token, const m::String& msg)
@@ -288,7 +297,7 @@ namespace hz
 			impl.sections = m_sections;
 			impl.rootNode = m_nodeRoot;
 			impl.readTokenIndex = 0;
-			impl.phaseNode = m_nodeRoot;
+			impl.currNode = m_nodeRoot;
 			impl.funcCstrDstr = false;
 
 			// Skip empty Token list
@@ -325,7 +334,7 @@ namespace
 	bool parseChunk(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		if (readToken(impl, token, 0))
+		if (readToken(impl, token))
 		{
 			if (token.type == hz::parser::S_KEYWORD)
 			{
@@ -357,28 +366,29 @@ namespace
 	bool parseGlobalDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
-		readToken(impl, token, 0); // Global token
-		popToken(impl, 1);
+		readToken(impl, token); // Global token
+		popToken(impl);
 
-		hz::parser::ASTNode* globalNode = MUON_NEW(hz::parser::ASTNode, token.type, "NT_GLOBAL_DECL");
+		hz::parser::ASTNode* globalNode = MUON_NEW(hz::parser::ASTNode, hz::parser::NT_GLOBAL_DECL, "NT_GLOBAL_DECL");
 		m::String typeName;
 		m::String varName;
 
-		if (readToken(impl, token, 0) && token.type == hz::parser::V_IDENTIFIER)
+		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 		{
 			typeName = token.value.get<m::String>();
 			popToken(impl, 1);
-			if (readToken(impl, token, 0) && token.type == hz::parser::V_IDENTIFIER)
+			if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 			{
 				varName = token.value.get<m::String>();
 				popToken(impl, 1);
-				if (readToken(impl, token, 0) && token.type == hz::parser::S_SEPARATOR)
+				if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
 				{
-					popToken(impl, 1);
+					popToken(impl);
 					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
 					varNode->typeName = typeName;
 					varNode->varName = varName;
 					globalNode->addChild(varNode);
+					impl->currNode->addChild(globalNode);
 					return true;
 				}
 			}
