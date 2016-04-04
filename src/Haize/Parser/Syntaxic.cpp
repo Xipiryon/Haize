@@ -356,42 +356,42 @@ namespace
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseNamespaceDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseFunctionDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseArgsDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseClassDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseClassMemberDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	// Statement and control flow
@@ -399,21 +399,21 @@ namespace
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseControlFlow(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseConditionalFlow(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	// Expression, which will use a variant of the Shunting Yard algorithm
@@ -421,34 +421,34 @@ namespace
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseDeleteVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseAsnExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseReturnExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 
 	bool parseExpr(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 		bool ok = true;
-		return true;
+		return false;
 	}
 }
