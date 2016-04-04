@@ -40,6 +40,12 @@ namespace hz
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);
 		};
+
+		struct HAIZE_API ASTNodeVarDecl : ASTNode
+		{
+			m::String typeName;
+			m::String varName;
+		};
 	}
 }
 
