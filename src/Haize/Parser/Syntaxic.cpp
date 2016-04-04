@@ -194,13 +194,22 @@ namespace
 		s_OpDefault, //E_ASN_OP_END,
 	};
 
-	bool readToken(InternalSyntaxicData* impl, hz::parser::Token& out, m::u32 index)
+	bool readToken(InternalSyntaxicData* impl, hz::parser::Token& out, m::u32 index, bool fillError = true)
 	{
 		index += impl->readTokenIndex;
 		if (index < impl->tokenList->size())
 		{
 			out = impl->tokenList->at(index);
 			return true;
+		}
+		// Setup error with last token info, as we have no more token to read
+		if (fillError)
+		{
+			impl->error.line = impl->tokenList->back().line;
+			impl->error.column = impl->tokenList->back().column;
+			impl->error.section = impl->tokenList->back().section;
+			impl->error.message = "Unexpected EOF";
+			impl->error.state = hz::Error::ERROR;
 		}
 		return false;
 	}
