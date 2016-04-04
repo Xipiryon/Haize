@@ -14,30 +14,6 @@ namespace hz
 		{
 		}
 
-		ASTNode::ASTNode(m::u32 type_)
-			: name("#?#")
-			, children(MUON_NEW(std::deque<ASTNode*>))
-			, parent(NULL)
-		{
-			type = type_;
-		}
-
-		ASTNode::ASTNode(const Token& token_)
-			: name(TokenTypeStr[token_.type])
-			, token(token_)
-			, children(MUON_NEW(std::deque<ASTNode*>))
-			, parent(NULL)
-		{
-		}
-
-		ASTNode::ASTNode(m::u32 type_, const m::String& name_)
-			: name(name_)
-			, children(MUON_NEW(std::deque<ASTNode*>))
-			, parent(NULL)
-		{
-			type = type_;
-		}
-
 		ASTNode::~ASTNode()
 		{
 			for (auto it = children->begin(); it != children->end(); ++it)
@@ -45,19 +21,6 @@ namespace hz
 				delete *it;
 			}
 			delete children;
-		}
-
-		ASTNode* ASTNode::addChild(m::u32 type)
-		{
-			return addChild(type, "#?#");
-		}
-
-		ASTNode* ASTNode::addChild(m::u32 type, const m::String& name)
-		{
-			ASTNode* node = MUON_NEW(ASTNode, type, name);
-			node->parent = this;
-			this->children->push_back(node);
-			return node;
 		}
 
 		ASTNode* ASTNode::addChild(ASTNode* child)
@@ -96,9 +59,14 @@ namespace hz
 			return name;
 		}
 
+		m::String ASTNodeNamespaceDecl::toString()
+		{
+			return "namespace " + name;
+		}
+
 		m::String ASTNodeVarDecl::toString()
 		{
-			return typeName + " " + varName;
+			return (global ? "(global) " : "") + typeName + " " + varName;
 		}
 	}
 }

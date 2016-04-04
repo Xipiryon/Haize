@@ -22,20 +22,16 @@ namespace hz
 		struct HAIZE_API ASTNode
 		{
 			ASTNode();
-			ASTNode(m::u32);
-			ASTNode(m::u32, const m::String&);
-			ASTNode(const Token&);
 			~ASTNode();
 
 			m::String name;
 			m::u32 type;
-			m::Variant value;
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
-			Token token;
 
-			ASTNode* addChild(m::u32);
-			ASTNode* addChild(m::u32, const m::String&);
+			//m::Variant value;
+			//Token token;
+
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);
@@ -43,8 +39,14 @@ namespace hz
 			virtual m::String toString();
 		};
 
+		struct HAIZE_API ASTNodeNamespaceDecl : ASTNode
+		{
+			virtual m::String toString();
+		};
+
 		struct HAIZE_API ASTNodeVarDecl : ASTNode
 		{
+			bool global;
 			m::String typeName;
 			m::String varName;
 

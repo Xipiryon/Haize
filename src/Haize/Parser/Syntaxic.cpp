@@ -265,7 +265,7 @@ namespace hz
 
 			// Reinit token
 			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->token.type = parser::NT_ROOT;
+			m_nodeRoot->type = parser::NT_ROOT;
 
 			InternalSyntaxicData impl(error);
 			impl.tokenList = m_tokenList;
@@ -349,7 +349,8 @@ namespace
 		readToken(impl, token); // Global token
 		popToken(impl);
 
-		hz::parser::ASTNode* globalNode = MUON_NEW(hz::parser::ASTNode, hz::parser::NT_GLOBAL_DECL, "NT_GLOBAL_DECL");
+		hz::parser::ASTNode* globalNode = MUON_NEW(hz::parser::ASTNode);
+		globalNode->type = hz::parser::NT_GLOBAL_DECL;
 		m::String typeName;
 		m::String varName;
 
@@ -367,6 +368,7 @@ namespace
 					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
 					varNode->typeName = typeName;
 					varNode->varName = varName;
+					varNode->global = true;
 					globalNode->addChild(varNode);
 					impl->currNode->addChild(globalNode);
 					return true;
@@ -383,7 +385,8 @@ namespace
 		hz::parser::Token token;
 		readToken(impl, token);
 		popToken(impl);
-		hz::parser::ASTNode* namespaceNode = MUON_NEW(hz::parser::ASTNode, hz::parser::NT_NAMESPACE_DECL, "");
+		hz::parser::ASTNode* namespaceNode = MUON_NEW(hz::parser::ASTNodeNamespaceDecl);
+		namespaceNode->type = hz::parser::NT_NAMESPACE_DECL;
 
 		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 		{
