@@ -280,6 +280,8 @@ namespace hz
 			m_nodeRoot->token.type = parser::NT_ROOT;
 
 			InternalSyntaxicData impl(error);
+			impl.tokenList = m_tokenList;
+			impl.rootNode = m_nodeRoot;
 			impl.readTokenIndex = 0;
 			impl.phaseNode = m_nodeRoot;
 			impl.funcCstrDstr = false;
