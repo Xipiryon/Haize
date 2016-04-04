@@ -198,12 +198,10 @@ namespace
 						 || word == "class"
 						 || word == "constructor"
 						 || word == "destructor"
-						 || word == "ref"
 						 // Logic keyword
 						 || word == "if"
 						 || word == "else"
 						 || word == "for"
-						 || word == "in"
 						 || word == "while"
 						 || word == "switch"
 						 || word == "case"
@@ -211,6 +209,9 @@ namespace
 						 || word == "break"
 						 || word == "continue"
 						 // other keyword
+						 || word == "in"
+						 || word == "out"
+						 || word == "inout"
 						 || word == "global"
 						 || word == "return"
 						 )

@@ -450,7 +450,7 @@ namespace
 					impl->currNode = argsNode;
 					if (parseArgsDecl(impl))
 					{
-						if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+						if (readToken(impl, token) && token.type == hz::parser::S_RPARENT)
 						{
 							popToken(impl);
 							impl->currNode = functionNode;
@@ -495,8 +495,70 @@ namespace
 
 	bool parseArgsDecl(InternalSyntaxicData* impl)
 	{
+	label_args_decl_start:
 		hz::parser::Token token;
+		if (readToken(impl, token))
+		{
+			hz::parser::ParamPrefix prefix = hz::parser::IN;
+			// Prefix is optional
+			if (token.type == hz::parser::S_KEYWORD)
+			{
+				popToken(impl);
+				m::String keyword = token.value.get<m::String>();
+				if (keyword == "in")
+				{
+					prefix = hz::parser::IN;
+				}
+				else if (keyword == "out")
+				{
+					prefix = hz::parser::OUT;
+				}
+				else if (keyword == "inout")
+				{
+					prefix = (hz::parser::ParamPrefix)(hz::parser::IN | hz::parser::OUT);
+				}
+				else
+				{
+					tokenError(impl, token);
+					return false;
+				}
+				// Read next Token, should be Identifier (decl type)
+				readToken(impl, token);
+			}
 
+			if (token.type == hz::parser::V_IDENTIFIER)
+			{
+				popToken(impl);
+				m::String declTypename = token.value.get<m::String>();
+				readToken(impl, token);
+				if (token.type == hz::parser::V_IDENTIFIER)
+				{
+					popToken(impl);
+					auto* argNode = MUON_NEW(hz::parser::ASTNodeArgDecl);
+					impl->currNode->addChild(argNode);
+					argNode->prefix = prefix;
+					argNode->declTypename = declTypename;
+					argNode->name = token.value.get<m::String>();
+					if (readToken(impl, token))
+					{
+						// Now look for a closing parenthesis, which mean the end of args list
+						// (dont' pop it, that's the role of the parseFuncDecl)
+						if (token.type == hz::parser::S_RPARENT)
+						{
+							return true;
+						}
+						// Or, we could have a comma, and then parse again
+						else if (token.type == hz::parser::S_COMMA)
+						{
+							popToken(impl);
+							goto label_args_decl_start;
+						}
+					}
+				}
+			}
+		}
+
+		tokenError(impl, token);
 		return false;
 	}
 

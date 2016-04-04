@@ -71,7 +71,7 @@ namespace hz
 
 		m::String ASTNodeArgDecl::toString()
 		{
-			return ((prefix | IN) ? "IN " : "") + m::String((prefix | OUT) ? "OUT" : "") + declTypename + " " + name;
+			return ((prefix & IN) ? "IN" : "") + m::String((prefix & OUT) ? "OUT" : "") + " " + declTypename + " " + name;
 		}
 
 		m::String ASTNodeFunctionDecl::toString()
