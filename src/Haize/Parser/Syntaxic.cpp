@@ -236,15 +236,18 @@ namespace
 	bool parseClassDecl(InternalSyntaxicData*);
 	bool parseClassCstrDstr(InternalSyntaxicData*);
 	bool parseClassMemberDecl(InternalSyntaxicData*);
-	// Statement and control flow
-	bool parseStatement(InternalSyntaxicData*);
-	bool parseControlFlow(InternalSyntaxicData*);
-	bool parseConditionalFlow(InternalSyntaxicData*);
+	// Statements
+	bool parseStatements(InternalSyntaxicData*);
+	// Control flow, Conditional and Return
+	bool parseIf(InternalSyntaxicData*);
+	bool parseFor(InternalSyntaxicData*);
+	bool parseWhile(InternalSyntaxicData*);
+	bool parseSwitch(InternalSyntaxicData*);
+	bool parseReturn(InternalSyntaxicData*);
 	// Expression, which will use a variant of the Shunting Yard algorithm
 	bool parseNewVarDecl(InternalSyntaxicData*);
 	bool parseDeleteVarDecl(InternalSyntaxicData*);
-	bool parseAsnExpr(InternalSyntaxicData*);
-	bool parseReturnExpr(InternalSyntaxicData*);
+	bool parseLValue(InternalSyntaxicData*);
 	bool parseExpr(InternalSyntaxicData*);
 }
 
@@ -477,14 +480,14 @@ namespace
 				else
 				{
 					impl->currNode = bodyNode;
-					// Parse body while it can handle tokens
-					while (parseStatement(impl));
-					// the failure of parseStatement means we should have a closing brace
-					if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+					if (parseStatements(impl))
 					{
-						popToken(impl);
-						impl->currNode = functionNode->parent;
-						return true;
+						if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+						{
+							popToken(impl);
+							impl->currNode = functionNode->parent;
+							return true;
+						}
 					}
 				}
 			}
@@ -726,14 +729,14 @@ namespace
 			else
 			{
 				impl->currNode = bodyNode;
-				// Parse body while it can handle tokens
-				while (parseStatement(impl));
-				// the failure of parseStatement means we should have a closing brace
-				if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+				if (parseStatements(impl))
 				{
-					popToken(impl);
-					impl->currNode = cdstrNode->parent;
-					return true;
+					if (readToken(impl, token) && token.type == hz::parser::S_RBRACE)
+					{
+						popToken(impl);
+						impl->currNode = cdstrNode->parent;
+						return true;
+					}
 				}
 			}
 		}
@@ -742,21 +745,133 @@ namespace
 	}
 
 	// Statement and control flow
-	bool parseStatement(InternalSyntaxicData* impl)
+	bool parseStatements(InternalSyntaxicData* impl)
+	{
+	label_statement_start:
+		hz::parser::Token token;
+		readToken(impl, token);
+		if (token.type == hz::parser::S_KEYWORD)
+		{
+			m::String keyword = token.value.get<m::String>();
+			if (keyword == "new")
+			{
+				if (parseNewVarDecl(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "delete")
+			{
+				if (parseDeleteVarDecl(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "return")
+			{
+				if (parseReturn(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "if")
+			{
+				if (parseIf(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "for")
+			{
+				if (parseFor(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "while")
+			{
+				if (parseWhile(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else if (keyword == "switch")
+			{
+				if (parseSwitch(impl))
+				{
+					goto label_statement_check_rec;
+				}
+			}
+			else
+			{
+				tokenError(impl, token);
+			}
+		}
+		else if (token.type == hz::parser::V_IDENTIFIER)
+		{
+			auto* asnNode = MUON_NEW(hz::parser::ASTNode);
+			asnNode->type = hz::parser::E_ASN_OP_BEGIN;
+			impl->currNode->addChild(asnNode);
+			impl->currNode = asnNode;
+			if (parseLValue(impl))
+			{
+				if (readToken(impl, token)
+					&& (token.type > hz::parser::E_ASN_OP_BEGIN && token.type < hz::parser::E_ASN_OP_END))
+				{
+					popToken(impl);
+					asnNode->type = token.type; // Set the real type
+					if (parseExpr(impl))
+					{
+						goto label_statement_check_rec;
+					}
+				}
+			}
+		}
+		else
+		{
+			tokenError(impl, token);
+		}
+		return false;
+		// Do a global check here: we should have a closing brace, else restart
+		// (do not pop the brace, the constructor/destructor/function body will do)
+	label_statement_check_rec:
+		readToken(impl, token);
+		if (token.type != hz::parser::S_LBRACE)
+		{
+			goto label_statement_start;
+		}
+		return true;
+	}
+
+	// Control flow, Conditional and Return
+	bool parseIf(InternalSyntaxicData*)
 	{
 		hz::parser::Token token;
 
 		return false;
 	}
 
-	bool parseControlFlow(InternalSyntaxicData* impl)
+	bool parseFor(InternalSyntaxicData*)
 	{
 		hz::parser::Token token;
 
 		return false;
 	}
 
-	bool parseConditionalFlow(InternalSyntaxicData* impl)
+	bool parseWhile(InternalSyntaxicData*)
+	{
+		hz::parser::Token token;
+
+		return false;
+	}
+
+	bool parseSwitch(InternalSyntaxicData*)
+	{
+		hz::parser::Token token;
+
+		return false;
+	}
+	bool parseReturn(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 
@@ -778,14 +893,7 @@ namespace
 		return false;
 	}
 
-	bool parseAsnExpr(InternalSyntaxicData* impl)
-	{
-		hz::parser::Token token;
-
-		return false;
-	}
-
-	bool parseReturnExpr(InternalSyntaxicData* impl)
+	bool parseLValue(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 
