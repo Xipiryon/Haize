@@ -1043,7 +1043,43 @@ namespace
 	bool parseExprDeleteVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		readToken(impl, token);
+		popToken(impl);
 
+		auto* delNode = MUON_NEW(hz::parser::ASTNode);
+		delNode->type = hz::parser::NT_EXPR_DELETE;
+		impl->currNode->addChild(delNode);
+
+		if (readToken(impl, token))
+		{
+			popToken(impl);
+			if (token.type == hz::parser::V_IDENTIFIER)
+			{
+				delNode->name = token.value.get<m::String>();
+				if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
+				{
+					popToken(impl);
+					return true;
+				}
+			}
+			else if (token.type == hz::parser::S_LPARENT)
+			{
+				if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+				{
+					popToken(impl);
+					delNode->name = token.value.get<m::String>();
+					if (readToken(impl, token) && token.type == hz::parser::S_RPARENT)
+					{
+						popToken(impl);
+						if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
+						{
+							popToken(impl);
+							return true;
+						}
+					}
+				}
+			}
+		}
 		return false;
 	}
 
