@@ -28,7 +28,7 @@ namespace
 		printf(" %s \n", node->toString().cStr());
 		for (m::u32 i = 0; i < node->children->size(); ++i)
 		{
-			hz::parser::ASTNode* n = (*node->children)[i];
+			hz::parser::ASTNode* n = node->children->at(i);
 			if (i < node->children->size() - 1)
 			{
 #if defined(MUON_PLATFORM_WINDOWS)

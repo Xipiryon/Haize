@@ -25,7 +25,7 @@ namespace hz
 			virtual ~ASTNode();
 
 			m::String name;
-			m::u32 type;
+			hz::parser::eTokenType type;
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
 
