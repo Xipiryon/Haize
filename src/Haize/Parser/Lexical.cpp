@@ -198,7 +198,7 @@ namespace
 						 || word == "class"
 						 || word == "constructor"
 						 || word == "destructor"
-						 // Logic keyword
+						 // Flow control
 						 || word == "if"
 						 || word == "else"
 						 || word == "for"
@@ -208,12 +208,14 @@ namespace
 						 || word == "default"
 						 || word == "break"
 						 || word == "continue"
-						 // other keyword
+						 || word == "return"
+						 // Variable and Parameter
 						 || word == "in"
 						 || word == "out"
 						 || word == "inout"
 						 || word == "global"
-						 || word == "return"
+						 || word == "new"
+						 || word == "delete"
 						 )
 				{
 					impl->token.type = hz::parser::S_KEYWORD;
