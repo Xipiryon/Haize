@@ -245,10 +245,11 @@ namespace
 	bool parseSwitch(InternalSyntaxicData*);
 	bool parseReturn(InternalSyntaxicData*);
 	// Expression, which will use a variant of the Shunting Yard algorithm
-	bool parseNewVarDecl(InternalSyntaxicData*);
-	bool parseDeleteVarDecl(InternalSyntaxicData*);
-	bool parseLValue(InternalSyntaxicData*);
-	bool parseExpr(InternalSyntaxicData*);
+	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
+	bool parseExprNewVarDecl(InternalSyntaxicData*);
+	bool parseExprDeleteVarDecl(InternalSyntaxicData*);
+	bool parseExprLValue(InternalSyntaxicData*);
+	bool parseExpr(InternalSyntaxicData*, hz::parser::eTokenType);
 }
 
 namespace hz
@@ -340,13 +341,21 @@ namespace
 			{
 				return parseFunctionDecl(impl);
 			}
+			else if (token.type == hz::parser::S_SEPARATOR)
+			{
+				popToken(impl);
+				return true;
+			}
 		}
 
 		tokenError(impl, impl->lastReadToken);
 		return false;
 	}
 
-	// Declarations
+	// ********************************************
+	// DECLARATIONS
+	// ********************************************
+
 	bool parseGlobalDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
@@ -591,6 +600,14 @@ namespace
 				else
 				{
 				label_class_body_start:
+
+					// Purge lone ';'
+					if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
+					{
+						popToken(impl);
+						goto label_class_body_start;
+					}
+
 					// Read two identifier, the decltype and the name.
 					// The 3rd token determine if either a function ('(') or a member (';')
 					// Special case for 'constructor' and 'destructor'
@@ -744,7 +761,10 @@ namespace
 		return false;
 	}
 
-	// Statement and control flow
+	// ********************************************
+	// STATEMENT AND CONTROL FLOW
+	// ********************************************
+
 	bool parseStatements(InternalSyntaxicData* impl)
 	{
 	label_statement_start:
@@ -755,14 +775,14 @@ namespace
 			m::String keyword = token.value.get<m::String>();
 			if (keyword == "new")
 			{
-				if (parseNewVarDecl(impl))
+				if (parseExprNewVarDecl(impl))
 				{
 					goto label_statement_check_rec;
 				}
 			}
 			else if (keyword == "delete")
 			{
-				if (parseDeleteVarDecl(impl))
+				if (parseExprDeleteVarDecl(impl))
 				{
 					goto label_statement_check_rec;
 				}
@@ -813,19 +833,25 @@ namespace
 			asnNode->type = hz::parser::E_ASN_OP_BEGIN;
 			impl->currNode->addChild(asnNode);
 			impl->currNode = asnNode;
-			if (parseLValue(impl))
+			if (parseExprLValue(impl))
 			{
 				if (readToken(impl, token)
 					&& (token.type > hz::parser::E_ASN_OP_BEGIN && token.type < hz::parser::E_ASN_OP_END))
 				{
 					popToken(impl);
 					asnNode->type = token.type; // Set the real type
-					if (parseExpr(impl))
+					if (parseExpr(impl, hz::parser::S_SEPARATOR))
 					{
 						goto label_statement_check_rec;
 					}
 				}
 			}
+		}
+		// Purge lone ';'
+		else if (token.type == hz::parser::S_SEPARATOR)
+		{
+			popToken(impl);
+			goto label_statement_start;
 		}
 		else
 		{
@@ -878,29 +904,38 @@ namespace
 		return false;
 	}
 
-	// Expression, which will use a variant of the Shunting Yard algorithm
-	bool parseNewVarDecl(InternalSyntaxicData* impl)
+	// ********************************************
+	// EXPRESSION
+	// ********************************************
+
+	bool parseExprArgsCall(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
+	{
+
+		return false;
+	}
+
+	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 
 		return false;
 	}
 
-	bool parseDeleteVarDecl(InternalSyntaxicData* impl)
+	bool parseExprDeleteVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 
 		return false;
 	}
 
-	bool parseLValue(InternalSyntaxicData* impl)
+	bool parseExprLValue(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
 
 		return false;
 	}
 
-	bool parseExpr(InternalSyntaxicData* impl)
+	bool parseExpr(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
 		hz::parser::Token token;
 
