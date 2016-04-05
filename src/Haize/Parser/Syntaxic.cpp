@@ -242,7 +242,9 @@ namespace
 	bool parseSwitch(InternalSyntaxicData*);
 	bool parseReturn(InternalSyntaxicData*);
 	// Expression, which will use a variant of the Shunting Yard algorithm
-	bool mergeOperatorValue(InternalSyntaxicData* impl);
+	bool canMergeOperatorValue(InternalSyntaxicData*);
+	bool mergeOperatorValueAll(InternalSyntaxicData*);
+	bool mergeOperatorValue(InternalSyntaxicData*);
 	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
 	bool parseExprNewVarDecl(InternalSyntaxicData*);
 	bool parseExprDeleteVarDecl(InternalSyntaxicData*);
@@ -908,6 +910,24 @@ namespace
 	// EXPRESSION
 	// ********************************************
 
+	bool canMergeOperatorValue(InternalSyntaxicData* impl)
+	{
+		return (!impl->exprOperator.empty()
+				|| (impl->exprOperator.empty() && impl->exprValue.size() == 1));
+	}
+
+	bool mergeOperatorValueAll(InternalSyntaxicData* impl)
+	{
+		while (canMergeOperatorValue(impl))
+		{
+			if (!mergeOperatorValue(impl))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	bool mergeOperatorValue(InternalSyntaxicData* impl)
 	{
 		if (impl->exprOperator.empty() && (impl->exprValue.size() == 1))
@@ -1075,16 +1095,7 @@ namespace
 				popToken(impl);
 				bool err = false;
 				// Merge as long as we can
-				while (!impl->exprOperator.empty()
-					   || (impl->exprOperator.empty() && impl->exprValue.size() == 1))
-				{
-					if (!mergeOperatorValue(impl))
-					{
-						err = true;
-						break;
-					}
-				}
-				if (err)
+				if (!mergeOperatorValueAll(impl))
 				{
 					tokenError(impl, token);
 					return false;
@@ -1095,14 +1106,10 @@ namespace
 			// Expr, Expr is an allowed syntax, where the latest Expr value will be returned
 			if (token.type == hz::parser::S_COMMA)
 			{
-				while (!impl->exprOperator.empty()
-					   || (impl->exprOperator.empty() && impl->exprValue.size() == 1))
+				if (!mergeOperatorValueAll(impl))
 				{
-					if (!mergeOperatorValue(impl))
-					{
-						tokenError(impl, token);
-						return false;
-					}
+					tokenError(impl, token);
+					return false;
 				}
 			}
 			// Constant
