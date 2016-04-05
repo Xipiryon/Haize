@@ -853,6 +853,14 @@ namespace
 			popToken(impl);
 			goto label_statement_start;
 		}
+		// Check we're at the function end
+		else if (impl->currNode->type == hz::parser::NT_FUNCTION_BODY
+				 && token.type == hz::parser::S_RBRACE)
+		{
+			// Token will be poped by parseFunctionDecl, and current node impl too
+			return true;
+		}
+		// Don't know what happend
 		else
 		{
 			tokenError(impl, token);
@@ -910,6 +918,50 @@ namespace
 
 	bool parseExprArgsCall(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
+	label_expr_args_call_start:
+		// The trick here is to consider each argument as an expression, with the S_COMMA
+		// separator as instruction end
+		hz::parser::Token token;
+		if (!readToken(impl, token))
+		{
+			return false;
+		}
+
+		if (token.type == endTokenType)
+		{
+			popToken(impl);
+			return true;
+		}
+		else if (token.type > hz::parser::E_CONSTANT_BEGIN && token.type < hz::parser::E_CONSTANT_END)
+		{
+			popToken(impl);
+			auto* constNode = MUON_NEW(hz::parser::ASTNodeConstant);
+			constNode->type = token.type;
+			constNode->value = token.value;
+			impl->currNode->addChild(constNode);
+		}
+		else if (!parseExpr(impl, endTokenType))
+		{
+			return false;
+		}
+
+		if (readToken(impl, token))
+		{
+			if (token.type == hz::parser::S_COMMA)
+			{
+				popToken(impl);
+				goto label_expr_args_call_start;
+			}
+			else if (token.type == endTokenType)
+			{
+				popToken(impl);
+				return true;
+			}
+			else
+			{
+				tokenError(impl, token);
+			}
+		}
 
 		return false;
 	}
@@ -924,6 +976,7 @@ namespace
 		newNode->global = false;
 		newNode->type = hz::parser::NT_EXPR_NEW;
 		impl->currNode->addChild(newNode);
+		impl->currNode = newNode;
 
 		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 		{
@@ -939,26 +992,32 @@ namespace
 				{
 					if (token.type == hz::parser::S_SEPARATOR)
 					{
+						popToken(impl);
+						impl->currNode = impl->currNode->parent;
 						return true;
 					}
 					else if (token.type == hz::parser::MATH_ASN)
 					{
 						if (parseExprArgsCall(impl, hz::parser::S_SEPARATOR))
 						{
+							popToken(impl);
 							impl->currNode = impl->currNode->parent;
 							return true;
 						}
 					}
 					else if (token.type == hz::parser::S_LPARENT)
 					{
-						if (parseExprArgsCall(impl, hz::parser::S_RPARENT)
-							&& readToken(impl, token)
-							&& token.type == hz::parser::S_SEPARATOR)
+						popToken(impl);
+						if (parseExprArgsCall(impl, hz::parser::S_RPARENT))
 						{
-							popToken(impl);
+							if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
+							{
+								popToken(impl);
+								impl->currNode = impl->currNode->parent;
+								return true;
+							}
 						}
-						impl->currNode = impl->currNode->parent;
-						return true;
+						tokenError(impl, token);
 					}
 				}
 			}

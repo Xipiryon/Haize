@@ -29,9 +29,6 @@ namespace hz
 			std::deque<ASTNode*>* children;
 			ASTNode* parent;
 
-			//m::Variant value;
-			//Token token;
-
 			ASTNode* addChild(ASTNode*);
 			bool removeChild(ASTNode*);
 			bool deleteChild(ASTNode*);
@@ -64,6 +61,12 @@ namespace hz
 		{
 			m::String retTypename;
 
+			virtual m::String toString();
+		};
+
+		struct HAIZE_API ASTNodeConstant : ASTNode
+		{
+			m::Variant value;
 			virtual m::String toString();
 		};
 	}

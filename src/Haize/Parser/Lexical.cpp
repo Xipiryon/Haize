@@ -189,10 +189,12 @@ namespace
 				else if (word == "true")
 				{
 					impl->token.type = hz::parser::V_TRUE;
+					impl->token.value = true;
 				}
 				else if (word == "false")
 				{
 					impl->token.type = hz::parser::V_FALSE;
+					impl->token.value = false;
 				}
 				else if (word == "namespace"
 						 || word == "class"

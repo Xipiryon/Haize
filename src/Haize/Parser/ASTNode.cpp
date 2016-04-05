@@ -78,5 +78,35 @@ namespace hz
 		{
 			return retTypename + " " + name;
 		}
+
+		m::String ASTNodeConstant::toString()
+		{
+			char buffer[32];
+			m::String str;
+			m::meta::MetaData* m = value.getMeta();
+			if (MUON_META(m::String) == m)
+			{
+				str = value.get<m::String>();
+			}
+			else if (MUON_META(m::f32) == m)
+			{
+				m::ftoa(value.get<m::f32>(), buffer);
+				str = buffer;
+			}
+			else if (MUON_META(m::i32) == m)
+			{
+				m::itoa((m::i64)value.get<m::i32>(), buffer);
+				str = buffer;
+			}
+			else if (MUON_META(bool) == m)
+			{
+				str = (value.get<bool>() ? "true" : "false");
+			}
+			else
+			{
+				str = TokenTypeStr[type];
+			}
+			return str;
+		}
 	}
 }
