@@ -77,10 +77,9 @@ namespace
 
 		hz::parser::Token lastReadToken;
 
-		std::deque<hz::parser::Token> exprTokens;
-		std::deque<hz::parser::ASTNode*> exprNodes;
+		std::vector<hz::parser::ASTNode*> exprValue;
+		std::vector<hz::parser::ASTNode*> exprOperator;
 		hz::parser::ASTNode* currNode;
-		bool funcCstrDstr;
 	};
 
 	enum OpAssociativity
@@ -276,7 +275,6 @@ namespace hz
 			impl.rootNode = m_nodeRoot;
 			impl.readTokenIndex = 0;
 			impl.currNode = m_nodeRoot;
-			impl.funcCstrDstr = false;
 
 			// Skip empty Token list
 			if (m_tokenList->empty())
@@ -297,6 +295,14 @@ namespace hz
 				if (!parseChunk(&impl))
 				{
 					error.state = Error::ERROR;
+					for (auto it : impl.exprValue)
+					{
+						MUON_DELETE(it);
+					}
+					for (auto it : impl.exprOperator)
+					{
+						MUON_DELETE(it);
+					}
 					return false;
 				}
 			}
@@ -306,6 +312,14 @@ namespace hz
 			m::system::Log debug("Syntaxic", m::LOG_DEBUG);
 			display(m_nodeRoot);
 #endif
+			for (auto it : impl.exprValue)
+			{
+				MUON_DELETE(it);
+			}
+			for (auto it : impl.exprOperator)
+			{
+				MUON_DELETE(it);
+			}
 			return true;
 		}
 	}
