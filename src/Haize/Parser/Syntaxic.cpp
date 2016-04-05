@@ -931,16 +931,36 @@ namespace
 
 	bool mergeOperatorValue(InternalSyntaxicData* impl)
 	{
-		if (impl->exprOperator.empty() && impl->exprValue.size() == 1)
+		if (impl->exprOperator.empty() && (impl->exprValue.size() == 1))
 		{
 			impl->currNode->addChild(impl->exprValue.back());
 			impl->exprValue.pop_back();
+			return true;
 		}
 		else if (!impl->exprOperator.empty())
 		{
+			auto* op = impl->exprOperator.back();
+			// Binary operators
+			if (op->type == hz::parser::S_ACCESSOR
+				|| (op->type > hz::parser::E_BITWISE_OP_BEGIN && op->type < hz::parser::E_BITWISE_OP_END)
+				|| (op->type > hz::parser::E_LOGIC_OP_BEGIN && op->type < hz::parser::E_LOGIC_OP_END)
+				|| (op->type > hz::parser::E_MATH_OP_BEGIN && op->type < hz::parser::E_MATH_OP_END))
+			{
+				if (impl->exprValue.size() >= 2)
+				{
+					auto* right = impl->exprValue.back();
+					impl->exprValue.pop_back();
+					auto* left = impl->exprValue.back();
+					impl->exprValue.pop_back();
+					op->addChild(left);
+					op->addChild(right);
+					impl->currNode->addChild(op);
+					impl->exprOperator.pop_back();
+				}
+			}
 		}
 
-		return true;
+		return false;
 	}
 
 	bool parseExprArgsCall(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
@@ -1045,16 +1065,26 @@ namespace
 			if (!parse)
 			{
 				popToken(impl);
-				if (!impl->exprOperator.empty()
-					|| (impl->exprOperator.empty() && impl->exprValue.size() == 1))
+				bool err = false;
+				// Merge as long as we can
+				while (!impl->exprOperator.empty()
+					   || (impl->exprOperator.empty() && impl->exprValue.size() == 1))
 				{
-					mergeOperatorValue(impl);
-					return true;
+					if (!mergeOperatorValue(impl))
+					{
+						err = true;
+						break;
+					}
 				}
-				tokenError(impl, token);
-				return false;
+				if (err)
+				{
+					tokenError(impl, token);
+					return false;
+				}
+				return true;
 			}
 
+			// Expr, Expr is an allowed syntax, where the latest Expr value will be returned
 			if (token.type == hz::parser::S_COMMA)
 			{
 				while (!impl->exprOperator.empty()
@@ -1099,7 +1129,11 @@ namespace
 					if ((prevInfo.associativity == ASSOC_RIGHT && currInfo.associativity == ASSOC_LEFT)
 						|| (prevInfo.precedence > currInfo.precedence))
 					{
-						mergeOperatorValue(impl);
+						if (!mergeOperatorValue(impl))
+						{
+							tokenError(impl, token);
+							return false;
+						}
 						reduce = !impl->exprOperator.empty();
 					}
 					else
