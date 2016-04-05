@@ -246,7 +246,6 @@ namespace
 	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
 	bool parseExprNewVarDecl(InternalSyntaxicData*);
 	bool parseExprDeleteVarDecl(InternalSyntaxicData*);
-	bool parseExprLValue(InternalSyntaxicData*);
 	bool parseExpr(InternalSyntaxicData*, hz::parser::eTokenType);
 }
 
@@ -840,26 +839,6 @@ namespace
 				tokenError(impl, token);
 			}
 		}
-		else if (token.type == hz::parser::V_IDENTIFIER)
-		{
-			auto* asnNode = MUON_NEW(hz::parser::ASTNode);
-			asnNode->type = hz::parser::E_ASN_OP_BEGIN;
-			impl->currNode->addChild(asnNode);
-			impl->currNode = asnNode;
-			if (parseExprLValue(impl))
-			{
-				if (readToken(impl, token)
-					&& (token.type > hz::parser::E_ASN_OP_BEGIN && token.type < hz::parser::E_ASN_OP_END))
-				{
-					popToken(impl);
-					asnNode->type = token.type; // Set the real type
-					if (parseExpr(impl, hz::parser::S_SEPARATOR))
-					{
-						goto label_statement_check_rec;
-					}
-				}
-			}
-		}
 		// Purge lone ';'
 		else if (token.type == hz::parser::S_SEPARATOR)
 		{
@@ -873,8 +852,8 @@ namespace
 			// Token will be poped by parseFunctionDecl, and current node impl too
 			return true;
 		}
-		// Don't know what happend
-		else
+		// An error occured somewhere
+		else if (!parseExpr(impl, hz::parser::S_SEPARATOR))
 		{
 			tokenError(impl, token);
 		}
@@ -1080,13 +1059,6 @@ namespace
 				}
 			}
 		}
-		return false;
-	}
-
-	bool parseExprLValue(InternalSyntaxicData* impl)
-	{
-		hz::parser::Token token;
-
 		return false;
 	}
 
