@@ -242,6 +242,7 @@ namespace
 	bool parseSwitch(InternalSyntaxicData*);
 	bool parseReturn(InternalSyntaxicData*);
 	// Expression, which will use a variant of the Shunting Yard algorithm
+	bool mergeOperatorValue(InternalSyntaxicData* impl);
 	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
 	bool parseExprNewVarDecl(InternalSyntaxicData*);
 	bool parseExprDeleteVarDecl(InternalSyntaxicData*);
@@ -928,11 +929,22 @@ namespace
 	// EXPRESSION
 	// ********************************************
 
+	bool mergeOperatorValue(InternalSyntaxicData* impl)
+	{
+		if (impl->exprOperator.empty() && impl->exprValue.size() == 1)
+		{
+			impl->currNode->addChild(impl->exprValue.back());
+			impl->exprValue.pop_back();
+		}
+		else if (!impl->exprOperator.empty())
+		{
+		}
+
+		return true;
+	}
+
 	bool parseExprArgsCall(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
-	label_expr_args_call_start:
-		// The trick here is to consider each argument as an expression, with the S_COMMA
-		// separator as instruction end
 		hz::parser::Token token;
 		if (!readToken(impl, token))
 		{
@@ -944,38 +956,7 @@ namespace
 			popToken(impl);
 			return true;
 		}
-		else if (token.type > hz::parser::E_CONSTANT_BEGIN && token.type < hz::parser::E_CONSTANT_END)
-		{
-			popToken(impl);
-			auto* constNode = MUON_NEW(hz::parser::ASTNodeConstant);
-			constNode->type = token.type;
-			constNode->value = token.value;
-			impl->currNode->addChild(constNode);
-		}
-		else if (!parseExpr(impl, endTokenType))
-		{
-			return false;
-		}
-
-		if (readToken(impl, token))
-		{
-			if (token.type == hz::parser::S_COMMA)
-			{
-				popToken(impl);
-				goto label_expr_args_call_start;
-			}
-			else if (token.type == endTokenType)
-			{
-				popToken(impl);
-				return true;
-			}
-			else
-			{
-				tokenError(impl, token);
-			}
-		}
-
-		return false;
+		return parseExpr(impl, endTokenType);
 	}
 
 	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
@@ -1012,7 +993,6 @@ namespace
 					{
 						if (parseExprArgsCall(impl, hz::parser::S_SEPARATOR))
 						{
-							popToken(impl);
 							impl->currNode = impl->currNode->parent;
 							return true;
 						}
@@ -1057,6 +1037,83 @@ namespace
 	bool parseExpr(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
 		hz::parser::Token token;
+		bool ok = readToken(impl, token);
+		bool parse = true;
+		while (ok && parse)
+		{
+			parse = token.type != endTokenType;
+			if (!parse)
+			{
+				popToken(impl);
+				if (!impl->exprOperator.empty()
+					|| (impl->exprOperator.empty() && impl->exprValue.size() == 1))
+				{
+					mergeOperatorValue(impl);
+					return true;
+				}
+				tokenError(impl, token);
+				return false;
+			}
+
+			if (token.type == hz::parser::S_COMMA)
+			{
+				while (!impl->exprOperator.empty()
+					   || (impl->exprOperator.empty() && impl->exprValue.size() == 1))
+				{
+					if (!mergeOperatorValue(impl))
+					{
+						tokenError(impl, token);
+						return false;
+					}
+				}
+			}
+			// Constant
+			else if (token.type > hz::parser::E_CONSTANT_BEGIN && token.type < hz::parser::E_CONSTANT_END)
+			{
+				auto* constNode = MUON_NEW(hz::parser::ASTNodeConstant);
+				constNode->type = token.type;
+				constNode->value = token.value;
+				impl->exprValue.push_back(constNode);
+			}
+			// Identifier
+			else if (token.type == hz::parser::V_IDENTIFIER)
+			{
+				auto* identNode = MUON_NEW(hz::parser::ASTNode);
+				identNode->type = token.type;
+				identNode->name = token.value.get<m::String>();
+				impl->exprValue.push_back(identNode);
+			}
+			// Operator
+			else
+			{
+				auto* opNode = MUON_NEW(hz::parser::ASTNode);
+				opNode->type = token.type;
+				OpInfo currInfo = s_PrecedenceTable[token.type];
+				bool reduce = !impl->exprOperator.empty();
+				while (reduce)
+				{
+					OpInfo prevInfo = s_PrecedenceTable[impl->exprOperator.back()->type];
+					// We need to reduce if previous operator as a right associativity and current one is left,
+					// or if the previous operator as a higher precedence than current.
+					// We don't need to merge in other cases
+					if ((prevInfo.associativity == ASSOC_RIGHT && currInfo.associativity == ASSOC_LEFT)
+						|| (prevInfo.precedence > currInfo.precedence))
+					{
+						mergeOperatorValue(impl);
+						reduce = !impl->exprOperator.empty();
+					}
+					else
+					{
+						reduce = false;
+					}
+				}
+
+				impl->exprOperator.push_back(opNode);
+			}
+
+			popToken(impl);
+			ok = readToken(impl, token);
+		}
 
 		return false;
 	}
