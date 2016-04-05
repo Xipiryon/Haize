@@ -917,6 +917,54 @@ namespace
 	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		readToken(impl, token);
+		popToken(impl);
+
+		auto* newNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
+		newNode->global = false;
+		newNode->type = hz::parser::NT_EXPR_NEW;
+		impl->currNode->addChild(newNode);
+
+		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+		{
+			popToken(impl);
+			m::String declTypename = token.value.get<m::String>();
+			if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
+			{
+				popToken(impl);
+				newNode->declTypename = declTypename;
+				newNode->name = token.value.get<m::String>();
+				// Ok now, let's search for ';' (no value), '=' or '(' for constructor with value
+				if (readToken(impl, token))
+				{
+					if (token.type == hz::parser::S_SEPARATOR)
+					{
+						return true;
+					}
+					else if (token.type == hz::parser::MATH_ASN)
+					{
+						if (parseExprArgsCall(impl, hz::parser::S_SEPARATOR))
+						{
+							impl->currNode = impl->currNode->parent;
+							return true;
+						}
+					}
+					else if (token.type == hz::parser::S_LPARENT)
+					{
+						if (parseExprArgsCall(impl, hz::parser::S_RPARENT)
+							&& readToken(impl, token)
+							&& token.type == hz::parser::S_SEPARATOR)
+						{
+							popToken(impl);
+						}
+						impl->currNode = impl->currNode->parent;
+						return true;
+					}
+				}
+			}
+			tokenError(impl, token);
+		}
+		tokenError(impl, token);
 
 		return false;
 	}
