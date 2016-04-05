@@ -40,6 +40,10 @@ namespace hz
 				free(buffer);
 
 				Section section = { file, length };
+				if (!m_sections->empty())
+				{
+					section._end += m_sections->back()._end;
+				}
 				m_sections->push_back(section);
 				error.state = Error::SUCCESS;
 				return true;
