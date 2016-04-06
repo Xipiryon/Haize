@@ -22,7 +22,7 @@ namespace
 		depth[depthIndex -= 4] = 0;
 	}
 
-	void display(hz::parser::ASTNode* node)
+	void displayNodeHierarchy(hz::parser::ASTNode* node)
 	{
 #if defined(HAIZE_DEBUG)
 		printf(" %s \n", node->toString().cStr());
@@ -47,7 +47,7 @@ namespace
 #endif
 				push(' ');
 			}
-			display(n);
+			displayNodeHierarchy(n);
 			pop();
 #endif
 		}
@@ -79,6 +79,9 @@ namespace
 
 		std::vector<hz::parser::ASTNode*> exprValue;
 		std::vector<hz::parser::ASTNode*> exprOperator;
+		m::u32 openParenthesis;
+		m::u32 openBracket;
+		m::u32 paramCount;
 		hz::parser::ASTNode* currNode;
 	};
 
@@ -243,7 +246,6 @@ namespace
 	bool parseReturn(InternalSyntaxicData*);
 	// Expression, which will use a variant of the Shunting Yard algorithm
 	bool canMergeOperatorValue(InternalSyntaxicData*);
-	bool mergeOperatorValueAll(InternalSyntaxicData*);
 	bool mergeOperatorValue(InternalSyntaxicData*);
 	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
 	bool parseExprNewVarDecl(InternalSyntaxicData*);
@@ -312,7 +314,7 @@ namespace hz
 			error.state = Error::SUCCESS;
 #if defined(HAIZE_DEBUG)
 			m::system::Log debug("Syntaxic", m::LOG_DEBUG);
-			display(m_nodeRoot);
+			displayNodeHierarchy(m_nodeRoot);
 #endif
 			for (auto it : impl.exprValue)
 			{
@@ -855,10 +857,11 @@ namespace
 			return true;
 		}
 		// An error occured somewhere
-		else if (!parseExpr(impl, hz::parser::S_SEPARATOR))
+		else if (parseExpr(impl, hz::parser::S_SEPARATOR))
 		{
-			tokenError(impl, token);
+			return true;
 		}
+
 		return false;
 		// Do a global check here: we should have a closing brace, else restart
 		// (do not pop the brace, the constructor/destructor/function body will do)
@@ -916,18 +919,6 @@ namespace
 				|| (impl->exprOperator.empty() && impl->exprValue.size() == 1));
 	}
 
-	bool mergeOperatorValueAll(InternalSyntaxicData* impl)
-	{
-		while (canMergeOperatorValue(impl))
-		{
-			if (!mergeOperatorValue(impl))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
 	bool mergeOperatorValue(InternalSyntaxicData* impl)
 	{
 		if (impl->exprOperator.empty() && (impl->exprValue.size() == 1))
@@ -953,8 +944,9 @@ namespace
 					impl->exprValue.pop_back();
 					op->addChild(left);
 					op->addChild(right);
-					impl->currNode->addChild(op);
+					impl->exprValue.push_back(op);
 					impl->exprOperator.pop_back();
+					return true;
 				}
 			}
 		}
@@ -1087,6 +1079,9 @@ namespace
 		hz::parser::Token token;
 		bool ok = readToken(impl, token);
 		bool parse = true;
+		impl->openParenthesis = 0;
+		impl->openBracket = 0;
+		impl->paramCount = 0;
 		while (ok && parse)
 		{
 			parse = token.type != endTokenType;
@@ -1095,18 +1090,37 @@ namespace
 				popToken(impl);
 				bool err = false;
 				// Merge as long as we can
-				if (!mergeOperatorValueAll(impl))
+				while (canMergeOperatorValue(impl))
 				{
-					tokenError(impl, token);
-					return false;
+					if (!mergeOperatorValue(impl))
+					{
+						tokenError(impl, token);
+						return false;
+					}
 				}
 				return true;
 			}
 
-			// Expr, Expr is an allowed syntax, where the latest Expr value will be returned
+			// Comma is only allowed if surrounded by parenthesis: (Expr, Expr, ...)
 			if (token.type == hz::parser::S_COMMA)
 			{
-				if (!mergeOperatorValueAll(impl))
+				bool found = false;
+				while (canMergeOperatorValue(impl))
+				{
+					auto* op = impl->exprOperator.back();
+					if (op->type == hz::parser::S_LPARENT)
+					{
+						found = true;
+						++(impl->paramCount);
+						break;
+					}
+					else if (!mergeOperatorValue(impl))
+					{
+						tokenError(impl, token);
+						return false;
+					}
+				}
+				if (!found)
 				{
 					tokenError(impl, token);
 					return false;
@@ -1127,6 +1141,102 @@ namespace
 				identNode->type = token.type;
 				identNode->name = token.value.get<m::String>();
 				impl->exprValue.push_back(identNode);
+			}
+			else if (token.type == hz::parser::S_LPARENT)
+			{
+				++impl->openParenthesis;
+				auto* lparentNode = MUON_NEW(hz::parser::ASTNode);
+				lparentNode->type = hz::parser::S_LPARENT;
+				impl->exprOperator.push_back(lparentNode);
+			}
+			else if (token.type == hz::parser::S_RPARENT)
+			{
+				if (impl->openParenthesis > 0)
+				{
+					// We have an open parenthesis somewhere, merge until we found it.
+					// Also, if previous Value is Identifier, then it means
+					// we have a function call
+					--impl->openParenthesis;
+					bool found = false;
+					auto* op = impl->exprOperator.back();
+					while (canMergeOperatorValue(impl) && !found && op != NULL)
+					{
+						if (op->type == hz::parser::S_LPARENT)
+						{
+							found = true;
+							impl->exprOperator.pop_back();
+							MUON_DELETE(op);
+						}
+						else
+						{
+							if (!mergeOperatorValue(impl))
+							{
+								tokenError(impl, token);
+								return false;
+							}
+							++(impl->paramCount);
+						}
+						op = (impl->exprOperator.empty() ? NULL : impl->exprOperator.back());
+					}
+
+					// Didn't found the '('
+					if (!found)
+					{
+						tokenError(impl, token);
+						return false;
+					}
+
+					// Check for a function call, we need a V_IDENTIFIER
+					// If not, then the paramCount must be equal to 1
+					if (!impl->exprValue.empty() && impl->exprValue.size() >= impl->paramCount)
+					{
+						auto* func = impl->exprValue[impl->exprValue.size() - 1 - impl->paramCount];
+						if (func->type != hz::parser::V_IDENTIFIER)
+						{
+							// Like (a op b) op c
+							//       ------ < this is only 1 "parameter"
+							if (impl->paramCount != 1)
+							{
+								tokenError(impl, token, "A comma (',') has been found but is not part of a function call!");
+								return false;
+							}
+						}
+						else
+						{
+							// Extract as much Node as paramCount
+							// (They're in reverse order)
+							while (impl->paramCount > 0)
+							{
+								auto* arg = impl->exprValue.back();
+								impl->exprValue.pop_back();
+								func->addChild(arg);
+								--(impl->paramCount);
+							}
+
+							// Update V_IDENTIFIER to NT_FUNC_CALL and
+							// Reverse children in correct order
+							func->type = hz::parser::NT_EXPR_FUNC_CALL;
+							m::u32 end = func->children->size() - 1;
+							for (m::u32 i = 0; i < func->children->size() / 2; ++i)
+							{
+								auto* node = (*func->children)[i];
+								(*func->children)[i] = (*func->children)[end - i];
+								(*func->children)[end - i] = node;
+							}
+						}
+					}
+					// There was a ',' that was not part of a func call
+					else if (impl->paramCount != 0)
+					{
+						tokenError(impl, token, "A comma (',') has been found but is not part of a function call!");
+						return false;
+					}
+				}
+				else
+				{
+					tokenError(impl, token, "Closing parenthesis has been found, but missing the open one!");
+					return false;
+				}
 			}
 			// Operator
 			else
