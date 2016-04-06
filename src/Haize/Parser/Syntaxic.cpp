@@ -247,7 +247,6 @@ namespace
 	// Expression, which will use a variant of the Shunting Yard algorithm
 	bool canMergeOperatorValue(InternalSyntaxicData*);
 	bool mergeOperatorValue(InternalSyntaxicData*);
-	bool parseExprArgsCall(InternalSyntaxicData*, hz::parser::eTokenType);
 	bool parseExprNewVarDecl(InternalSyntaxicData*);
 	bool parseExprDeleteVarDecl(InternalSyntaxicData*);
 	bool parseExpr(InternalSyntaxicData*, hz::parser::eTokenType);
@@ -972,22 +971,6 @@ namespace
 		return false;
 	}
 
-	bool parseExprArgsCall(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
-	{
-		hz::parser::Token token;
-		if (!readToken(impl, token))
-		{
-			return false;
-		}
-
-		if (token.type == endTokenType)
-		{
-			popToken(impl);
-			return true;
-		}
-		return parseExpr(impl, endTokenType);
-	}
-
 	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
@@ -1025,7 +1008,7 @@ namespace
 						{
 							popToken(impl);
 						}
-						if (parseExprArgsCall(impl, hz::parser::S_SEPARATOR))
+						if (parseExpr(impl, hz::parser::S_SEPARATOR))
 						{
 							impl->currNode = newNode->parent;
 							return true;
