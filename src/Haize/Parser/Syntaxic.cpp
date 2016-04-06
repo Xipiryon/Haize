@@ -859,7 +859,7 @@ namespace
 		// An error occured somewhere
 		else if (parseExpr(impl, hz::parser::S_SEPARATOR))
 		{
-			return true;
+			goto label_statement_check_rec;
 		}
 
 		return false;
