@@ -942,7 +942,8 @@ namespace
 			if (op->type == hz::parser::S_ACCESSOR
 				|| (op->type > hz::parser::E_BITWISE_OP_BEGIN && op->type < hz::parser::E_BITWISE_OP_END)
 				|| (op->type > hz::parser::E_LOGIC_OP_BEGIN && op->type < hz::parser::E_LOGIC_OP_END)
-				|| (op->type > hz::parser::E_MATH_OP_BEGIN && op->type < hz::parser::E_MATH_OP_END))
+				|| (op->type > hz::parser::E_MATH_OP_BEGIN && op->type < hz::parser::E_MATH_OP_END)
+				|| (op->type > hz::parser::E_ASN_OP_BEGIN && op->type < hz::parser::E_ASN_OP_END))
 			{
 				if (impl->exprValue.size() >= 2)
 				{
@@ -1247,12 +1248,15 @@ namespace
 				bool reduce = !impl->exprOperator.empty();
 				while (reduce)
 				{
-					OpInfo prevInfo = s_PrecedenceTable[impl->exprOperator.back()->type];
+					auto* prevNode = impl->exprOperator.back();
+					OpInfo prevInfo = s_PrecedenceTable[prevNode->type];
 					// We need to reduce if previous operator as a right associativity and current one is left,
 					// or if the previous operator as a higher precedence than current.
 					// We don't need to merge in other cases
+					// Also, we don't reduce if '(' is encountered, that's the role of the ')' code
 					if ((prevInfo.associativity == ASSOC_RIGHT && currInfo.associativity == ASSOC_LEFT)
-						|| (prevInfo.precedence > currInfo.precedence))
+						|| (prevInfo.precedence > currInfo.precedence)
+						&& prevNode->type != hz::parser::S_LPARENT)
 					{
 						if (!mergeOperatorValue(impl))
 						{
