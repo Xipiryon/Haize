@@ -954,7 +954,6 @@ namespace
 					op->addChild(right);
 					impl->exprValue.push_back(op);
 					impl->exprOperator.pop_back();
-					return true;
 				}
 			}
 		}
@@ -965,10 +964,9 @@ namespace
 				impl->currNode->addChild(impl->exprValue.back());
 				impl->exprValue.pop_back();
 			}
-			return true;
 		}
 
-		return false;
+		return true;
 	}
 
 	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
@@ -1203,11 +1201,6 @@ namespace
 								(*func->children)[end - i] = node;
 							}
 						}
-						else if (!mergeOperatorValue(impl))
-						{
-							tokenError(impl, token);
-							return false;
-						}
 					}
 					// There was a ',' that was not part of a func call
 					else if (impl->paramCount != 0)
@@ -1237,8 +1230,10 @@ namespace
 					// or if the previous operator as a higher precedence than current.
 					// We don't need to merge in other cases
 					// Also, we don't reduce if '(' is encountered, that's the role of the ')' code
-					if ((prevInfo.associativity == ASSOC_RIGHT && currInfo.associativity == ASSOC_LEFT)
-						|| (prevInfo.precedence > currInfo.precedence)
+					bool diffAssoc = ((prevInfo.precedence >= currInfo.precedence)
+									  && (prevInfo.associativity == ASSOC_RIGHT && currInfo.associativity == ASSOC_LEFT));
+					bool precOnly = (prevInfo.precedence > currInfo.precedence);
+					if (diffAssoc || precOnly
 						&& prevNode->type != hz::parser::S_LPARENT)
 					{
 						if (!mergeOperatorValue(impl))
