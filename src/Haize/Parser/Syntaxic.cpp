@@ -935,13 +935,7 @@ namespace
 
 	bool mergeOperatorValue(InternalSyntaxicData* impl)
 	{
-		if (impl->exprOperator.empty() && (impl->exprValue.size() == 1))
-		{
-			impl->currNode->addChild(impl->exprValue.back());
-			impl->exprValue.pop_back();
-			return true;
-		}
-		else if (!impl->exprOperator.empty())
+		if (!impl->exprOperator.empty())
 		{
 			auto* op = impl->exprOperator.back();
 			// Binary operators
@@ -963,6 +957,15 @@ namespace
 					return true;
 				}
 			}
+		}
+		else
+		{
+			while (!impl->exprValue.empty())
+			{
+				impl->currNode->addChild(impl->exprValue.back());
+				impl->exprValue.pop_back();
+			}
+			return true;
 		}
 
 		return false;
@@ -1011,37 +1014,27 @@ namespace
 					if (token.type == hz::parser::S_SEPARATOR)
 					{
 						popToken(impl);
-						impl->currNode = impl->currNode->parent;
+						impl->currNode = newNode->parent;
 						return true;
 					}
-					else if (token.type == hz::parser::MATH_ASN)
+					else if (token.type == hz::parser::MATH_ASN
+							 || token.type == hz::parser::S_LPARENT)
 					{
+						if (token.type == hz::parser::MATH_ASN)
+						{
+							popToken(impl);
+						}
 						if (parseExprArgsCall(impl, hz::parser::S_SEPARATOR))
 						{
-							impl->currNode = impl->currNode->parent;
+							impl->currNode = newNode->parent;
 							return true;
 						}
 					}
-					else if (token.type == hz::parser::S_LPARENT)
-					{
-						popToken(impl);
-						if (parseExprArgsCall(impl, hz::parser::S_RPARENT))
-						{
-							if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
-							{
-								popToken(impl);
-								impl->currNode = impl->currNode->parent;
-								return true;
-							}
-						}
-						tokenError(impl, token);
-					}
 				}
 			}
-			tokenError(impl, token);
 		}
-		tokenError(impl, token);
 
+		tokenError(impl, token);
 		return false;
 	}
 
@@ -1173,7 +1166,7 @@ namespace
 					--impl->openParenthesis;
 					bool found = false;
 					auto* op = impl->exprOperator.back();
-					while (canMergeOperatorValue(impl) && !found && op != NULL)
+					while (!found && op != NULL)
 					{
 						if (op->type == hz::parser::S_LPARENT)
 						{
@@ -1183,12 +1176,11 @@ namespace
 						}
 						else
 						{
-							if (!mergeOperatorValue(impl))
+							if (!canMergeOperatorValue(impl) || !mergeOperatorValue(impl))
 							{
 								tokenError(impl, token);
 								return false;
 							}
-							++(impl->paramCount);
 						}
 						op = (impl->exprOperator.empty() ? NULL : impl->exprOperator.back());
 					}
@@ -1201,21 +1193,10 @@ namespace
 					}
 
 					// Check for a function call, we need a V_IDENTIFIER
-					// If not, then the paramCount must be equal to 1
 					if (!impl->exprValue.empty() && impl->exprValue.size() >= impl->paramCount)
 					{
 						auto* func = impl->exprValue[impl->exprValue.size() - 1 - impl->paramCount];
-						if (func->type != hz::parser::V_IDENTIFIER)
-						{
-							// Like (a op b) op c
-							//       ------ < this is only 1 "parameter"
-							if (impl->paramCount != 1)
-							{
-								tokenError(impl, token, "A comma (',') has been found but is not part of a function call!");
-								return false;
-							}
-						}
-						else
+						if (func->type == hz::parser::V_IDENTIFIER)
 						{
 							// Extract as much Node as paramCount
 							// (They're in reverse order)
@@ -1237,6 +1218,11 @@ namespace
 								(*func->children)[i] = (*func->children)[end - i];
 								(*func->children)[end - i] = node;
 							}
+						}
+						else if (!mergeOperatorValue(impl))
+						{
+							tokenError(impl, token);
+							return false;
 						}
 					}
 					// There was a ',' that was not part of a func call
