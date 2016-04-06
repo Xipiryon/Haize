@@ -905,6 +905,20 @@ namespace
 	bool parseReturn(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
+		if (readToken(impl, token))
+		{
+			popToken(impl);
+			auto* retNode = MUON_NEW(hz::parser::ASTNode);
+			retNode->type = hz::parser::NT_EXPR_RETURN;
+			impl->currNode->addChild(retNode);
+			impl->currNode = retNode;
+			if (!parseExpr(impl, hz::parser::S_SEPARATOR))
+			{
+				return false;
+			}
+			impl->currNode = retNode->parent;
+			return true;
+		}
 
 		return false;
 	}
