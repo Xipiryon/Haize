@@ -8,7 +8,7 @@ namespace hz
 	namespace parser
 	{
 		ASTNode::ASTNode()
-			: name("#?#")
+			: name("")
 			, children(MUON_NEW(std::deque<ASTNode*>))
 			, parent(NULL)
 		{
@@ -56,17 +56,17 @@ namespace hz
 
 		m::String ASTNode::toString()
 		{
-			return hz::parser::TokenTypeStr[type];
+			return m::String(hz::parser::TokenTypeStr[type]) + " (" + name + ")";
 		}
 
 		m::String ASTNodeNamespaceDecl::toString()
 		{
-			return "namespace " + name;
+			return "NAMESPACE " + name;
 		}
 
 		m::String ASTNodeVarDecl::toString()
 		{
-			return (global ? "(global) " : "") + declTypename + " " + name;
+			return (global ? "GLOBAL " : "LOCAL ") + declTypename + " " + name;
 		}
 
 		m::String ASTNodeArgDecl::toString()
@@ -76,7 +76,7 @@ namespace hz
 
 		m::String ASTNodeFunctionDecl::toString()
 		{
-			return retTypename + " " + name;
+			return "FUNCTION: " + retTypename + " " + name;
 		}
 
 		m::String ASTNodeConstant::toString()
