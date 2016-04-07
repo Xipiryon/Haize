@@ -224,8 +224,12 @@ namespace
 	{
 		tokenError(impl, token, "Unexpected '" + token.valueToStr() + "' here!");
 	}
+}
 
-	// Whole program
+// Because declaration in anonymous namespace can conflict with
+// the implementation, located lower in the file.
+namespace NTFunction
+{
 	bool parseChunk(InternalSyntaxicData*);
 	// Declarations
 	bool parseGlobalDecl(InternalSyntaxicData*);
@@ -296,7 +300,7 @@ namespace hz
 					break;
 				}
 
-				if (!parseChunk(&impl))
+				if (!NTFunction::parseChunk(&impl))
 				{
 					error.state = Error::ERROR;
 					for (auto it : impl.exprValue)
@@ -329,7 +333,7 @@ namespace hz
 	}
 }
 
-namespace
+namespace NTFunction
 {
 	// Whole program
 	bool parseChunk(InternalSyntaxicData* impl)
