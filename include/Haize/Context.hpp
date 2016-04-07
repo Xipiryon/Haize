@@ -34,8 +34,8 @@ namespace hz
 	class HAIZE_API Context
 	{
 		friend class Engine;
-		Context(const m::String& name);
 	public:
+		Context(const m::String& name);
 		~Context();
 
 		/*!
