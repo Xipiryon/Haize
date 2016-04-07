@@ -69,6 +69,12 @@ namespace hz
 			m::Variant value;
 			virtual m::String toString();
 		};
+
+		struct HAIZE_API ASTNodeParenthesis : ASTNode
+		{
+			ASTNode* funcIdentNode;
+			m::u32 exprValueIndex;
+		};
 	}
 }
 

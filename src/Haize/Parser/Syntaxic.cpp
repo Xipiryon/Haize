@@ -954,19 +954,18 @@ namespace
 					op->addChild(right);
 					impl->exprValue.push_back(op);
 					impl->exprOperator.pop_back();
+					return true;
 				}
 			}
 		}
-		else
+		else if (impl->exprOperator.empty() && impl->exprValue.size() == 1)
 		{
-			while (!impl->exprValue.empty())
-			{
-				impl->currNode->addChild(impl->exprValue.back());
-				impl->exprValue.pop_back();
-			}
+			impl->currNode->addChild(impl->exprValue.back());
+			impl->exprValue.pop_back();
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	bool parseExprNewVarDecl(InternalSyntaxicData* impl)
@@ -1065,6 +1064,7 @@ namespace
 
 	bool parseExpr(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
+		hz::parser::Token lastToken;
 		hz::parser::Token token;
 		bool ok = readToken(impl, token);
 		bool parse = true;
@@ -1099,9 +1099,17 @@ namespace
 					auto* op = impl->exprOperator.back();
 					if (op->type == hz::parser::S_LPARENT)
 					{
-						found = true;
-						++(impl->paramCount);
-						break;
+						auto* lparentNode = (hz::parser::ASTNodeParenthesis*)op;
+						if (lparentNode->funcIdentNode)
+						{
+							found = true;
+							break;
+						}
+						else
+						{
+							tokenError(impl, token, "',' found outside a function call!");
+							return false;
+						}
 					}
 					else if (!mergeOperatorValue(impl))
 					{
@@ -1134,8 +1142,10 @@ namespace
 			else if (token.type == hz::parser::S_LPARENT)
 			{
 				++impl->openParenthesis;
-				auto* lparentNode = MUON_NEW(hz::parser::ASTNode);
+				auto* lparentNode = MUON_NEW(hz::parser::ASTNodeParenthesis);
 				lparentNode->type = hz::parser::S_LPARENT;
+				lparentNode->exprValueIndex = impl->exprValue.size();
+				lparentNode->funcIdentNode = (lastToken.type == hz::parser::V_IDENTIFIER ? impl->exprValue.back() : NULL);
 				impl->exprOperator.push_back(lparentNode);
 			}
 			else if (token.type == hz::parser::S_RPARENT)
@@ -1146,13 +1156,17 @@ namespace
 					// Also, if previous Value is Identifier, then it means
 					// we have a function call
 					--impl->openParenthesis;
-					bool found = false;
 					auto* op = impl->exprOperator.back();
+					bool found = false;
+					hz::parser::ASTNode* funcIdentNode = NULL;
+					m::u32 exprValueIndex = 0;
 					while (!found && op != NULL)
 					{
 						if (op->type == hz::parser::S_LPARENT)
 						{
 							found = true;
+							funcIdentNode = ((hz::parser::ASTNodeParenthesis*)op)->funcIdentNode;
+							exprValueIndex = ((hz::parser::ASTNodeParenthesis*)op)->exprValueIndex;
 							impl->exprOperator.pop_back();
 							MUON_DELETE(op);
 						}
@@ -1167,46 +1181,26 @@ namespace
 						op = (impl->exprOperator.empty() ? NULL : impl->exprOperator.back());
 					}
 
-					// Didn't found the '('
-					if (!found)
+					// All parenthesis subexpr have been parsed
+					if (funcIdentNode)
 					{
-						tokenError(impl, token);
-						return false;
-					}
-
-					// Check for a function call, we need a V_IDENTIFIER
-					if (!impl->exprValue.empty() && impl->exprValue.size() >= impl->paramCount)
-					{
-						auto* func = impl->exprValue[impl->exprValue.size() - 1 - impl->paramCount];
-						if (func->type == hz::parser::V_IDENTIFIER)
+						funcIdentNode->type = hz::parser::NT_EXPR_FUNC_CALL;
+						// Extract as much Node as paramCount
+						// (They're in reverse order)
+						while (impl->exprValue.size() != exprValueIndex)
 						{
-							// Extract as much Node as paramCount
-							// (They're in reverse order)
-							while (impl->paramCount > 0)
-							{
-								auto* arg = impl->exprValue.back();
-								impl->exprValue.pop_back();
-								func->addChild(arg);
-								--(impl->paramCount);
-							}
-
-							// Update V_IDENTIFIER to NT_FUNC_CALL and
-							// Reverse children in correct order
-							func->type = hz::parser::NT_EXPR_FUNC_CALL;
-							m::u32 end = func->children->size() - 1;
-							for (m::u32 i = 0; i < func->children->size() / 2; ++i)
-							{
-								auto* node = (*func->children)[i];
-								(*func->children)[i] = (*func->children)[end - i];
-								(*func->children)[end - i] = node;
-							}
+							funcIdentNode->addChild(impl->exprValue.back());
+							impl->exprValue.pop_back();
 						}
-					}
-					// There was a ',' that was not part of a func call
-					else if (impl->paramCount != 0)
-					{
-						tokenError(impl, token, "A comma (',') has been found but is not part of a function call!");
-						return false;
+
+						// Reverse children in correct order
+						m::u32 end = funcIdentNode->children->size() - 1;
+						for (m::u32 i = 0; i < funcIdentNode->children->size() / 2; ++i)
+						{
+							auto* n = (*funcIdentNode->children)[i];
+							(*funcIdentNode->children)[i] = (*funcIdentNode->children)[end - i];
+							(*funcIdentNode->children)[end - i] = n;
+						}
 					}
 				}
 				else
@@ -1252,6 +1246,7 @@ namespace
 				impl->exprOperator.push_back(opNode);
 			}
 
+			lastToken = token;
 			popToken(impl);
 			ok = readToken(impl, token);
 		}
