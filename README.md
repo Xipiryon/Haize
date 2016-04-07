@@ -4,7 +4,7 @@ Haize
 C++ Script Language.
 
 [![Travis](https://travis-ci.org/Xipiryon/Haize.svg)](https://travis-ci.org/Xipiryon/Haize)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xleek/haize/branch/master)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/o1awentw6xqqn00e/branch/master?svg=true)](https://ci.appveyor.com/project/Xipiryon/haize/branch/master)
 
 [![Coverity](https://scan.coverity.com/projects/8475/badge.svg)](https://scan.coverity.com/projects/xipiryon-haize)
 
