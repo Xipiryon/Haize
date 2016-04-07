@@ -2,12 +2,31 @@
 -- Library
 -------------------------------------------
 
-project "HaizeLibrary"
+newoption {
+	trigger     = "buildmuon",
+	description = "Add Muon external project to the solution",
+}
+
+if _OPTIONS["buildmuon"] then 
+	include(SolutionRoot.."/extern/Muon/project_Lib")
+end
+
+project "Haize"
 	local ProjectRoot = os.getcwd()
 
 	language "C++"
 	targetname "Haize"
 	targetdir (SolutionRoot.."/bin/lib")
+
+	if _OPTIONS["buildmuon"] then 
+		dependson("Muon")
+	end
+
+	if os.is("windows") then
+		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
+	else
+		postbuildcommands { "cp "..SolutionRoot.."/bin/lib/Haize*.so "..SolutionRoot.."/bin/" }
+	end
 
 	files {
 		ProjectRoot.."/src/**.cpp",

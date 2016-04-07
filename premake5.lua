@@ -32,10 +32,6 @@ solution "Haize"
 	if os.is("windows") then
 		implibdir "bin/lib"
 		buildoptions { "/GR-" }
-
-		-- Because on Windows, you can't start a program if .dll are not in the same folder...
-		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/*.dll "..SolutionRoot.."/bin/", "/", "\\") }
-
 	else
 		buildoptions { "--std=c++11 -fno-rtti" }
 		linkoptions { "-Wl,-rpath,bin/lib" }

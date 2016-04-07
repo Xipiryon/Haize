@@ -5,15 +5,16 @@
 project "UnitTests"
 	local ProjectRoot = os.getcwd()
 
-	dependson("HaizeLibrary")
+	dependson("Haize")
 	language "C++"
 	targetname "UnitTests"
-	targetdir (SolutionRoot.."/bin")
+	targetdir (SolutionRoot.."/bin/exe")
 	kind "ConsoleApp"
 
 	if os.is("windows") then
-		-- Because on Windows, you can't start a program if .dll are not in the same folder...
-		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/*.dll "..SolutionRoot.."/bin/", "/", "\\") }
+		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/exe/UnitTests*.exe "..SolutionRoot.."/bin/", "/", "\\") }
+	else
+		postbuildcommands { "cp "..SolutionRoot.."/bin/exe/UnitTests* "..SolutionRoot.."/bin/" }
 	end
 
 	files	{
