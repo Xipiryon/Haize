@@ -111,6 +111,7 @@ int main(int argc, char** argv)
 		{ "unittests/scripts/expr_Binop.hz", "Binary Operator" },
 		{ "unittests/scripts/expr_Namespace.hz", "Namespaces" },
 		{ "unittests/scripts/expr_Global.hz", "Global Declaration" },
+		{ "unittests/scripts/expr_VarNewDel.hz", "Global Declaration" },
 
 		{ "unittests/scripts/class_Empty.hz", "Empty Class" },
 		{ "unittests/scripts/class_Member.hz", "Class with Member" },

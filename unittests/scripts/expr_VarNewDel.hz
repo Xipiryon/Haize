@@ -1,4 +1,10 @@
 
+class A
+{
+	constructor() {}
+	constructor(int _0, bool _1) {}
+}
+
 void main()
 {
 	new int i;
@@ -9,4 +15,7 @@ void main()
 
 	new int i(64);
 	delete i;
+
+	new A i(64, false);
+	delete a;
 }

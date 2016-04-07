@@ -81,7 +81,6 @@ namespace
 		std::vector<hz::parser::ASTNode*> exprOperator;
 		m::u32 openParenthesis;
 		m::u32 openBracket;
-		m::u32 paramCount;
 		hz::parser::ASTNode* currNode;
 	};
 
@@ -278,6 +277,8 @@ namespace hz
 			impl.rootNode = m_nodeRoot;
 			impl.readTokenIndex = 0;
 			impl.currNode = m_nodeRoot;
+			impl.openParenthesis = 0;
+			impl.openBracket = 0;
 
 			// Skip empty Token list
 			if (m_tokenList->empty())
@@ -976,7 +977,6 @@ namespace
 
 		auto* newNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
 		newNode->global = false;
-		newNode->type = hz::parser::NT_EXPR_NEW;
 		impl->currNode->addChild(newNode);
 		impl->currNode = newNode;
 
@@ -1001,12 +1001,27 @@ namespace
 					else if (token.type == hz::parser::MATH_ASN
 							 || token.type == hz::parser::S_LPARENT)
 					{
-						if (token.type == hz::parser::MATH_ASN)
+						// A bit of cheat here:
+						// If instruction is like ' = expr; ', pop '='
+						// so expression is 'expr;'
+						// if instruction is ' ( expr );', then add here the '(' as function
+						// so commas are allowed (pop it anyway so it's not added twice)
+						popToken(impl);
+						if (token.type == hz::parser::S_LPARENT)
 						{
-							popToken(impl);
+							++impl->openParenthesis;
+							auto* lparentNode = MUON_NEW(hz::parser::ASTNodeParenthesis);
+							lparentNode->type = hz::parser::S_LPARENT;
+							lparentNode->exprValueIndex = impl->exprValue.size();
+							lparentNode->funcIdentNode = newNode;
+							impl->exprOperator.push_back(lparentNode);
 						}
+
 						if (parseExpr(impl, hz::parser::S_SEPARATOR))
 						{
+							// And as Expr have parsed the expression as it's a func call, must re-update type
+							// so it's really a new var declaration
+							newNode->type = hz::parser::NT_EXPR_NEW;
 							impl->currNode = newNode->parent;
 							return true;
 						}
@@ -1068,9 +1083,6 @@ namespace
 		hz::parser::Token token;
 		bool ok = readToken(impl, token);
 		bool parse = true;
-		impl->openParenthesis = 0;
-		impl->openBracket = 0;
-		impl->paramCount = 0;
 		while (ok && parse)
 		{
 			parse = token.type != endTokenType;
@@ -1185,7 +1197,7 @@ namespace
 					if (funcIdentNode)
 					{
 						funcIdentNode->type = hz::parser::NT_EXPR_FUNC_CALL;
-						// Extract as much Node as paramCount
+						// Extract as much Node as its supposed param count
 						// (They're in reverse order)
 						while (impl->exprValue.size() != exprValueIndex)
 						{
