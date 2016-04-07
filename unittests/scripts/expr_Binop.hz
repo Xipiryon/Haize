@@ -1,9 +1,9 @@
 
 void main()
 {
-	new int a;
+	new int a = ((7-3)*foo(4/6))^(0x4-1);
 	a = 4 + 5;
-	new int b = (4+5) * (+7+5.6);
+	new int b = (4+5) * (7+5.6);
 	delete a;
 	delete(b);
 }
