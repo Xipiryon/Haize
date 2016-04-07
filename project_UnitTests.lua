@@ -8,14 +8,8 @@ project "UnitTests"
 	dependson("Haize")
 	language "C++"
 	targetname "UnitTests"
-	targetdir (SolutionRoot.."/bin/exe")
+	targetdir (SolutionRoot.."/bin")
 	kind "ConsoleApp"
-
-	if os.is("windows") then
-		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/exe/UnitTests*.exe "..SolutionRoot.."/bin/", "/", "\\") }
-	else
-		postbuildcommands { "cp "..SolutionRoot.."/bin/exe/UnitTests* "..SolutionRoot.."/bin/" }
-	end
 
 	files	{
 		ProjectRoot.."/unittests/main.cpp",

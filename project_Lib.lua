@@ -16,7 +16,7 @@ project "Haize"
 	if os.is("windows") then
 		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
 	else
-		postbuildcommands { "cp "..SolutionRoot.."/bin/lib/Haize*.so "..SolutionRoot.."/bin/" }
+		postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
 	end
 
 	files {
