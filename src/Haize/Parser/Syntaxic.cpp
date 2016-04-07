@@ -49,8 +49,8 @@ namespace
 			}
 			displayNodeHierarchy(n);
 			pop();
-#endif
 		}
+#endif
 	}
 
 	/*
@@ -224,12 +224,7 @@ namespace
 	{
 		tokenError(impl, token, "Unexpected '" + token.valueToStr() + "' here!");
 	}
-}
 
-// Because declaration in anonymous namespace can conflict with
-// the implementation, located lower in the file.
-namespace NTFunction
-{
 	bool parseChunk(InternalSyntaxicData*);
 	// Declarations
 	bool parseGlobalDecl(InternalSyntaxicData*);
@@ -300,7 +295,7 @@ namespace hz
 					break;
 				}
 
-				if (!NTFunction::parseChunk(&impl))
+				if (!parseChunk(&impl))
 				{
 					error.state = Error::ERROR;
 					for (auto it : impl.exprValue)
@@ -333,7 +328,7 @@ namespace hz
 	}
 }
 
-namespace NTFunction
+namespace
 {
 	// Whole program
 	bool parseChunk(InternalSyntaxicData* impl)
