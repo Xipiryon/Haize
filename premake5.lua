@@ -38,10 +38,10 @@ solution "Haize"
 	end
 
 	-- If option exists, then override G_Install
-	if _OPTIONS["basedir"] then
-		G_Install.Root = _OPTIONS["basedir"]
-		G_Install.Header = _OPTIONS["basedir"].."/include"
-		G_Install.Lib = _OPTIONS["basedir"].."/bin/lib"
+	if _OPTIONS["installdir"] then
+		G_Install.Root = _OPTIONS["installdir"]
+		G_Install.Header = _OPTIONS["installdir"].."/include"
+		G_Install.Lib = _OPTIONS["installdir"].."/bin/lib"
 		print("Base directory has been overwritten to '"..G_Install.Root.."'")
 	end
 
@@ -49,6 +49,11 @@ solution "Haize"
 		SolutionRoot.."/include",
 		G_Install.Header,
 	}
+
+	-- Add external include
+	if _OPTIONS["buildmuon"] then
+		includedirs { SolutionRoot.."/extern/Muon/include" }
+	end
 
 	libdirs {
 		SolutionRoot.."/bin/lib",
@@ -75,6 +80,10 @@ solution "Haize"
 -- Project
 ------------------------------
 
+-- Muon
+if _OPTIONS["buildmuon"] then
+	include(SolutionRoot.."/extern/Muon/project_Lib")
+end
 -- Haize
 include("project_Lib")
 include("project_Exe")
@@ -87,7 +96,7 @@ end
 ------------------------------
 
 newoption {
-	trigger     = "basedir",
+	trigger     = "installdir",
 	value       = "PATH",
 	description = "Folder to search lib & include; default: '"..G_Install.Root.."'",
 }
@@ -95,6 +104,11 @@ newoption {
 newoption {
 	trigger     = "unittests",
 	description = "Enable compilation of unit tests",
+}
+
+newoption {
+	trigger     = "buildmuon",
+	description = "Add Muon external project to the solution",
 }
 
 ------------------------------
@@ -160,7 +174,7 @@ newaction {
 if os.is("windows") then
 	newaction {
 		trigger	 = "getlib",
-		description = "Retrieve libraries from 'basedir' and put them in bin/",
+		description = "Retrieve libraries from 'installdir' and put them in bin/",
 		execute = function ()
 			print("** Retrieving files from: "..G_Install.Lib.." **")
 

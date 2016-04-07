@@ -2,15 +2,6 @@
 -- Library
 -------------------------------------------
 
-newoption {
-	trigger     = "buildmuon",
-	description = "Add Muon external project to the solution",
-}
-
-if _OPTIONS["buildmuon"] then 
-	include(SolutionRoot.."/extern/Muon/project_Lib")
-end
-
 project "Haize"
 	local ProjectRoot = os.getcwd()
 
