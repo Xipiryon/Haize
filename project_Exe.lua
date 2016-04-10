@@ -2,10 +2,10 @@
 -- Executable
 -------------------------------------------
 
-project "HaizeExecutable"
+project "Haize_Executable"
 	local ProjectRoot = os.getcwd()
 	
-	dependson("Haize")
+	dependson("Haize_Core")
 	language "C++"
 	targetname "Haize"
 	targetdir (SolutionRoot.."/bin")

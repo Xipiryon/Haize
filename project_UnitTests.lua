@@ -2,10 +2,10 @@
 -- Unit Tests
 -------------------------------------------
 
-project "UnitTests"
+project "Haize_UnitTests"
 	local ProjectRoot = os.getcwd()
 
-	dependson("Haize")
+	dependson("Haize_Core")
 	language "C++"
 	targetname "UnitTests"
 	targetdir (SolutionRoot.."/bin")

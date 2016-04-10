@@ -2,7 +2,7 @@
 -- Library
 -------------------------------------------
 
-project "Haize"
+project "Haize_Core"
 	local ProjectRoot = os.getcwd()
 
 	language "C++"
@@ -10,17 +10,10 @@ project "Haize"
 	targetdir (SolutionRoot.."/bin/lib")
 
 	if _OPTIONS["buildmuon"] then 
-		dependson("Muon")
+		dependson("Muon_Core")
 	end
 
 	defines { "HAIZE_EXPORTS" }
-
-	filter "*DLL"
-		if os.is("windows") then
-			postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
-		else
-			postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
-		end
 
 	files {
 		ProjectRoot.."/src/**.cpp",
@@ -35,5 +28,12 @@ project "Haize"
 
 	filter "Release*"
 		links { "Muon-f" }
+
+	filter "*DLL"
+		if os.is("windows") then
+			postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
+		else
+			postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
+		end
 
 	filter {}

@@ -26,7 +26,12 @@ end
 ------------------------------
 
 solution "Haize"
-	startproject "Haize"
+
+	if _OPTIONS["unittests"] then
+		startproject "Haize_UnitTests"
+	else
+		startproject "Haize_Executable"
+	end
 	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL", "FinalLib", "FinalDLL" }
 
 	implibdir "bin/lib"
@@ -80,6 +85,8 @@ solution "Haize"
 
 	filter  "*DLL"
 		kind "SharedLib"
+
+	filter {}
 
 ------------------------------
 -- Project
