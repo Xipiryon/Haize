@@ -23,3 +23,5 @@ project "HaizeExecutable"
 
 	filter "Final*"
 		links { "Haize-f", "Muon-f" }
+
+	filter {}
