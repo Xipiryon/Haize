@@ -27,13 +27,13 @@ end
 
 solution "Haize"
 	startproject "Haize"
-	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL" }
+	configurations { "DebugDLL", "DebugLib", "ReleaseLib", "ReleaseDLL", "FinalLib", "FinalDLL" }
 
 	implibdir "bin/lib"
 	if os.is("windows") then
-		buildoptions { "/GR-" }
+		buildoptions { "" }
 	else
-		buildoptions { "--std=c++11 -fno-rtti" }
+		buildoptions { "--std=c++11" }
 	end
 
 	-- If option exists, then override G_Install
@@ -62,12 +62,18 @@ solution "Haize"
 	filter "Debug*"
 		targetsuffix "-d"
 		optimize "Debug"
-		flags	{ "Symbols" }
+		flags   { "Symbols" }
 		defines { "HAIZE_DEBUG"}
 
 	filter "Release*"
+		targetsuffix "-r"
 		optimize "Speed"
-		flags	{ "LinkTimeOptimization" }
+		flags   { "Symbols" }
+
+	filter "Final*"
+		targetsuffix "-f"
+		optimize "Speed"
+		flags   { "LinkTimeOptimization" }
 
 	filter  "*Lib"
 		kind "StaticLib"

@@ -13,20 +13,27 @@ project "Haize"
 		dependson("Muon")
 	end
 
-	if os.is("windows") then
-		postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
-	else
-		postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
-	end
+	defines { "HAIZE_EXPORTS" }
+
+	filter "*DLL"
+		if os.is("windows") then
+			postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
+		else
+			postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
+		end
 
 	files {
 		ProjectRoot.."/src/**.cpp",
 		ProjectRoot.."/include/**.hpp",
 	}
+
 	filter "Debug*"
 		links { "Muon-d" }
-	filter "Release*"
-		links { "Muon" }
 
-	filter "*DLL"
-		defines { "HAIZE_EXPORTS" }
+	filter "Release*"
+		links { "Muon-r" }
+
+	filter "Release*"
+		links { "Muon-f" }
+
+	filter {}

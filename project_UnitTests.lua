@@ -22,4 +22,9 @@ project "UnitTests"
 		links	{ "Haize-d", "Muon-d" }
 
 	filter "Release*"
-		links { "Haize", "Muon" }
+		links { "Haize-r", "Muon-r" }
+
+	filter "Final*"
+		links { "Haize-f", "Muon-f" }
+
+	filter {}
