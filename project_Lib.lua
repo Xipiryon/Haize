@@ -20,14 +20,7 @@ project "Haize_Core"
 		ProjectRoot.."/include/**.hpp",
 	}
 
-	filter "Debug*"
-		links { "Muon-d" }
-
-	filter "Release*"
-		links { "Muon-r" }
-
-	filter "Release*"
-		links { "Muon-f" }
+	links { "Muon_Core" }
 
 	filter "*DLL"
 		if os.is("windows") then

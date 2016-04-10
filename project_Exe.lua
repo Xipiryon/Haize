@@ -15,13 +15,6 @@ project "Haize_Executable"
 		ProjectRoot.."/main/main.cpp"
 	}
 
-	filter "Debug*"
-		links	{ "Haize-d", "Muon-d" }
-
-	filter "Release*"
-		links { "Haize-r", "Muon-r" }
-
-	filter "Final*"
-		links { "Haize-f", "Muon-f" }
+	links { "Muon_Core", "Haize_Core" }
 
 	filter {}
