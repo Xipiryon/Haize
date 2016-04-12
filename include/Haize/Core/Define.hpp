@@ -7,19 +7,23 @@
 //		--------------------------
 //				EXPORT
 //		--------------------------
-//Windows
-#ifdef _MSC_VER
-#	if HAIZE_EXPORTS
-#		define HAIZE_API __declspec(dllexport)
-#	else
-#		define HAIZE_API __declspec(dllimport)
-#	endif
+#if defined(HAIZE_STATIC)
+#	define HAIZE_API
 #else
-//Unix & Apple
-#	if HAIZE_EXPORTS
-#		define HAIZE_API __attribute__ ((visibility("default")))
+//Windows
+#	ifdef _MSC_VER
+#		if HAIZE_EXPORTS
+#			define HAIZE_API __declspec(dllexport)
+#		else
+#			define HAIZE_API __declspec(dllimport)
+#		endif
 #	else
-#		define HAIZE_API
+//Unix & Apple
+#		if HAIZE_EXPORTS
+#			define HAIZE_API __attribute__ ((visibility("default")))
+#		else
+#			define HAIZE_API
+#		endif
 #	endif
 #endif
 

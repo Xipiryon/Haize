@@ -64,6 +64,12 @@ solution "Haize"
 		G_Install.Lib
 	}
 
+	flags {
+		"NoImplicitLink",
+		"NoIncrementalLink",
+		"NoEditAndContinue",
+	}
+
 	filter "Debug*"
 		targetsuffix "-d"
 		optimize "Debug"
@@ -77,11 +83,14 @@ solution "Haize"
 
 	filter "Final*"
 		targetsuffix "-f"
-		optimize "Speed"
+		optimize "Full"
 		flags   { "LinkTimeOptimization" }
 
 	filter  "*Lib"
 		kind "StaticLib"
+		flags { "StaticRuntime" }
+		defines { "HAIZE_STATIC" }
+		if _OPTIONS["buildmuon"] then defines { "MUON_STATIC" } end
 
 	filter  "*DLL"
 		kind "SharedLib"
