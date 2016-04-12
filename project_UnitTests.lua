@@ -18,13 +18,6 @@ project "Haize_UnitTests"
 		ProjectRoot.."/unittests/**.hz"
 	}
 
-	filter "Debug*"
-		links	{ "Haize-d", "Muon-d" }
-
-	filter "Release*"
-		links { "Haize-r", "Muon-r" }
-
-	filter "Final*"
-		links { "Haize-f", "Muon-f" }
+	links	{ "Haize_Core", "Muon_Core" }
 
 	filter {}
