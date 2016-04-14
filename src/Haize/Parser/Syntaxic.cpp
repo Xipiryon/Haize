@@ -34,7 +34,7 @@ namespace
 #if defined(MUON_PLATFORM_WINDOWS)
 				printf(" %s |-", depth);
 #else
-				printf("%s ├─", depth);
+				printf(" %s ├─", depth);
 #endif
 				push('|');
 			}

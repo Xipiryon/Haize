@@ -157,7 +157,7 @@ namespace
 		}
 		if (++impl.charCount >= impl.nextEndSection)
 		{
-			if (impl.currSection < impl.sections->size())
+			if (impl.currSection + 1 < impl.sections->size())
 			{
 				++impl.currSection;
 				impl.nextEndSection = impl.sections->at(impl.currSection)._end;
