@@ -29,7 +29,7 @@ namespace hz
 		{
 			m::system::Log log("SymbolTable", m::LOG_ERROR);
 			log() << "Maximum number of internal registers reached!" << m::endl;
-			log() << "  This indicates that a block have 254 register used!" << m::endl;
+			log() << "  This indicates that a block have " << ByteCode::REG_MAX_AVAILABLE <<" register used!" << m::endl;
 			log() << "  Previous register will be used. Value may be overwritten." << m::endl;
 			m_registerId = ByteCode::REG_USABLE;
 		}

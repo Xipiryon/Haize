@@ -1,4 +1,4 @@
-﻿#include <Muon/System/Log.hpp>
+#include <Muon/System/Log.hpp>
 
 #include "Haize/Parser/Compiler.hpp"
 
