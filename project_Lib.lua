@@ -9,7 +9,7 @@ project "Haize_Core"
 	targetname "Haize"
 	targetdir (SolutionRoot.."/bin/lib")
 
-	if _OPTIONS["buildmuon"] then 
+	if _OPTIONS["buildmuon"] then
 		dependson("Muon_Core")
 	end
 
@@ -25,8 +25,6 @@ project "Haize_Core"
 	filter "*DLL"
 		if os.is("windows") then
 			postbuildcommands { string.gsub("copy "..SolutionRoot.."/bin/lib/Haize*.dll "..SolutionRoot.."/bin/", "/", "\\") }
-		else
-			postbuildcommands { "find "..SolutionRoot.."/bin/lib/ -name libHaize*.so -exec cp {} "..SolutionRoot.."/bin/ \\;" }
 		end
 
 	filter {}
