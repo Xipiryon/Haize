@@ -5,7 +5,6 @@
 
 #include <Muon/Variant.hpp>
 #include "Haize/Interpreter/ByteCode.hpp"
-#include "Haize/Interpreter/SymbolTable.hpp"
 
 #include "Haize/Parser/Compiler.hpp"
 #include "Haize/Parser/ASTNode.hpp"

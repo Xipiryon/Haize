@@ -62,11 +62,8 @@ namespace
 	* Custom SharedData
 	* Specific for Lexical parsing
 	*/
-	struct InternalDataLexical : public hz::parser::InternalCompilerData
+	struct InternalDataLexical
 	{
-		virtual ~InternalDataLexical()
-		{
-		}
 
 		std::vector<hz::parser::Token>* tokenList;
 		hz::parser::Token token;

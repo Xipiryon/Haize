@@ -57,14 +57,10 @@ namespace
 	* Custom SharedData
 	* Specific for Lexical parsing
 	*/
-	struct InternalSyntaxicData : public hz::parser::InternalCompilerData
+	struct InternalSyntaxicData
 	{
 		InternalSyntaxicData(hz::Error& err)
 			: error(err)
-		{
-		}
-
-		virtual ~InternalSyntaxicData()
 		{
 		}
 

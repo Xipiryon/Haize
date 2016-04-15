@@ -9,11 +9,6 @@ namespace hz
 {
 	namespace parser
 	{
-		struct InternalCompilerData
-		{
-			// Inherited by implementation
-		};
-
 		class HAIZE_API Compiler
 		{
 		public:
