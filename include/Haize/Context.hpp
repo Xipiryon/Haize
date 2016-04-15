@@ -4,8 +4,8 @@
 #include <vector>
 
 #include <Muon/Variant.hpp>
-#include "Haize/VM/ByteCode.hpp"
-#include "Haize/VM/SymbolTable.hpp"
+#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Interpreter/SymbolTable.hpp"
 
 #include "Haize/Parser/Compiler.hpp"
 #include "Haize/Parser/ASTNode.hpp"

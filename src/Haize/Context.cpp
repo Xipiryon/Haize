@@ -4,7 +4,7 @@
 
 #include <Muon/System/Log.hpp>
 #include <Muon/System/Time.hpp>
-#include "Haize/VM/OpCode.hpp"
+#include "Haize/Interpreter/OpCode.hpp"
 
 #include "Haize/Engine.hpp"
 #include "Haize/Context.hpp"

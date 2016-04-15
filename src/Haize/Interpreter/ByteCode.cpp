@@ -1,5 +1,5 @@
 
-#include "Haize/VM/ByteCode.hpp"
+#include "Haize/Interpreter/ByteCode.hpp"
 
 /*
 * Note that:

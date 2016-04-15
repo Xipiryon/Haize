@@ -1,8 +1,8 @@
 
 #include <Muon/Memory/Allocator.hpp>
 #include <Muon/System/Log.hpp>
-#include "Haize/VM/SymbolTable.hpp"
-#include "Haize/VM/ByteCode.hpp"
+#include "Haize/Interpreter/SymbolTable.hpp"
+#include "Haize/Interpreter/ByteCode.hpp"
 
 namespace hz
 {
