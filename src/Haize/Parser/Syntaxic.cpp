@@ -76,6 +76,7 @@ namespace
 		m::u32 readTokenIndex;
 
 		hz::parser::Token lastReadToken;
+		hz::parser::Token prevReadToken;
 
 		std::vector<hz::parser::ASTNode*> exprValue;
 		std::vector<hz::parser::ASTNode*> exprOperator;
@@ -176,6 +177,7 @@ namespace
 		if (index < impl->tokenList->size())
 		{
 			out = impl->tokenList->at(index);
+			impl->prevReadToken = impl->lastReadToken;
 			impl->lastReadToken = out;
 			return true;
 		}
@@ -390,7 +392,7 @@ namespace
 				if (readToken(impl, token) && token.type == hz::parser::S_SEPARATOR)
 				{
 					popToken(impl);
-					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
+					auto* varNode = MUON_NEW(hz::parser::ASTNodeVarNew);
 					varNode->type = hz::parser::NT_GLOBAL_DECL;
 					varNode->declTypename = typeName;
 					varNode->name = varName;
@@ -597,7 +599,7 @@ namespace
 		if (readToken(impl, token) && token.type == hz::parser::V_IDENTIFIER)
 		{
 			popToken(impl);
-			auto* classNode = MUON_NEW(hz::parser::ASTNode);
+			auto* classNode = MUON_NEW(hz::parser::ASTNodeClassDecl);
 			impl->currNode->addChild(classNode);
 			impl->currNode = classNode;
 			classNode->type = hz::parser::NT_CLASS_DECL;
@@ -686,7 +688,7 @@ namespace
 	{
 		// Check has been made in parse class function, so just unwrap and make a node
 		hz::parser::Token token;
-		auto* argDecl = MUON_NEW(hz::parser::ASTNodeVarDecl);
+		auto* argDecl = MUON_NEW(hz::parser::ASTNodeMemberDecl);
 		argDecl->type = hz::parser::NT_CLASS_MEMBER;
 
 		readToken(impl, token);
@@ -901,6 +903,7 @@ namespace
 
 		return false;
 	}
+
 	bool parseReturn(InternalSyntaxicData* impl)
 	{
 		hz::parser::Token token;
@@ -936,22 +939,27 @@ namespace
 	{
 		if (!impl->exprOperator.empty())
 		{
-			auto* op = impl->exprOperator.back();
-			// Binary operators
+			hz::parser::ASTNodeOperator* op = (hz::parser::ASTNodeOperator*)impl->exprOperator.back();
 			if (op->type == hz::parser::S_ACCESSOR
 				|| (op->type > hz::parser::E_BITWISE_OP_BEGIN && op->type < hz::parser::E_BITWISE_OP_END)
 				|| (op->type > hz::parser::E_LOGIC_OP_BEGIN && op->type < hz::parser::E_LOGIC_OP_END)
 				|| (op->type > hz::parser::E_MATH_OP_BEGIN && op->type < hz::parser::E_MATH_OP_END)
-				|| (op->type > hz::parser::E_ASN_OP_BEGIN && op->type < hz::parser::E_ASN_OP_END))
+				|| (op->type > hz::parser::E_ASN_OP_BEGIN && op->type < hz::parser::E_ASN_OP_END)
+				|| op->type > hz::parser::UNARY_MINUS
+				|| op->type > hz::parser::UNARY_PLUS)
 			{
-				if (impl->exprValue.size() >= 2)
+				if ((op->binop && impl->exprValue.size() >= 2)
+					|| (!op->binop && impl->exprValue.size() >= 1))
 				{
-					auto* right = impl->exprValue.back();
-					impl->exprValue.pop_back();
 					auto* left = impl->exprValue.back();
 					impl->exprValue.pop_back();
 					op->addChild(left);
-					op->addChild(right);
+					if (op->binop)
+					{
+						auto* right = impl->exprValue.back();
+						impl->exprValue.pop_back();
+						op->addChild(right);
+					}
 					impl->exprValue.push_back(op);
 					impl->exprOperator.pop_back();
 					return true;
@@ -974,7 +982,7 @@ namespace
 		readToken(impl, token);
 		popToken(impl);
 
-		auto* newNode = MUON_NEW(hz::parser::ASTNodeVarDecl);
+		auto* newNode = MUON_NEW(hz::parser::ASTNodeVarNew);
 		newNode->global = false;
 		impl->currNode->addChild(newNode);
 		impl->currNode = newNode;
@@ -1039,7 +1047,7 @@ namespace
 		readToken(impl, token);
 		popToken(impl);
 
-		auto* delNode = MUON_NEW(hz::parser::ASTNode);
+		auto* delNode = MUON_NEW(hz::parser::ASTNodeVarDelete);
 		delNode->type = hz::parser::NT_EXPR_DELETE;
 		impl->currNode->addChild(delNode);
 
@@ -1078,7 +1086,6 @@ namespace
 
 	bool parseExpr(InternalSyntaxicData* impl, hz::parser::eTokenType endTokenType)
 	{
-		hz::parser::Token lastToken;
 		hz::parser::Token token;
 		bool ok = readToken(impl, token);
 		bool parse = true;
@@ -1156,7 +1163,7 @@ namespace
 				auto* lparentNode = MUON_NEW(hz::parser::ASTNodeParenthesis);
 				lparentNode->type = hz::parser::S_LPARENT;
 				lparentNode->exprValueIndex = impl->exprValue.size();
-				lparentNode->funcIdentNode = (lastToken.type == hz::parser::V_IDENTIFIER ? impl->exprValue.back() : NULL);
+				lparentNode->funcIdentNode = (impl->prevReadToken.type == hz::parser::V_IDENTIFIER ? impl->exprValue.back() : NULL);
 				impl->exprOperator.push_back(lparentNode);
 			}
 			else if (token.type == hz::parser::S_RPARENT)
@@ -1223,9 +1230,52 @@ namespace
 			// Operator
 			else
 			{
-				auto* opNode = MUON_NEW(hz::parser::ASTNode);
+				auto* opNode = MUON_NEW(hz::parser::ASTNodeOperator);
+				opNode->binop = true;
 				opNode->type = token.type;
 				OpInfo currInfo = s_PrecedenceTable[token.type];
+
+				// Check for Unary operators
+				if (token.type == hz::parser::LOGIC_NOT
+					|| token.type == hz::parser::BITWISE_NOT
+					|| token.type == hz::parser::MATH_ADD
+					|| token.type == hz::parser::MATH_SUB
+					|| token.type == hz::parser::MATH_INC
+					|| token.type == hz::parser::MATH_DEC)
+				{
+					// Postfix unary operator (var++ var--)
+					if (token.type == hz::parser::MATH_INC || token.type == hz::parser::MATH_DEC)
+					{
+						// Last token is either identifier, number, ) or ]
+						hz::parser::eTokenType ltype = impl->prevReadToken.type;
+						if (ltype == hz::parser::V_IDENTIFIER
+							|| ltype == hz::parser::V_NUMBER
+							|| ltype == hz::parser::S_LPARENT
+							|| ltype == hz::parser::S_LBRACKET)
+						{
+							opNode->binop = false;
+						}
+					}
+					else // Prefix unary operator (!var ~var ++var --var +var -var)
+					{
+						// Last token is either binop, unop, comma, ( or [
+						hz::parser::eTokenType ltype = impl->prevReadToken.type;
+						if (ltype == hz::parser::S_COMMA
+							|| ltype == hz::parser::S_LPARENT
+							|| ltype == hz::parser::S_LBRACKET
+							|| (ltype > hz::parser::E_ASN_OP_BEGIN && ltype < hz::parser::E_ASN_OP_END)
+							|| (ltype > hz::parser::E_MATH_OP_BEGIN && ltype < hz::parser::E_MATH_OP_END)
+							|| (ltype > hz::parser::E_LOGIC_OP_BEGIN && ltype < hz::parser::E_LOGIC_OP_END)
+							|| (ltype > hz::parser::E_BITWISE_OP_BEGIN && ltype < hz::parser::E_BITWISE_OP_END))
+						{
+							opNode->binop = false;
+							opNode->type = (token.type == hz::parser::MATH_SUB ? hz::parser::UNARY_MINUS
+											: token.type == hz::parser::MATH_ADD ? hz::parser::UNARY_PLUS
+											: opNode->type);
+						}
+					}
+				}
+
 				bool reduce = !impl->exprOperator.empty();
 				while (reduce)
 				{
@@ -1257,7 +1307,6 @@ namespace
 				impl->exprOperator.push_back(opNode);
 			}
 
-			lastToken = token;
 			popToken(impl);
 			ok = readToken(impl, token);
 		}
