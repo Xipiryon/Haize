@@ -59,19 +59,40 @@ namespace hz
 			return m::String(hz::parser::TokenTypeStr[type]) + " (" + name + ")";
 		}
 
+		IRInfo ASTNode::generateCode()
+		{
+			MUON_ERROR("Not implemented!");
+			return IRInfo();
+		}
+
 		m::String ASTNodeNamespaceDecl::toString()
 		{
 			return "NAMESPACE " + name;
 		}
 
-		m::String ASTNodeVarDecl::toString()
+		m::String ASTNodeMemberDecl::toString()
+		{
+			return "MEMBER: " + name;
+		}
+
+		m::String ASTNodeVarNew::toString()
 		{
 			return (global ? "GLOBAL " : "LOCAL ") + declTypename + " " + name;
+		}
+
+		m::String ASTNodeVarDelete::toString()
+		{
+			return "DELETE " + name;
 		}
 
 		m::String ASTNodeArgDecl::toString()
 		{
 			return ((prefix & IN) ? "IN" : "") + m::String((prefix & OUT) ? "OUT" : "") + " " + declTypename + " " + name;
+		}
+
+		m::String ASTNodeClassDecl::toString()
+		{
+			return "CLASS: " + name;
 		}
 
 		m::String ASTNodeFunctionDecl::toString()
@@ -107,6 +128,66 @@ namespace hz
 				str = TokenTypeStr[type];
 			}
 			return str;
+		}
+
+		IRInfo ASTNodeNamespaceDecl::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeArgDecl::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeFunctionDecl::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeClassDecl::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeMemberDecl::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeVarNew::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeVarDelete::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeConstant::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeParenthesis::generateCode()
+		{
+			IRInfo info;
+			return info;
+		}
+
+		IRInfo ASTNodeOperator::generateCode()
+		{
+			IRInfo info;
+			return info;
 		}
 	}
 }
