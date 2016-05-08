@@ -113,53 +113,55 @@ namespace
 	{
 		OpAttributeTable()
 		{
-			table[hz::parser::MATH_ASN] = OpInfo(10, ASSOC_RIGHT);		//'='
-			table[hz::parser::MATH_ASN_ADD] = OpInfo(10, ASSOC_RIGHT);	//'+='
-			table[hz::parser::MATH_ASN_SUB] = OpInfo(10, ASSOC_RIGHT);	//'-='
-			table[hz::parser::MATH_ASN_MUL] = OpInfo(10, ASSOC_RIGHT);	//'/='
-			table[hz::parser::MATH_ASN_DIV] = OpInfo(10, ASSOC_RIGHT);	//'*='
-			table[hz::parser::MATH_ASN_MOD] = OpInfo(10, ASSOC_RIGHT);	//'%='
-			table[hz::parser::MATH_ASN_AND] = OpInfo(10, ASSOC_RIGHT);	//'&='
-			table[hz::parser::MATH_ASN_OR] = OpInfo(10, ASSOC_RIGHT);	//'|='
-			table[hz::parser::MATH_ASN_XOR] = OpInfo(10, ASSOC_RIGHT);	//'^='
-			table[hz::parser::MATH_ASN_NOT] = OpInfo(10, ASSOC_RIGHT);	//'~='
+			table[hz::parser::MATH_ASN] = OpInfo(10, ASSOC_RIGHT);			//'='
+			table[hz::parser::MATH_ASN_ADD] = OpInfo(10, ASSOC_RIGHT);		//'+='
+			table[hz::parser::MATH_ASN_SUB] = OpInfo(10, ASSOC_RIGHT);		//'-='
+			table[hz::parser::MATH_ASN_MUL] = OpInfo(10, ASSOC_RIGHT);		//'/='
+			table[hz::parser::MATH_ASN_DIV] = OpInfo(10, ASSOC_RIGHT);		//'*='
+			table[hz::parser::MATH_ASN_MOD] = OpInfo(10, ASSOC_RIGHT);		//'%='
+			table[hz::parser::MATH_ASN_AND] = OpInfo(10, ASSOC_RIGHT);		//'&='
+			table[hz::parser::MATH_ASN_OR] = OpInfo(10, ASSOC_RIGHT);		//'|='
+			table[hz::parser::MATH_ASN_XOR] = OpInfo(10, ASSOC_RIGHT);		//'^='
+			table[hz::parser::MATH_ASN_NOT] = OpInfo(10, ASSOC_RIGHT);		//'~='
 
-			table[hz::parser::LOGIC_OR] = OpInfo(25, ASSOC_LEFT);		//'||'
+			table[hz::parser::LOGIC_OR] = OpInfo(25, ASSOC_LEFT);			//'||'
 
-			table[hz::parser::LOGIC_AND] = OpInfo(30, ASSOC_LEFT);		//'&&'
+			table[hz::parser::LOGIC_AND] = OpInfo(30, ASSOC_LEFT);			//'&&'
 
-			table[hz::parser::BITWISE_OR] = OpInfo(35, ASSOC_LEFT);		//'|'
+			table[hz::parser::BITWISE_OR] = OpInfo(35, ASSOC_LEFT);			//'|'
 
-			table[hz::parser::BITWISE_XOR] = OpInfo(40, ASSOC_LEFT);	//'^'
+			table[hz::parser::BITWISE_XOR] = OpInfo(40, ASSOC_LEFT);		//'^'
 
-			table[hz::parser::BITWISE_AND] = OpInfo(50, ASSOC_LEFT);	//'&'
+			table[hz::parser::BITWISE_AND] = OpInfo(50, ASSOC_LEFT);		//'&'
 
-			table[hz::parser::LOGIC_EQ] = OpInfo(55, ASSOC_LEFT);		//'=='
-			table[hz::parser::LOGIC_NEQ] = OpInfo(55, ASSOC_LEFT);		//'!='
+			table[hz::parser::LOGIC_EQ] = OpInfo(55, ASSOC_LEFT);			//'=='
+			table[hz::parser::LOGIC_NEQ] = OpInfo(55, ASSOC_LEFT);			//'!='
 
-			table[hz::parser::LOGIC_LT] = OpInfo(60, ASSOC_LEFT);		//'<'
-			table[hz::parser::LOGIC_LET] = OpInfo(60, ASSOC_LEFT);		//'<='
-			table[hz::parser::LOGIC_GT] = OpInfo(60, ASSOC_LEFT);		//'>'
-			table[hz::parser::LOGIC_GET] = OpInfo(60, ASSOC_LEFT);		//'>='
+			table[hz::parser::LOGIC_LT] = OpInfo(60, ASSOC_LEFT);			//'<'
+			table[hz::parser::LOGIC_LET] = OpInfo(60, ASSOC_LEFT);			//'<='
+			table[hz::parser::LOGIC_GT] = OpInfo(60, ASSOC_LEFT);			//'>'
+			table[hz::parser::LOGIC_GET] = OpInfo(60, ASSOC_LEFT);			//'>='
 
-			table[hz::parser::BITWISE_LSH] = OpInfo(65, ASSOC_LEFT);	//'<<'
-			table[hz::parser::BITWISE_RSH] = OpInfo(65, ASSOC_LEFT);	//'>>'
+			table[hz::parser::BITWISE_LSH] = OpInfo(65, ASSOC_LEFT);		//'<<'
+			table[hz::parser::BITWISE_RSH] = OpInfo(65, ASSOC_LEFT);		//'>>'
 
-			table[hz::parser::MATH_ADD] = OpInfo(70, ASSOC_LEFT);		//'+'
-			table[hz::parser::MATH_SUB] = OpInfo(70, ASSOC_LEFT);		//'-'
+			table[hz::parser::MATH_ADD] = OpInfo(70, ASSOC_LEFT);			//'+'
+			table[hz::parser::MATH_SUB] = OpInfo(70, ASSOC_LEFT);			//'-'
 
-			table[hz::parser::MATH_MUL] = OpInfo(75, ASSOC_LEFT);		//'*'
-			table[hz::parser::MATH_DIV] = OpInfo(75, ASSOC_LEFT);		//'/'
-			table[hz::parser::MATH_MOD] = OpInfo(75, ASSOC_LEFT);		//'%'
+			table[hz::parser::MATH_MUL] = OpInfo(75, ASSOC_LEFT);			//'*'
+			table[hz::parser::MATH_DIV] = OpInfo(75, ASSOC_LEFT);			//'/'
+			table[hz::parser::MATH_MOD] = OpInfo(75, ASSOC_LEFT);			//'%'
 
-			table[hz::parser::UNARY_PLUS] = OpInfo(80, ASSOC_RIGHT);	//'+' before an expression (is optional: +5 <=> 5)
-			table[hz::parser::UNARY_MINUS] = OpInfo(80, ASSOC_RIGHT);	//'-' before an expression (-5 is not parsed as 0-5)
-			table[hz::parser::BITWISE_NOT] = OpInfo(80, ASSOC_RIGHT);	//'~'
-			table[hz::parser::LOGIC_NOT] = OpInfo(80, ASSOC_RIGHT);		//'!'
-			table[hz::parser::MATH_INC] = OpInfo(80, ASSOC_RIGHT);		//'++'
-			table[hz::parser::MATH_DEC] = OpInfo(80, ASSOC_RIGHT);		//'--'
+			table[hz::parser::UNARY_PLUS] = OpInfo(80, ASSOC_RIGHT);		//'+' before an expression (is optional: +5 <=> 5)
+			table[hz::parser::UNARY_MINUS] = OpInfo(80, ASSOC_RIGHT);		//'-' before an expression (-5 is not parsed as 0-5)
+			table[hz::parser::BITWISE_NOT] = OpInfo(80, ASSOC_RIGHT);		//'~'
+			table[hz::parser::LOGIC_NOT] = OpInfo(80, ASSOC_RIGHT);			//'!'
+			table[hz::parser::MATH_INC_PREFIX] = OpInfo(80, ASSOC_RIGHT);	//'++'var
+			table[hz::parser::MATH_DEC_PREFIX] = OpInfo(80, ASSOC_RIGHT);	//'--'var
 
-			table[hz::parser::S_ACCESSOR] = OpInfo(85, ASSOC_RIGHT);	//'.'
+			table[hz::parser::MATH_INC_POSTFIX] = OpInfo(85, ASSOC_LEFT);	//var'++'
+			table[hz::parser::MATH_DEC_POSTFIX] = OpInfo(85, ASSOC_LEFT);	//var'--'
+			table[hz::parser::S_ACCESSOR] = OpInfo(85, ASSOC_LEFT);			//'.'
 		}
 
 		OpInfo operator[](hz::parser::eTokenType type) const
@@ -941,12 +943,12 @@ namespace
 		{
 			hz::parser::ASTNodeOperator* op = (hz::parser::ASTNodeOperator*)impl->exprOperator.back();
 			if (op->type == hz::parser::S_ACCESSOR
+				|| op->type == hz::parser::UNARY_MINUS
+				|| op->type == hz::parser::UNARY_PLUS
 				|| (op->type > hz::parser::E_BITWISE_OP_BEGIN && op->type < hz::parser::E_BITWISE_OP_END)
 				|| (op->type > hz::parser::E_LOGIC_OP_BEGIN && op->type < hz::parser::E_LOGIC_OP_END)
 				|| (op->type > hz::parser::E_MATH_OP_BEGIN && op->type < hz::parser::E_MATH_OP_END)
-				|| (op->type > hz::parser::E_ASN_OP_BEGIN && op->type < hz::parser::E_ASN_OP_END)
-				|| op->type > hz::parser::UNARY_MINUS
-				|| op->type > hz::parser::UNARY_PLUS)
+				|| (op->type > hz::parser::E_ASN_OP_BEGIN && op->type < hz::parser::E_ASN_OP_END))
 			{
 				if ((op->binop && impl->exprValue.size() >= 2)
 					|| (!op->binop && impl->exprValue.size() >= 1))
@@ -1240,44 +1242,56 @@ namespace
 					|| token.type == hz::parser::BITWISE_NOT
 					|| token.type == hz::parser::MATH_ADD
 					|| token.type == hz::parser::MATH_SUB
-					|| token.type == hz::parser::MATH_INC
-					|| token.type == hz::parser::MATH_DEC)
+					|| token.type == hz::parser::MATH_INC_DEFAULT
+					|| token.type == hz::parser::MATH_DEC_DEFAULT)
 				{
-					// Postfix unary operator (var++ var--)
-					if (token.type == hz::parser::MATH_INC || token.type == hz::parser::MATH_DEC)
+					hz::parser::eTokenType ltype = impl->prevReadToken.type;
+					// Prefix unary operator (!var ~var ++var --var +var -var)
+					// Last token is either binop, unop, comma, ( or [
+					if (ltype == hz::parser::S_COMMA
+						|| ltype == hz::parser::S_LPARENT
+						|| ltype == hz::parser::S_LBRACKET
+						|| ltype == hz::parser::UNARY_MINUS
+						|| ltype == hz::parser::UNARY_PLUS
+						|| (ltype > hz::parser::E_ASN_OP_BEGIN && ltype < hz::parser::E_ASN_OP_END)
+						|| (ltype > hz::parser::E_MATH_OP_BEGIN && ltype < hz::parser::E_MATH_OP_END)
+						|| (ltype > hz::parser::E_LOGIC_OP_BEGIN && ltype < hz::parser::E_LOGIC_OP_END)
+						|| (ltype > hz::parser::E_BITWISE_OP_BEGIN && ltype < hz::parser::E_BITWISE_OP_END))
 					{
-						// Last token is either identifier, number, ) or ]
-						hz::parser::eTokenType ltype = impl->prevReadToken.type;
-						if (ltype == hz::parser::V_IDENTIFIER
-							|| ltype == hz::parser::V_NUMBER
-							|| ltype == hz::parser::S_LPARENT
-							|| ltype == hz::parser::S_LBRACKET)
+						opNode->binop = false;
+
+						if (token.type == hz::parser::MATH_INC_DEFAULT || token.type == hz::parser::MATH_DEC_DEFAULT)
 						{
-							opNode->binop = false;
+							opNode->type = (token.type == hz::parser::MATH_INC_DEFAULT ?
+											hz::parser::MATH_INC_PREFIX : hz::parser::MATH_DEC_PREFIX);
 						}
-					}
-					else // Prefix unary operator (!var ~var ++var --var +var -var)
-					{
-						// Last token is either binop, unop, comma, ( or [
-						hz::parser::eTokenType ltype = impl->prevReadToken.type;
-						if (ltype == hz::parser::S_COMMA
-							|| ltype == hz::parser::S_LPARENT
-							|| ltype == hz::parser::S_LBRACKET
-							|| (ltype > hz::parser::E_ASN_OP_BEGIN && ltype < hz::parser::E_ASN_OP_END)
-							|| (ltype > hz::parser::E_MATH_OP_BEGIN && ltype < hz::parser::E_MATH_OP_END)
-							|| (ltype > hz::parser::E_LOGIC_OP_BEGIN && ltype < hz::parser::E_LOGIC_OP_END)
-							|| (ltype > hz::parser::E_BITWISE_OP_BEGIN && ltype < hz::parser::E_BITWISE_OP_END))
+						else
 						{
-							opNode->binop = false;
 							opNode->type = (token.type == hz::parser::MATH_SUB ? hz::parser::UNARY_MINUS
 											: token.type == hz::parser::MATH_ADD ? hz::parser::UNARY_PLUS
 											: opNode->type);
 						}
 					}
+					// Postfix unary operator (var++ var--)
+					// Last token is either identifier, number, ) or ]
+					else if (ltype == hz::parser::V_IDENTIFIER
+							 || ltype == hz::parser::V_NUMBER
+							 || ltype == hz::parser::S_LPARENT
+							 || ltype == hz::parser::S_LBRACKET)
+					{
+						opNode->binop = false;
+						opNode->type = (token.type == hz::parser::MATH_INC_DEFAULT ?
+										hz::parser::MATH_INC_POSTFIX : hz::parser::MATH_DEC_POSTFIX);
+					}
+					else
+					{
+						tokenError(impl, token);
+						return false;
+					}
 				}
 
 				bool reduce = !impl->exprOperator.empty();
-				while (reduce)
+				while (reduce && opNode->binop)
 				{
 					auto* prevNode = impl->exprOperator.back();
 					OpInfo prevInfo = s_PrecedenceTable[prevNode->type];

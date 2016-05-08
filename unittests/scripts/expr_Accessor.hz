@@ -1,0 +1,29 @@
+
+class A
+{
+	int m_i;
+}
+
+class B
+{
+	A m_a;
+}
+
+class C
+{
+	B m_b;
+	float j;
+}
+
+void main()
+{
+	new B b;
+
+	b.m_a.m_i = 5;
+	(b.m_a).m_i = 6;
+
+	delete b;
+	new C c;
+	c.m_b.m_a.m_i = 42;
+	c.j = 64;
+}
