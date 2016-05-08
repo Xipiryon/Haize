@@ -526,12 +526,12 @@ namespace hz
 						if (matchCombinedChar(c, nc, '+', '+'))
 						{
 							word += get(impl);
-							impl.token.type = parser::MATH_INC;
+							impl.token.type = parser::MATH_INC_DEFAULT;
 						}
 						else if (matchCombinedChar(c, nc, '-', '-'))
 						{
 							word += get(impl);
-							impl.token.type = parser::MATH_DEC;
+							impl.token.type = parser::MATH_DEC_DEFAULT;
 						}
 						else if (matchCombinedChar(c, nc, '+', '='))
 						{

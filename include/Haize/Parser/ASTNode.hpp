@@ -16,6 +16,10 @@ namespace hz
 			OUT = 0x2,
 		};
 
+		struct IRInfo
+		{
+		};
+
 		/*!
 		*
 		*/
@@ -34,19 +38,36 @@ namespace hz
 			bool deleteChild(ASTNode*);
 
 			virtual m::String toString();
+			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeNamespaceDecl : ASTNode
 		{
 			virtual m::String toString();
+			virtual IRInfo generateCode();
 		};
 
-		struct HAIZE_API ASTNodeVarDecl : ASTNode
+		struct HAIZE_API ASTNodeMemberDecl : ASTNode
+		{
+			m::String declTypename;
+
+			virtual m::String toString();
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeVarNew : ASTNode
 		{
 			bool global;
 			m::String declTypename;
 
 			virtual m::String toString();
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeVarDelete : ASTNode
+		{
+			virtual m::String toString();
+			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeArgDecl : ASTNode
@@ -55,6 +76,7 @@ namespace hz
 			m::String declTypename;
 
 			virtual m::String toString();
+			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeFunctionDecl : ASTNode
@@ -62,18 +84,46 @@ namespace hz
 			m::String retTypename;
 
 			virtual m::String toString();
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeClassDecl : ASTNode
+		{
+			virtual m::String toString();
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeFunctionCall : ASTNode
+		{
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeArgCall : ASTNode
+		{
+			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeConstant : ASTNode
 		{
 			m::Variant value;
+
 			virtual m::String toString();
+			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeParenthesis : ASTNode
 		{
 			ASTNode* funcIdentNode;
 			m::u32 exprValueIndex;
+
+			virtual IRInfo generateCode();
+		};
+
+		struct HAIZE_API ASTNodeOperator : ASTNode
+		{
+			bool binop;
+
+			virtual IRInfo generateCode();
 		};
 	}
 }

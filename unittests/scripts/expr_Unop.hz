@@ -5,4 +5,7 @@ void main()
 	new int b = -i;
 
 	new int c = +-+-+-b;
+	c = b++;
+	c = --b;
+	c = ++c--;
 }

@@ -16,71 +16,75 @@ namespace hz
 			S_INVALID = 0,
 			S_EOF,
 
-			S_COMMA,		//!< ','
-			S_ACCESSOR,		//!< '.'
-			S_SEPARATOR,	//!< ';'
-			S_KEYWORD,		//!<
-			S_LPARENT,		//!< '('
-			S_RPARENT,		//!< ')'
-			S_LBRACKET,		//!< '['
-			S_RBRACKET,		//!< ']'
-			S_LBRACE,		//!< '{'
-			S_RBRACE,		//!< '}'
+			S_COMMA,			//!< ','
+			S_ACCESSOR,			//!< '.'
+			S_SEPARATOR,		//!< ';'
+			S_KEYWORD,			//!<
+			S_LPARENT,			//!< '('
+			S_RPARENT,			//!< ')'
+			S_LBRACKET,			//!< '['
+			S_RBRACKET,			//!< ']'
+			S_LBRACE,			//!< '{'
+			S_RBRACE,			//!< '}'
 
-			V_IDENTIFIER,	//!< An alphanumeric identifier
+			V_IDENTIFIER,		//!< An alphanumeric identifier
 			E_CONSTANT_BEGIN,
-			V_NUMBER,		//!< A number (in either dec, oct, bin or hex format)
-			V_STRING,		//!< A string contained between two '"' character
-			V_NIL,			//!<
-			V_TRUE,			//!<
-			V_FALSE,		//!<
+			V_NUMBER,			//!< A number (in either dec, oct, bin or hex format)
+			V_STRING,			//!< A string contained between two '"' character
+			V_NIL,				//!<
+			V_TRUE,				//!<
+			V_FALSE,			//!<
 			E_CONSTANT_END,
 
 			E_LOGIC_OP_BEGIN,
-			LOGIC_EQ,		//!< '=='
-			LOGIC_NEQ,		//!< '!=' or 'not' keyword
-			LOGIC_LT,		//!< '<'
-			LOGIC_LET,		//!< '<='
-			LOGIC_GT,		//!< '>'
-			LOGIC_GET,		//!< '>='
-			LOGIC_NOT,		//!< '!'
-			LOGIC_AND,		//!< '&&' or 'and' keyword
-			LOGIC_OR,		//!< '||' or 'or' keyword
+			LOGIC_EQ,			//!< '=='
+			LOGIC_NEQ,			//!< '!=' or 'not' keyword
+			LOGIC_LT,			//!< '<'
+			LOGIC_LET,			//!< '<='
+			LOGIC_GT,			//!< '>'
+			LOGIC_GET,			//!< '>='
+			LOGIC_NOT,			//!< '!'
+			LOGIC_AND,			//!< '&&' or 'and' keyword
+			LOGIC_OR,			//!< '||' or 'or' keyword
 			E_LOGIC_OP_END,
 
 			E_BITWISE_OP_BEGIN,
-			BITWISE_AND,	//!< '&'
-			BITWISE_OR,		//!< '|'
-			BITWISE_XOR,	//!< '^'
-			BITWISE_NOT,	//!< '~'
-			BITWISE_LSH,	//!< '<<'
-			BITWISE_RSH,	//!< '>>'
+			BITWISE_AND,		//!< '&'
+			BITWISE_OR,			//!< '|'
+			BITWISE_XOR,		//!< '^'
+			BITWISE_NOT,		//!< '~'
+			BITWISE_LSH,		//!< '<<'
+			BITWISE_RSH,		//!< '>>'
 			E_BITWISE_OP_END,
 
-			UNARY_PLUS,		//!< '+' before an expression (is optional: +5 <=> 5)
-			UNARY_MINUS,	//!< '-' before an expression (so -5 is not parsed as 0-5)
+			UNARY_PLUS,			//!< '+' before an expression (is optional: +5 <=> 5)
+			UNARY_MINUS,		//!< '-' before an expression (so -5 is not parsed as 0-5)
 
 			E_MATH_OP_BEGIN,
-			MATH_ADD,		//!< '+'
-			MATH_SUB,		//!< '-'
-			MATH_MUL,		//!< '*'
-			MATH_DIV,		//!< '/'
-			MATH_MOD,		//!< '%'
-			MATH_INC,		//!< '++'
-			MATH_DEC,		//!< '--'
+			MATH_ADD,			//!< '+'
+			MATH_SUB,			//!< '-'
+			MATH_MUL,			//!< '*'
+			MATH_DIV,			//!< '/'
+			MATH_MOD,			//!< '%'
+			MATH_INC_DEFAULT,	//<! Only used by the parser, '++'
+			MATH_DEC_DEFAULT,	//<! Only used by the parser, '--'
+			MATH_INC_POSTFIX,	//!< var '++'
+			MATH_DEC_POSTFIX,	//!< var '--'
+			MATH_INC_PREFIX,	//!< '++' var
+			MATH_DEC_PREFIX,	//!< '--' var
 			E_MATH_OP_END,
 
 			E_ASN_OP_BEGIN,
-			MATH_ASN,		//!< '='
-			MATH_ASN_ADD,	//!< '+='
-			MATH_ASN_SUB,	//!< '-='
-			MATH_ASN_MUL,	//!< '/='
-			MATH_ASN_DIV,	//!< '*='
-			MATH_ASN_MOD,	//!< '%='
-			MATH_ASN_AND,	//!< '&='
-			MATH_ASN_OR,	//!< '|='
-			MATH_ASN_XOR,	//!< '^='
-			MATH_ASN_NOT,	//!< '~='
+			MATH_ASN,			//!< '='
+			MATH_ASN_ADD,		//!< '+='
+			MATH_ASN_SUB,		//!< '-='
+			MATH_ASN_MUL,		//!< '/='
+			MATH_ASN_DIV,		//!< '*='
+			MATH_ASN_MOD,		//!< '%='
+			MATH_ASN_AND,		//!< '&='
+			MATH_ASN_OR,		//!< '|='
+			MATH_ASN_XOR,		//!< '^='
+			MATH_ASN_NOT,		//!< '~='
 			E_ASN_OP_END,
 
 			E_TERMINALTOKEN_END,
@@ -169,8 +173,12 @@ namespace hz
 			"MATH_MUL",
 			"MATH_DIV",
 			"MATH_MOD",
-			"MATH_INC",
-			"MATH_DEC",
+			"MATH_INC_DEFAULT",
+			"MATH_DEC_DEFAULT",
+			"MATH_INC_POSTFIX",
+			"MATH_DEC_POSTFIX",
+			"MATH_INC_PREFIX",
+			"MATH_DEC_PREFIX",
 			"",
 
 			"",
