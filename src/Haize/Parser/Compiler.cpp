@@ -18,7 +18,7 @@ namespace hz
 			MUON_DELETE(m_sections);
 		}
 
-		bool Compiler::compile(Error& error)
+		ByteCode* Compiler::compile(Error& error)
 		{
 			error.clear();
 			error.step = Error::COMPILATION;
@@ -26,6 +26,8 @@ namespace hz
 
 			m_tokenList = MUON_NEW(std::vector<parser::Token>);
 			m_nodeRoot = MUON_NEW(parser::ASTNode);
+			m_bytecode = NULL;
+			// m_bytecode will be allocated in Semantic
 
 			// avoid a macro, and avoid duplicating code
 			auto clearVariable = [&]()
@@ -33,6 +35,7 @@ namespace hz
 				m_loadBuffer.clear();
 				MUON_DELETE(m_tokenList);
 				MUON_DELETE(m_nodeRoot);
+				MUON_FREE(m_bytecode);
 			};
 
 			if (!lexical(error))
@@ -55,7 +58,7 @@ namespace hz
 
 			clearVariable();
 			error.state = Error::SUCCESS;
-			return true;
+			return m_bytecode;
 		}
 	}
 }

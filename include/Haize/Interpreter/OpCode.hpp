@@ -1,4 +1,3 @@
-
 #ifndef INCLUDE_HAIZE_OPCODE_INCLUDE
 #define INCLUDE_HAIZE_OPCODE_INCLUDE
 
@@ -9,7 +8,10 @@ namespace hz
 	enum eOpCode
 	{
 		SYS_MOV = 0,	//! Copy the content of a register into another
-		SYS_SETRAW,		//! Set in a register a boxed value, stored in the next 64 bits
+		SYS_JUMP,		//! Jump to a given address
+		SYS_RETURN,		//! Return from a function
+		SYS_STACK,		//! Push a value onto the stack
+		SYS_CALL,		//! Call a function at given address
 		// *****
 		MATH_ADD,		//! +
 		MATH_SUB,		//! -
@@ -33,10 +35,6 @@ namespace hz
 		CMP_AND,		//! &&
 		CMP_OR,			//! ||
 		// *****
-		SYS_JUMP,		//! Jump to a given address
-		SYS_RETURN,		//! Return from a function
-		SYS_CALL,		//! Function call
-		// *****
 		SYS_PRG_END,	//! Indicate that program must end
 		// *****
 		TOTAL_COUNT		//! Total counter of OpCode (Internal Value)
@@ -45,7 +43,10 @@ namespace hz
 	static const char* OpCodeStr[eOpCode::TOTAL_COUNT] =
 	{
 		"SYS_MOV",
-		"SYS_SETRAW",
+		"SYS_JUMP",
+		"SYS_RETURN",
+		"SYS_STACK",
+		"SYS_CALL",
 		// *****
 		"MATH_ADD",
 		"MATH_SUB",
@@ -68,10 +69,6 @@ namespace hz
 		"CMP_EQU",
 		"CMP_AND",
 		"CMP_OR",
-		// *****
-		"SYS_JUMP",
-		"SYS_RETURN",
-		"SYS_CALL",
 		// *****
 		"SYS_PRG_END",
 		// *****

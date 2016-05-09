@@ -4,6 +4,9 @@
 #include <vector>
 
 #include <Muon/Variant.hpp>
+#include <Muon/Memory/StackAllocator.hpp>
+#include <Muon/Memory/PoolAllocator.hpp>
+
 #include "Haize/Interpreter/ByteCode.hpp"
 
 #include "Haize/Parser/Compiler.hpp"
@@ -12,6 +15,12 @@
 namespace hz
 {
 	class Engine;
+
+	struct ContextAttribute
+	{
+		m::u32 stackSize = 1024;
+		m::u32 poolSize = 4096;
+	};
 
 	/*!
 	* @brief Script execution entry point
@@ -34,7 +43,7 @@ namespace hz
 	{
 		friend class Engine;
 	public:
-		Context(const m::String& name);
+		Context(const m::String& name, ContextAttribute attr);
 		~Context();
 
 		/*!
@@ -105,6 +114,8 @@ namespace hz
 		parser::Compiler m_compiler;
 		// EXECUTION
 		// ****************************
+		m::memory::StackAllocator m_stackAlloc;
+		m::memory::PoolAllocator m_poolAlloc;
 		ByteCode m_instr;
 		m::u32 m_stack;
 		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];

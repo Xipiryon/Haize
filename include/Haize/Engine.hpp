@@ -2,6 +2,8 @@
 #define INCLUDE_HAIZE_ENGINE_INCLUDED
 
 #include <unordered_map>
+#include <map>
+
 #include <Muon/Helper/Singleton.hpp>
 #include <Muon/Variant.hpp>
 
@@ -30,7 +32,7 @@ namespace hz
 		* @param name Context name
 		* @return Created Context (or the one associated with the given name)
 		*/
-		Context* createContext(const m::String& name);
+		Context* createContext(const m::String& name, ContextAttribute attr = ContextAttribute());
 
 		/*!
 		* @brief Return a Context

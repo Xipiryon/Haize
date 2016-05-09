@@ -1,7 +1,7 @@
 #include <Muon/System/Log.hpp>
 
 #include "Haize/Parser/Compiler.hpp"
-#include "Haize/Parser/RuntimeStruct.hpp"
+#include "Haize/Parser/DeclStruct.hpp"
 
 namespace
 {
