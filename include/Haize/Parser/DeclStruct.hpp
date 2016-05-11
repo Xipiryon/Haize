@@ -1,41 +1,58 @@
 #ifndef INCLUDE_HAIZE_DECLSTRUCT_INCLUDED
 #define INCLUDE_HAIZE_DECLSTRUCT_INCLUDED
 
-#include <unordered_map>
+#include <map>
 #include <Muon/String.hpp>
-#include "Haize/Core/Define.hpp"
+#include <Muon/Variant.hpp>
+#include "Haize/Interpreter/ByteCode.hpp"
 
 namespace hz
 {
 	namespace parser
 	{
+		struct ASTNodeFunctionDecl;
+		struct ASTNodeFunctionCall;
+
 		struct DeclVariable
 		{
-			m::String declType;
-			m::String declName;
+			union
+			{
+				bool global;
+				m::u32 prefix;
+			};
+			m::String type;
+			m::String name;
+			m::Variant value;
 		};
 
 		struct DeclFunction
 		{
-			m::String declType;
-			m::String declName;
-			std::vector<DeclVariable> declParams;
+			union
+			{
+				m::u32 addrOffset;
+				ByteCode* addrPtr;
+			};
+			m::String type;
+			m::String name;
+			std::vector<DeclVariable> params;
 		};
 
 		struct DeclClass
 		{
-			m::String declName;
-			std::unordered_map<m::String, DeclFunction> declMethods;
-			std::unordered_map<m::String, DeclVariable> declMembers;
+			m::String name;
+			std::map<m::String, DeclFunction> methods;
+			std::map<m::String, DeclVariable> members;
 		};
 
 		struct DeclNamespace
 		{
-			m::String declName;
-			std::unordered_map<m::String, DeclNamespace*> declNamespaces;
-			std::unordered_map<m::String, DeclVariable> declGlobals;
-			std::unordered_map<m::String, DeclFunction> declFunctions;
-			std::unordered_map<m::String, DeclClass> declClasses;
+			static const m::String g_GlobalNamespaceName;
+			m::String name;
+			DeclNamespace* parentNamespace = NULL;
+			std::map<m::String, DeclNamespace*> nestedNamespace;
+			std::map<m::String, DeclVariable> globals;
+			std::map<m::String, DeclClass> classes;
+			std::map<m::String, DeclFunction> functions;
 		};
 	}
 }

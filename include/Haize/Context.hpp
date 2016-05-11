@@ -16,10 +16,15 @@ namespace hz
 {
 	class Engine;
 
-	struct ContextAttribute
+	class ContextMemConfig
 	{
-		m::u32 stackSize = 1024;
-		m::u32 poolSize = 4096;
+	public:
+		ContextMemConfig(m::u32 stackSize = m::memory::KiB<1>::bytes
+						 , m::u32 poolSize = m::memory::KiB<4>::bytes);
+
+	private:
+		m::memory::StackAllocator m_stack;
+		m::memory::PoolAllocator m_pool;
 	};
 
 	/*!
@@ -43,7 +48,8 @@ namespace hz
 	{
 		friend class Engine;
 	public:
-		Context(const m::String& name, ContextAttribute attr);
+
+		Context(const m::String& name, ContextMemConfig memConfig);
 		~Context();
 
 		/*!
@@ -107,18 +113,29 @@ namespace hz
 		*/
 		bool run(const ByteCode* instr);
 
+#if defined(HAIZE_DEBUG)
+		m::u32 getByteCodeSize() const
+		{
+			return m_byteCode.size();
+		}
+
+		ByteCode* getByteCodePtr()
+		{
+			return (m_byteCode.empty() ? NULL : &m_byteCode[0]);
+		}
+#endif
+
 	private:
 		m::String m_name;
 		Error m_error;
 
+		ContextMemConfig m_memConfig;
 		parser::Compiler m_compiler;
-		// EXECUTION
-		// ****************************
-		m::memory::StackAllocator m_stackAlloc;
-		m::memory::PoolAllocator m_poolAlloc;
+
+		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
+		std::vector<ByteCode> m_byteCode;
 		ByteCode m_instr;
 		m::u32 m_stack;
-		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 	};
 }
 #endif

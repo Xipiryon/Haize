@@ -73,12 +73,12 @@ bool parseArguments(int argc, char** argv)
 	m::system::Log log("Main", m::LOG_INFO);
 	bool validArgument = false;
 
-	for(int i = 0; i < argc; ++i)
+	for (int i = 0; i < argc; ++i)
 	{
 		// EVAL EXPR
-		if(!strcmp(argv[i], "-e"))
+		if (!strcmp(argv[i], "-e"))
 		{
-			if(++i < argc)
+			if (++i < argc)
 			{
 				g_Expr += argv[i];
 			}
@@ -147,10 +147,10 @@ void executeProgram()
 {
 	m::system::Log log("Haize", m::LOG_INFO);
 
-	if(g_Evaluate)
+	if (g_Evaluate)
 	{
 		log() << "> Parsing \"" << g_Expr << "\"" << m::endl;
-		if (g_Context->eval(g_Expr.cStr()) || true )
+		if (g_Context->eval(g_Expr.cStr()) || true)
 		{
 			if (g_ExportBytecode)
 			{
@@ -192,7 +192,7 @@ void executeProgram()
 			m::String outputFilename = g_Filename + "c";
 			log() << "Outputting to \"" << outputFilename << "\"" << m::endl;
 			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
-			//file.write((const char*)vm.getInfo().IRCode, vm.getInfo().IRCodeSize);
+			file.write((const char*)g_Context->getByteCodePtr(), g_Context->getByteCodeSize());
 			file.close();
 		}
 		return;

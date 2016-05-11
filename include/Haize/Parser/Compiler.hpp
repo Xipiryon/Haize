@@ -9,6 +9,7 @@
 
 namespace hz
 {
+	class ContextMemConfig;
 	namespace parser
 	{
 		class HAIZE_API Compiler
@@ -23,15 +24,15 @@ namespace hz
 				m::u64 _end;
 			};
 
-			virtual bool load(const char* buffer, Error& error);
-			virtual bool load(const m::String& file, Error& error);
+			bool load(const char* buffer, Error& error);
+			bool load(const m::String& file, Error& error);
 
-			virtual ByteCode* compile(Error& error);
+			bool compile(Error& error, std::vector<ByteCode>* byteCode);
 
 		protected:
-			virtual bool lexical(Error& error);
-			virtual bool syntaxic(Error& error);
-			virtual bool semantic(Error& error);
+			bool lexical(Error& error);
+			bool syntaxic(Error& error);
+			bool semantic(Error& error);
 
 		private:
 			// Variables
@@ -40,7 +41,7 @@ namespace hz
 			std::vector<Section>* m_sections;
 			parser::ASTNode* m_nodeRoot;
 			parser::DeclNamespace m_rootNamespace;
-			ByteCode* m_bytecode;
+			std::vector<ByteCode>* m_bytecode;
 		};
 	}
 }

@@ -32,7 +32,7 @@ namespace hz
 		* @param name Context name
 		* @return Created Context (or the one associated with the given name)
 		*/
-		Context* createContext(const m::String& name, ContextAttribute attr = ContextAttribute());
+		Context* createContext(const m::String& name, ContextMemConfig memConfig = ContextMemConfig());
 
 		/*!
 		* @brief Return a Context

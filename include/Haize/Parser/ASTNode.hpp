@@ -5,6 +5,7 @@
 #include <Muon/Variant.hpp>
 
 #include "Haize/Parser/Token.hpp"
+#include "Haize/Parser/DeclStruct.hpp"
 
 namespace hz
 {
@@ -14,10 +15,6 @@ namespace hz
 		{
 			IN = 0x1,
 			OUT = 0x2,
-		};
-
-		struct IRInfo
-		{
 		};
 
 		/*!
@@ -38,92 +35,73 @@ namespace hz
 			bool deleteChild(ASTNode*);
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeNamespaceDecl : ASTNode
 		{
+			DeclNamespace decl;
+
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeMemberDecl : ASTNode
 		{
-			m::String declTypename;
+			DeclVariable decl;
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
-		struct HAIZE_API ASTNodeVarNew : ASTNode
+		struct HAIZE_API ASTNodeVariableManipulation : ASTNode
 		{
-			bool global;
-			m::String declTypename;
+			DeclVariable decl;
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
-		};
-
-		struct HAIZE_API ASTNodeVarDelete : ASTNode
-		{
-			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeArgDecl : ASTNode
 		{
-			ParamPrefix prefix;
-			m::String declTypename;
+			DeclVariable decl;
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeFunctionDecl : ASTNode
 		{
-			m::String retTypename;
+			DeclFunction decl;
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeClassDecl : ASTNode
 		{
+			DeclClass decl;
+
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeFunctionCall : ASTNode
 		{
-			virtual IRInfo generateCode();
-		};
+			DeclFunction decl;
 
-		struct HAIZE_API ASTNodeArgCall : ASTNode
-		{
-			virtual IRInfo generateCode();
+			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeConstant : ASTNode
 		{
-			m::Variant value;
+			DeclVariable decl;
 
 			virtual m::String toString();
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeParenthesis : ASTNode
 		{
 			ASTNode* funcIdentNode;
 			m::u32 exprValueIndex;
-
-			virtual IRInfo generateCode();
 		};
 
 		struct HAIZE_API ASTNodeOperator : ASTNode
 		{
 			bool binop;
-
-			virtual IRInfo generateCode();
 		};
 	}
 }

@@ -17,12 +17,12 @@ namespace hz
 		MUON_DELETE(m_moduleContext);
 	}
 
-	Context* Engine::createContext(const m::String& name, ContextAttribute attr)
+	Context* Engine::createContext(const m::String& name, ContextMemConfig memConfig)
 	{
 		Context* context = getContext(name);
 		if (!context)
 		{
-			context = MUON_NEW(Context, name, attr);
+			context = MUON_NEW(Context, name, memConfig);
 			m::String sName = name;
 			(*m_moduleContext)[sName] = context;
 		}

@@ -1,4 +1,3 @@
-
 #include "Haize/Interpreter/ByteCode.hpp"
 
 /*
@@ -27,76 +26,69 @@ namespace
 
 namespace hz
 {
-	eOpCode ByteCode::opCode() const
+	eOpCode ByteCode::getOpCode() const
 	{
 		return (eOpCode)((data & MASK_OPCODE) >> OFFSET_OPCODE);
 	}
 
-	m::u8 ByteCode::res() const
+	m::u8 ByteCode::getRegResult() const
 	{
 		return ((data & MASK_RES) >> OFFSET_RES);
 	}
 
-	m::u8 ByteCode::arg1() const
+	m::u8 ByteCode::getRegArg1() const
 	{
 		return ((data & MASK_ARG1) >> OFFSET_ARG1);
 	}
 
-	m::u8 ByteCode::arg2() const
+	m::u8 ByteCode::getRegArg2() const
 	{
 		return ((data & MASK_ARG2) >> OFFSET_ARG2);
 	}
 
-	m::u16 ByteCode::argG() const
+	m::u16 ByteCode::getRegArgG() const
 	{
 		return ((data & MASK_ARGG) >> OFFSET_ARGG);
 	}
 
-	void ByteCode::opCode(eOpCode op)
+	void ByteCode::setOpCode(eOpCode op)
 	{
 		m::u8 iop = 0 | op;
 		data = (data & ~MASK_OPCODE) | (iop << OFFSET_OPCODE);
 	}
 
-	void ByteCode::res(m::u8 reg)
+	void ByteCode::setRegResult(m::u8 reg)
 	{
 		data = (data & ~MASK_RES) | (reg << OFFSET_RES);
 	}
 
-	void ByteCode::arg1(m::u8 reg)
+	void ByteCode::setRegArg1(m::u8 reg)
 	{
 		data = (data & ~MASK_ARG1) | (reg << OFFSET_ARG1);
 	}
 
-	void ByteCode::arg2(m::u8 reg)
+	void ByteCode::setRegArg2(m::u8 reg)
 	{
 		data = (data & ~MASK_ARG2) | (reg << OFFSET_ARG2);
 	}
 
-	void ByteCode::argG(m::u16 reg)
+	void ByteCode::setRegArgG(m::u16 reg)
 	{
 		data = (data & ~MASK_ARGG) | (reg << OFFSET_ARGG);
 	}
 
 	void ByteCode::setup(eOpCode opcode, m::u8 A, m::u8 B, m::u8 C)
 	{
-		opCode(opcode);
-		res(A);
-		arg1(B);
-		arg2(C);
+		setOpCode(opcode);
+		setRegResult(A);
+		setRegArg1(B);
+		setRegArg2(C);
 	}
 
 	void ByteCode::setup(eOpCode opcode, m::u8 A, m::u16 G)
 	{
-		opCode(opcode);
-		res(A);
-		argG(G);
-	}
-
-	void ByteCode::setup(eOpCode opcode, m::u8 A)
-	{
-		opCode(opcode);
-		res(A);
+		setOpCode(opcode);
+		setRegResult(A);
+		setRegArgG(G);
 	}
 }
-

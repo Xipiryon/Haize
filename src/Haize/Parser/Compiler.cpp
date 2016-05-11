@@ -2,6 +2,7 @@
 #include <sstream>
 #include <Muon/System/Log.hpp>
 
+#include "Haize/Context.hpp"
 #include "Haize/Parser/Compiler.hpp"
 
 namespace hz
@@ -11,6 +12,7 @@ namespace hz
 		Compiler::Compiler()
 		{
 			m_sections = MUON_NEW(std::vector<Section>);
+			m_rootNamespace.name = DeclNamespace::g_GlobalNamespaceName;
 		}
 
 		Compiler::~Compiler()
@@ -18,7 +20,7 @@ namespace hz
 			MUON_DELETE(m_sections);
 		}
 
-		ByteCode* Compiler::compile(Error& error)
+		bool Compiler::compile(Error& error, std::vector<ByteCode>* byteCode)
 		{
 			error.clear();
 			error.step = Error::COMPILATION;
@@ -26,8 +28,7 @@ namespace hz
 
 			m_tokenList = MUON_NEW(std::vector<parser::Token>);
 			m_nodeRoot = MUON_NEW(parser::ASTNode);
-			m_bytecode = NULL;
-			// m_bytecode will be allocated in Semantic
+			m_bytecode = byteCode;
 
 			// avoid a macro, and avoid duplicating code
 			auto clearVariable = [&]()
@@ -35,7 +36,6 @@ namespace hz
 				m_loadBuffer.clear();
 				MUON_DELETE(m_tokenList);
 				MUON_DELETE(m_nodeRoot);
-				MUON_FREE(m_bytecode);
 			};
 
 			if (!lexical(error))
@@ -58,7 +58,7 @@ namespace hz
 
 			clearVariable();
 			error.state = Error::SUCCESS;
-			return m_bytecode;
+			return true;
 		}
 	}
 }

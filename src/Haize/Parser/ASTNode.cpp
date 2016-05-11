@@ -56,138 +56,102 @@ namespace hz
 
 		m::String ASTNode::toString()
 		{
-			return m::String(hz::parser::TokenTypeStr[type]) + " (" + name + ")";
-		}
-
-		IRInfo ASTNode::generateCode()
-		{
-			MUON_ERROR("Not implemented!");
-			return IRInfo();
+			return name;
 		}
 
 		m::String ASTNodeNamespaceDecl::toString()
 		{
-			return "NAMESPACE " + name;
+			return decl.name;
 		}
 
 		m::String ASTNodeMemberDecl::toString()
 		{
-			return "MEMBER: " + name;
+			return decl.type + decl.name;
 		}
 
-		m::String ASTNodeVarNew::toString()
+		m::String ASTNodeVariableManipulation::toString()
 		{
-			return (global ? "GLOBAL " : "LOCAL ") + declTypename + " " + name;
-		}
-
-		m::String ASTNodeVarDelete::toString()
-		{
-			return "DELETE " + name;
+			return (type == NT_EXPR_NEW ?
+					(decl.global ? "(GLOBAL) " : "") + decl.type + " " + decl.name
+					: decl.name);
 		}
 
 		m::String ASTNodeArgDecl::toString()
 		{
-			return ((prefix & IN) ? "IN" : "") + m::String((prefix & OUT) ? "OUT" : "") + " " + declTypename + " " + name;
+			m::String str;
+			switch (decl.prefix)
+			{
+				case IN: str = "(IN) "; break;
+				case OUT: str = "(OUT) "; break;
+				case IN | OUT: str = "(INOUT) "; break;
+				default: str = "(???) "; break;
+			}
+			return str + decl.type + " " + name;
 		}
 
 		m::String ASTNodeClassDecl::toString()
 		{
-			return "CLASS: " + name;
+			return decl.name;
 		}
 
 		m::String ASTNodeFunctionDecl::toString()
 		{
-			return "FUNCTION: " + retTypename + " " + name;
+			m::String str = decl.type + " " + decl.name + " (";
+			if (!decl.params.empty())
+			{
+				for (m::u32 i = 0; i < decl.params.size() - 1; ++i)
+				{
+					str += decl.params[i].type + ", ";
+				}
+				str += decl.params.back().type;
+			}
+			str += ")";
+			return str;
+		}
+
+		m::String ASTNodeFunctionCall::toString()
+		{
+			m::String str = decl.type + " " + decl.name + " (";
+			if (!decl.params.empty())
+			{
+				for (m::u32 i = 0; i < decl.params.size() - 1; ++i)
+				{
+					str += decl.params[i].type + ", ";
+				}
+				str += decl.params.back().type;
+			}
+			str += ")";
+			return str;
 		}
 
 		m::String ASTNodeConstant::toString()
 		{
 			char buffer[32];
 			m::String str;
-			m::meta::MetaData* m = value.getMeta();
+			m::meta::MetaData* m = decl.value.getMeta();
 			if (MUON_META(m::String) == m)
 			{
-				str = value.get<m::String>();
+				str = decl.value.get<m::String>();
 			}
 			else if (MUON_META(m::f32) == m)
 			{
-				m::ftoa(value.get<m::f32>(), buffer);
+				m::ftoa(decl.value.get<m::f32>(), buffer);
 				str = buffer;
 			}
 			else if (MUON_META(m::i32) == m)
 			{
-				m::itoa((m::i64)value.get<m::i32>(), buffer);
+				m::itoa((m::i64)decl.value.get<m::i32>(), buffer);
 				str = buffer;
 			}
 			else if (MUON_META(bool) == m)
 			{
-				str = (value.get<bool>() ? "true" : "false");
+				str = (decl.value.get<bool>() ? "true" : "false");
 			}
 			else
 			{
 				str = TokenTypeStr[type];
 			}
 			return str;
-		}
-
-		IRInfo ASTNodeNamespaceDecl::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeArgDecl::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeFunctionDecl::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeClassDecl::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeMemberDecl::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeVarNew::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeVarDelete::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeConstant::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeParenthesis::generateCode()
-		{
-			IRInfo info;
-			return info;
-		}
-
-		IRInfo ASTNodeOperator::generateCode()
-		{
-			IRInfo info;
-			return info;
 		}
 	}
 }
