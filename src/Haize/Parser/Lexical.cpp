@@ -64,7 +64,6 @@ namespace
 	*/
 	struct InternalDataLexical
 	{
-
 		std::vector<hz::parser::Token>* tokenList;
 		hz::parser::Token token;
 		bool lineComment;
@@ -226,6 +225,10 @@ namespace
 				impl->fvalue = 0.0;
 				impl->fdenOffset = 1;
 				impl->fdenUsed = false;
+			}
+			else if (impl->token.type == hz::parser::V_STRING)
+			{
+				impl->token.value = (word == "\"\"" || word == "''" ? "" : word.substr(1, word.size() - 2));
 			}
 
 			impl->token.line = impl->line;
