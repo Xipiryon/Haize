@@ -28,7 +28,6 @@ namespace hz
 		void setup(eOpCode op, m::u8 regResult, m::u8 regArg1, m::u8 regArg2);
 		void setup(eOpCode op, m::u8 regResult, m::u16 regArgG);
 
-	private:
 		m::u32 data = 0;
 	};
 }
