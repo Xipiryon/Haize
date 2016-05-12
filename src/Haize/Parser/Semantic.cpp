@@ -277,10 +277,20 @@ namespace
 		GenCodeInfo info;
 		hz::ByteCode bytecode;
 		m::Variant& var = ((hz::parser::ASTNodeConstant*)node)->decl.value;
-		m::u16 constSize = (var.getMeta() == MUON_META(m::String) ? var.get<m::String>().size() : var.getMeta()->size());
-		bytecode.setup(hz::SYS_W_CONST, (m::u8)node->type, constSize);
+		bool isString = node->type == hz::parser::V_STRING;
+		m::u16 constSize = (isString ? var.get<m::String>().size() : var.getMeta()->size());
+		m::u16 requiredByteCode = constSize / sizeof(m::u32) + 1;
 
+		// Push directly inside the byte code
+		bytecode.setup(hz::SYS_W_CONST, (m::u8)node->type, constSize);
 		impl.byteCode.push_back(bytecode);
+
+		// Write down the bytes
+		std::vector<hz::ByteCode> dataByteCode(requiredByteCode);
+		void* dataSrc = (isString ? (void*)var.get<m::String>().cStr() : var.getRawData());
+		void* dataDst = &dataByteCode[0].data;
+		::memcpy(dataDst, dataSrc, constSize);
+		impl.byteCode.insert(impl.byteCode.end(), dataByteCode.begin(), dataByteCode.end());
 		return true;
 	}
 
