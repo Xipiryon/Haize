@@ -86,10 +86,7 @@ namespace hz
 			if (bcs > 0)
 			{
 				m_bytecode->reserve(m_bytecode->size() + bcs);
-				for (auto bc : impl.byteCode)
-				{
-					m_bytecode->push_back(bc);
-				}
+				m_bytecode->insert(m_bytecode->end(), impl.byteCode.begin(), impl.byteCode.end());
 			}
 
 			error.state = Error::SUCCESS;
