@@ -116,7 +116,7 @@ namespace hz
 #if defined(HAIZE_DEBUG)
 		m::u32 getByteCodeSize() const
 		{
-			return m_byteCode.size();
+			return m_byteCode.size() * sizeof(ByteCode);
 		}
 
 		ByteCode* getByteCodePtr()

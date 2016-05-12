@@ -190,7 +190,7 @@ void executeProgram()
 		if (g_ExportBytecode)
 		{
 			m::String outputFilename = g_Filename + "c";
-			log() << "Outputting to \"" << outputFilename << "\"" << m::endl;
+			log() << "Writing ByteCode to \"" << outputFilename << "\"" << m::endl;
 			std::ofstream file(outputFilename.cStr(), std::ios::binary | std::ios::trunc);
 			file.write((const char*)g_Context->getByteCodePtr(), g_Context->getByteCodeSize());
 			file.close();
