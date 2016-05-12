@@ -1,7 +1,7 @@
 #include <Muon/Memory/Allocator.hpp>
 #include <Muon/System/Log.hpp>
 
-#include "Haize/Parser/ASTNode.hpp"
+#include "Haize/Compiler/ASTNode.hpp"
 
 namespace hz
 {

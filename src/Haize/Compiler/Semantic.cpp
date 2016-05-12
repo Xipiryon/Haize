@@ -1,7 +1,7 @@
 #include <Muon/System/Log.hpp>
 
-#include "Haize/Parser/Compiler.hpp"
-#include "Haize/Parser/DeclStruct.hpp"
+#include "Haize/Module.hpp"
+#include "Haize/Compiler/DeclStruct.hpp"
 
 namespace
 {
@@ -51,7 +51,7 @@ namespace hz
 {
 	namespace parser
 	{
-		bool Compiler::semantic(Error& error)
+		bool Module::semantic(Error& error)
 		{
 			// Skip empty AST
 			if (m_nodeRoot->children->empty())

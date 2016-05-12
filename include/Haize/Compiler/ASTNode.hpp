@@ -4,8 +4,8 @@
 #include <deque>
 #include <Muon/Variant.hpp>
 
-#include "Haize/Parser/Token.hpp"
-#include "Haize/Parser/DeclStruct.hpp"
+#include "Haize/Compiler/Token.hpp"
+#include "Haize/Compiler/DeclStruct.hpp"
 
 namespace hz
 {

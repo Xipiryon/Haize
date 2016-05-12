@@ -4,13 +4,13 @@
 #include <vector>
 
 #include <Muon/Variant.hpp>
-#include <Muon/Memory/StackAllocator.hpp>
+#include <Muon/Memory/DoubleStackAllocator.hpp>
 #include <Muon/Memory/PoolAllocator.hpp>
 
-#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Runtime/ByteCode.hpp"
 
-#include "Haize/Parser/Compiler.hpp"
-#include "Haize/Parser/ASTNode.hpp"
+#include "Haize/Module.hpp"
+#include "Haize/Compiler/ASTNode.hpp"
 
 namespace hz
 {
@@ -19,11 +19,11 @@ namespace hz
 	class ContextMemConfig
 	{
 	public:
-		ContextMemConfig(m::u32 stackSize = m::memory::KiB<1>::bytes
-						 , m::u32 poolSize = m::memory::KiB<4>::bytes);
+		ContextMemConfig(m::u32 stackSize = m::memory::KiB<64>::bytes
+						 , m::u32 poolSize = m::memory::KiB<256>::bytes);
 
 	private:
-		m::memory::StackAllocator m_stack;
+		m::memory::DoubleStackAllocator m_stack;
 		m::memory::PoolAllocator m_pool;
 	};
 
@@ -130,7 +130,7 @@ namespace hz
 		Error m_error;
 
 		ContextMemConfig m_memConfig;
-		parser::Compiler m_compiler;
+		parser::Module m_compiler;
 
 		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 		std::vector<ByteCode> m_byteCode;

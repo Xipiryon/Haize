@@ -1,8 +1,8 @@
 #include <Muon/Memory/Allocator.hpp>
 #include <Muon/System/Log.hpp>
-#include "Haize/Parser/DeclStruct.hpp"
-#include "Haize/Parser/ASTNode.hpp"
-#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Compiler/DeclStruct.hpp"
+#include "Haize/Compiler/ASTNode.hpp"
+#include "Haize/Runtime/ByteCode.hpp"
 
 namespace hz
 {

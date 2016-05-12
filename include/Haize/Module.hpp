@@ -2,21 +2,20 @@
 #define INCLUDE_HAIZE_DEFAULTCOMPILER_INCLUDED
 
 #include "Haize/Error.hpp"
-#include "Haize/Parser/Token.hpp"
-#include "Haize/Parser/ASTNode.hpp"
-#include "Haize/Parser/DeclStruct.hpp"
-#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Compiler/Token.hpp"
+#include "Haize/Compiler/ASTNode.hpp"
+#include "Haize/Compiler/DeclStruct.hpp"
+#include "Haize/Runtime/ByteCode.hpp"
 
 namespace hz
 {
-	class ContextMemConfig;
 	namespace parser
 	{
-		class HAIZE_API Compiler
+		class HAIZE_API Module
 		{
 		public:
-			Compiler();
-			~Compiler();
+			Module();
+			~Module();
 
 			struct Section
 			{

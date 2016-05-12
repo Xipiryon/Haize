@@ -2,7 +2,7 @@
 #define INCLUDE_HAIZE_BYTECODE_INCLUDE
 
 #include <Muon/Core/Typedef.hpp>
-#include "Haize/Interpreter/OpCode.hpp"
+#include "Haize/Runtime/OpCode.hpp"
 
 namespace hz
 {

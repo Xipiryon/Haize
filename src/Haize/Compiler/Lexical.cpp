@@ -1,7 +1,7 @@
 #include <sstream>
 #include <Muon/System/Log.hpp>
 
-#include "Haize/Parser/Compiler.hpp"
+#include "Haize/Module.hpp"
 
 namespace utils
 {
@@ -78,7 +78,7 @@ namespace
 		m::u32 column;		// Token start column
 		m::u32 columnCount; // Absolute column count
 		// Section
-		std::vector<hz::parser::Compiler::Section>* sections;
+		std::vector<hz::parser::Module::Section>* sections;
 		m::u64 charCount;
 		m::u64 nextEndSection;
 		m::u32 currSection;
@@ -268,7 +268,7 @@ namespace hz
 {
 	namespace parser
 	{
-		bool Compiler::lexical(Error& error)
+		bool Module::lexical(Error& error)
 		{
 			error.clear();
 			error.step = Error::COMPILATION;

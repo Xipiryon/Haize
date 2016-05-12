@@ -1,13 +1,13 @@
 #include <fstream>
 #include <Muon/System/Log.hpp>
 
-#include "Haize/Parser/Compiler.hpp"
+#include "Haize/Module.hpp"
 
 namespace hz
 {
 	namespace parser
 	{
-		bool Compiler::load(const char* buffer, Error& error)
+		bool Module::load(const char* buffer, Error& error)
 		{
 			error.clear();
 			m_loadBuffer += buffer;
@@ -15,7 +15,7 @@ namespace hz
 			return true;
 		}
 
-		bool Compiler::load(const m::String& file, Error& error)
+		bool Module::load(const m::String& file, Error& error)
 		{
 			error.clear();
 			error.state = Error::ERROR;

@@ -3,24 +3,24 @@
 #include <Muon/System/Log.hpp>
 
 #include "Haize/Context.hpp"
-#include "Haize/Parser/Compiler.hpp"
+#include "Haize/Module.hpp"
 
 namespace hz
 {
 	namespace parser
 	{
-		Compiler::Compiler()
+		Module::Module()
 		{
 			m_sections = MUON_NEW(std::vector<Section>);
 			m_rootNamespace.name = DeclNamespace::g_GlobalNamespaceName;
 		}
 
-		Compiler::~Compiler()
+		Module::~Module()
 		{
 			MUON_DELETE(m_sections);
 		}
 
-		bool Compiler::compile(Error& error, std::vector<ByteCode>* byteCode)
+		bool Module::compile(Error& error, std::vector<ByteCode>* byteCode)
 		{
 			error.clear();
 			error.step = Error::COMPILATION;

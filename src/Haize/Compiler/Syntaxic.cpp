@@ -1,6 +1,6 @@
 #include <Muon/System/Log.hpp>
 
-#include "Haize/Parser/Compiler.hpp"
+#include "Haize/Module.hpp"
 
 namespace
 {
@@ -67,7 +67,7 @@ namespace
 		}
 
 		std::vector<hz::parser::Token>* tokenList;
-		std::vector<hz::parser::Compiler::Section>* sections;
+		std::vector<hz::parser::Module::Section>* sections;
 		hz::parser::ASTNode* rootNode;
 
 		hz::Error& error;
@@ -256,7 +256,7 @@ namespace hz
 {
 	namespace parser
 	{
-		bool Compiler::syntaxic(Error& error)
+		bool Module::syntaxic(Error& error)
 		{
 			error.clear();
 			error.step = Error::COMPILATION;

@@ -1,4 +1,4 @@
-#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Runtime/ByteCode.hpp"
 
 /*
 * Note that:

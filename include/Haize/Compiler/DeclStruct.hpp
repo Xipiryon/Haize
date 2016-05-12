@@ -4,7 +4,7 @@
 #include <map>
 #include <Muon/String.hpp>
 #include <Muon/Variant.hpp>
-#include "Haize/Interpreter/ByteCode.hpp"
+#include "Haize/Runtime/ByteCode.hpp"
 
 namespace hz
 {
