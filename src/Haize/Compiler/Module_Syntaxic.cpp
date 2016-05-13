@@ -67,7 +67,7 @@ namespace
 		}
 
 		std::vector<hz::parser::Token>* tokenList;
-		std::vector<hz::parser::Module::Section>* sections;
+		std::vector<hz::Module::Section>* sections;
 		hz::parser::ASTNode* rootNode;
 
 		hz::Error& error;
@@ -254,79 +254,76 @@ namespace
 
 namespace hz
 {
-	namespace parser
+	bool Module::syntaxic(Error& error)
 	{
-		bool Module::syntaxic(Error& error)
+		error.clear();
+		error.step = Error::COMPILATION;
+
+		// Clean children
+		while (!m_nodeRoot->children->empty())
 		{
-			error.clear();
-			error.step = Error::COMPILATION;
+			MUON_DELETE(m_nodeRoot->children->back());
+			m_nodeRoot->children->pop_back();
+		}
 
-			// Clean children
-			while (!m_nodeRoot->children->empty())
-			{
-				MUON_DELETE(m_nodeRoot->children->back());
-				m_nodeRoot->children->pop_back();
-			}
+		// Reinit token
+		m_nodeRoot->name = "#ROOT#";
+		m_nodeRoot->type = parser::NT_ROOT;
 
-			// Reinit token
-			m_nodeRoot->name = "#ROOT#";
-			m_nodeRoot->type = parser::NT_ROOT;
+		InternalSyntaxicData impl(error);
+		impl.tokenList = m_tokenList;
+		impl.sections = m_sections;
+		impl.rootNode = m_nodeRoot;
+		impl.readTokenIndex = 0;
+		impl.currNode = m_nodeRoot;
+		impl.openParenthesis = 0;
+		impl.openBracket = 0;
 
-			InternalSyntaxicData impl(error);
-			impl.tokenList = m_tokenList;
-			impl.sections = m_sections;
-			impl.rootNode = m_nodeRoot;
-			impl.readTokenIndex = 0;
-			impl.currNode = m_nodeRoot;
-			impl.openParenthesis = 0;
-			impl.openBracket = 0;
-
-			// Skip empty Token list
-			if (m_tokenList->empty())
-			{
-				error.state = Error::SUCCESS;
-				return true;
-			}
-
-			impl.lastReadToken = m_tokenList->front();
-			parser::Token token;
-			while (readToken(&impl, token))
-			{
-				if (token.type == S_EOF)
-				{
-					break;
-				}
-
-				if (!parseChunk(&impl))
-				{
-					error.state = Error::ERROR;
-					for (auto it : impl.exprValue)
-					{
-						MUON_DELETE(it);
-					}
-					for (auto it : impl.exprOperator)
-					{
-						MUON_DELETE(it);
-					}
-					return false;
-				}
-			}
-
+		// Skip empty Token list
+		if (m_tokenList->empty())
+		{
 			error.state = Error::SUCCESS;
-#if defined(HAIZE_DEBUG)
-			m::system::Log debug("Syntaxic", m::LOG_DEBUG);
-			displayNodeHierarchy(m_nodeRoot);
-#endif
-			for (auto it : impl.exprValue)
-			{
-				MUON_DELETE(it);
-			}
-			for (auto it : impl.exprOperator)
-			{
-				MUON_DELETE(it);
-			}
 			return true;
 		}
+
+		impl.lastReadToken = m_tokenList->front();
+		parser::Token token;
+		while (readToken(&impl, token))
+		{
+			if (token.type == parser::S_EOF)
+			{
+				break;
+			}
+
+			if (!parseChunk(&impl))
+			{
+				error.state = Error::ERROR;
+				for (auto it : impl.exprValue)
+				{
+					MUON_DELETE(it);
+				}
+				for (auto it : impl.exprOperator)
+				{
+					MUON_DELETE(it);
+				}
+				return false;
+			}
+		}
+
+		error.state = Error::SUCCESS;
+#if defined(HAIZE_DEBUG)
+		m::system::Log debug("Syntaxic", m::LOG_DEBUG);
+		displayNodeHierarchy(m_nodeRoot);
+#endif
+		for (auto it : impl.exprValue)
+		{
+			MUON_DELETE(it);
+		}
+		for (auto it : impl.exprOperator)
+		{
+			MUON_DELETE(it);
+		}
+		return true;
 	}
 }
 

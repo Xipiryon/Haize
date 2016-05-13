@@ -49,49 +49,46 @@ namespace
 
 namespace hz
 {
-	namespace parser
+	bool Module::semantic(Error& error)
 	{
-		bool Module::semantic(Error& error)
+		// Skip empty AST
+		if (m_nodeRoot->children->empty())
 		{
-			// Skip empty AST
-			if (m_nodeRoot->children->empty())
-			{
-				return true;
-			}
-			error.clear();
-			error.step = Error::COMPILATION;
-
-			InternalDataSemantic impl(error, m_rootNamespace);
-			// Build SymbolTable
-			for (auto it = m_nodeRoot->children->begin(); it != m_nodeRoot->children->end(); ++it)
-			{
-				if (!buildSymbolTable(impl, *it))
-				{
-					error.state = Error::ERROR;
-					return false;
-				}
-			}
-
-			// Generate code for every required node
-			for (auto it = impl.nodeToGenerate.begin(); it != impl.nodeToGenerate.end(); ++it)
-			{
-				if (!generateCode(impl, *it))
-				{
-					error.state = Error::ERROR;
-					return false;
-				}
-			}
-
-			m::u32 bcs = impl.byteCode.size();
-			if (bcs > 0)
-			{
-				m_bytecode->reserve(m_bytecode->size() + bcs);
-				m_bytecode->insert(m_bytecode->end(), impl.byteCode.begin(), impl.byteCode.end());
-			}
-
-			error.state = Error::SUCCESS;
 			return true;
 		}
+		error.clear();
+		error.step = Error::COMPILATION;
+
+		InternalDataSemantic impl(error, m_rootNamespace);
+		// Build SymbolTable
+		for (auto it = m_nodeRoot->children->begin(); it != m_nodeRoot->children->end(); ++it)
+		{
+			if (!buildSymbolTable(impl, *it))
+			{
+				error.state = Error::ERROR;
+				return false;
+			}
+		}
+
+		// Generate code for every required node
+		for (auto it = impl.nodeToGenerate.begin(); it != impl.nodeToGenerate.end(); ++it)
+		{
+			if (!generateCode(impl, *it))
+			{
+				error.state = Error::ERROR;
+				return false;
+			}
+		}
+
+		m::u32 bcs = impl.byteCode.size();
+		if (bcs > 0)
+		{
+			m_bytecode.reserve(m_bytecode.size() + bcs);
+			m_bytecode.insert(m_bytecode.end(), impl.byteCode.begin(), impl.byteCode.end());
+		}
+
+		error.state = Error::SUCCESS;
+		return true;
 	}
 }
 

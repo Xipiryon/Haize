@@ -8,6 +8,6 @@ namespace hz
 {
 	namespace parser
 	{
-		const m::String DeclNamespace::g_GlobalNamespaceName = "#ROOT#";
+		const m::String DeclNamespace::g_GlobalNamespaceName = "G";
 	}
 }

@@ -9,39 +9,66 @@
 
 namespace hz
 {
-	namespace parser
+	class HAIZE_API ModuleMemConfig
 	{
-		class HAIZE_API Module
+	public:
+		ModuleMemConfig();
+	private:
+	};
+
+	class HAIZE_API Module
+	{
+	public:
+		struct Section
 		{
-		public:
-			Module();
-			~Module();
-
-			struct Section
-			{
-				m::String name;
-				m::u64 _end;
-			};
-
-			bool load(const char* buffer, Error& error);
-			bool load(const m::String& file, Error& error);
-
-			bool compile(Error& error, std::vector<ByteCode>* byteCode);
-
-		protected:
-			bool lexical(Error& error);
-			bool syntaxic(Error& error);
-			bool semantic(Error& error);
-
-		private:
-			// Variables
-			m::String m_loadBuffer;
-			std::vector<parser::Token>* m_tokenList;
-			std::vector<Section>* m_sections;
-			parser::ASTNode* m_nodeRoot;
-			parser::DeclNamespace m_rootNamespace;
-			std::vector<ByteCode>* m_bytecode;
+			m::String name;
+			m::u64 _end;
 		};
-	}
+
+		Module(const char* name, ModuleMemConfig memConfig = ModuleMemConfig());
+		Module(const m::String& name, ModuleMemConfig memConfig = ModuleMemConfig());
+		~Module();
+
+		const m::String& getName() const;
+
+		bool load(const m::String& file);
+		bool compile();
+		Error getLastError() const;
+
+#if defined(HAIZE_DEBUG)
+		m::u32 getByteCodeSize() const
+		{
+			return m_byteCode.size() * sizeof(ByteCode);
+		}
+
+		ByteCode* getByteCodePtr()
+		{
+			return (m_byteCode.empty() ? NULL : &m_byteCode[0]);
+		}
+#endif
+	protected:
+		bool load(const m::String& file, Error& error);
+		bool lexical(Error& error);
+		bool syntaxic(Error& error);
+		bool semantic(Error& error);
+
+	private:
+
+		// Module Information
+		m::String m_name;
+
+		// Load & Compilation info
+		Error m_error;
+		std::vector<ByteCode> m_byteCode;
+
+		m::String m_loadBuffer;
+		std::vector<parser::Token>* m_tokenList;
+		std::vector<Section>* m_sections;
+		parser::ASTNode* m_nodeRoot;
+		std::vector<ByteCode> m_bytecode;
+
+		// Symbol Table
+		parser::DeclNamespace m_rootNamespace;
+	};
 }
 #endif
