@@ -13,7 +13,7 @@ namespace
 
 	struct InternalDataSemantic
 	{
-		InternalDataSemantic(hz::Error& err, hz::parser::DeclNamespace& root)
+		InternalDataSemantic(hz::Error& err, hz::symbol::Namespace& root)
 			: error(err)
 			, rootNamespace(root)
 		{
@@ -21,16 +21,16 @@ namespace
 		}
 
 		hz::Error& error;
-		hz::parser::DeclNamespace& rootNamespace;
+		hz::symbol::Namespace& rootNamespace;
 
 		std::vector<hz::parser::ASTNode*> nodeToGenerate;
-		hz::parser::DeclNamespace* currNamespace;
+		hz::symbol::Namespace* currNamespace;
 
 		std::vector<GenCodeInfo> genCodeInfo;
 		std::vector<hz::ByteCode> byteCode;
 	};
 
-	bool findFunctionDecl(InternalDataSemantic& impl, const m::String& name, hz::parser::DeclFunction** outFuncDecl);
+	bool findFunctionDecl(InternalDataSemantic& impl, const m::String& name, hz::symbol::Function** outFuncDecl);
 
 	bool buildSymbolTable(InternalDataSemantic& impl, hz::parser::ASTNode* node);
 	bool buildSTFunctionDecl(InternalDataSemantic& impl, hz::parser::ASTNode* node);
@@ -94,11 +94,11 @@ namespace hz
 
 namespace
 {
-	bool findFunctionDecl(InternalDataSemantic& impl, const m::String& name, hz::parser::DeclFunction** outFuncDecl)
+	bool findFunctionDecl(InternalDataSemantic& impl, const m::String& name, hz::symbol::Function** outFuncDecl)
 	{
 		bool found = false;
 		bool search = true;
-		hz::parser::DeclNamespace* searchNamespace = impl.currNamespace;
+		hz::symbol::Namespace* searchNamespace = impl.currNamespace;
 		while (!found && search)
 		{
 			auto it = searchNamespace->functions.find(name);
@@ -136,7 +136,7 @@ namespace
 
 	bool buildSTFunctionDecl(InternalDataSemantic& impl, hz::parser::ASTNode* node)
 	{
-		hz::parser::DeclFunction decl = ((hz::parser::ASTNodeFunctionDecl*)node)->decl;
+		hz::symbol::Function decl = ((hz::parser::ASTNodeFunctionDecl*)node)->decl;
 		// Check there is no already defined function in the current namespace
 		auto it = impl.currNamespace->functions.find(decl.name);
 		if (it != impl.currNamespace->functions.end())
@@ -252,7 +252,7 @@ namespace
 		}
 
 		// Now we have all
-		hz::parser::DeclFunction* decl;
+		hz::symbol::Function* decl;
 		if (!findFunctionDecl(impl, callNode->name, &decl))
 		{
 			impl.error.message = "Couldn't find any function \"" + callNode->toString() + "\"";

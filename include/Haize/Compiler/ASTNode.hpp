@@ -2,7 +2,6 @@
 #define INCLUDE_HAIZE_ASTNODE_INCLUDED
 
 #include <deque>
-#include <Muon/Variant.hpp>
 
 #include "Haize/Compiler/Token.hpp"
 #include "Haize/Compiler/DeclStruct.hpp"
@@ -39,56 +38,56 @@ namespace hz
 
 		struct HAIZE_API ASTNodeNamespaceDecl : ASTNode
 		{
-			DeclNamespace decl;
+			symbol::Namespace decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeMemberDecl : ASTNode
 		{
-			DeclVariable decl;
+			symbol::Variable decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeVariableManipulation : ASTNode
 		{
-			DeclVariable decl;
+			symbol::Variable decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeArgDecl : ASTNode
 		{
-			DeclVariable decl;
+			symbol::Variable decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeFunctionDecl : ASTNode
 		{
-			DeclFunction decl;
+			symbol::Function decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeClassDecl : ASTNode
 		{
-			DeclClass decl;
+			symbol::Class decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeFunctionCall : ASTNode
 		{
-			DeclFunction decl;
+			symbol::Function decl;
 
 			virtual m::String toString();
 		};
 
 		struct HAIZE_API ASTNodeConstant : ASTNode
 		{
-			DeclVariable decl;
+			symbol::Variable decl;
 
 			virtual m::String toString();
 		};

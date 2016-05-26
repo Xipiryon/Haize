@@ -2,8 +2,8 @@
 #define INCLUDE_HAIZE_DECLSTRUCT_INCLUDED
 
 #include <map>
-#include <Muon/String.hpp>
 #include <Muon/Variant.hpp>
+#include <Muon/String.hpp>
 #include "Haize/Runtime/ByteCode.hpp"
 
 namespace hz
@@ -12,8 +12,11 @@ namespace hz
 	{
 		struct ASTNodeFunctionDecl;
 		struct ASTNodeFunctionCall;
+	}
 
-		struct DeclVariable
+	namespace symbol
+	{
+		struct HAIZE_API Variable
 		{
 			union
 			{
@@ -25,7 +28,7 @@ namespace hz
 			m::Variant value;
 		};
 
-		struct DeclFunction
+		struct HAIZE_API Function
 		{
 			union
 			{
@@ -34,25 +37,25 @@ namespace hz
 			};
 			m::String type;
 			m::String name;
-			std::vector<DeclVariable> params;
+			std::vector<Variable> params;
 		};
 
-		struct DeclClass
+		struct HAIZE_API Class
 		{
 			m::String name;
-			std::map<m::String, DeclFunction> methods;
-			std::map<m::String, DeclVariable> members;
+			std::map<m::String, Function> methods;
+			std::map<m::String, Variable> members;
 		};
 
-		struct DeclNamespace
+		struct HAIZE_API Namespace
 		{
 			static const m::String g_GlobalNamespaceName;
 			m::String name;
-			DeclNamespace* parentNamespace = NULL;
-			std::map<m::String, DeclNamespace*> nestedNamespace;
-			std::map<m::String, DeclVariable> globals;
-			std::map<m::String, DeclClass> classes;
-			std::map<m::String, DeclFunction> functions;
+			Namespace* parentNamespace = NULL;
+			std::map<m::String, Namespace*> nestedNamespace;
+			std::map<m::String, Variable> globals;
+			std::map<m::String, Class> classes;
+			std::map<m::String, Function> functions;
 		};
 	}
 }

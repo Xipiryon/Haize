@@ -68,7 +68,7 @@ namespace hz
 		std::vector<ByteCode> m_bytecode;
 
 		// Symbol Table
-		parser::DeclNamespace m_rootNamespace;
+		symbol::Namespace m_rootNamespace;
 	};
 }
 #endif

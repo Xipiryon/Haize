@@ -10,9 +10,9 @@ namespace hz
 		SYS_MOV = 0,	//! Copy the content of a register into another
 		SYS_JUMP,		//! Jump to a given address
 		SYS_RETURN,		//! Return from a function
-		SYS_PUSH_STACK,	//! Push a value onto the stack
-		SYS_POP_STACK,	//! Pop a value from the stack
 		SYS_CALL_FUNC,	//! Call a function at given address
+		SYS_W_STACK,	//! Push a value onto the stack
+		SYS_R_STACK,	//! Pop a value from the stack
 		SYS_W_CONST,	//! Store a constant in the bytecode
 		SYS_R_CONST,	//! Read a constant from the bytecode
 		// *****

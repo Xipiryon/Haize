@@ -1,4 +1,4 @@
-#include <Muon/Memory/Allocator.hpp>
+#include <Muon/Memory/Utils.hpp>
 #include <Muon/System/Log.hpp>
 #include "Haize/Compiler/DeclStruct.hpp"
 #include "Haize/Compiler/ASTNode.hpp"
@@ -6,8 +6,8 @@
 
 namespace hz
 {
-	namespace parser
+	namespace symbol
 	{
-		const m::String DeclNamespace::g_GlobalNamespaceName = "G";
+		const m::String Namespace::g_GlobalNamespaceName = "G";
 	}
 }
