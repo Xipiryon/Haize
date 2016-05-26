@@ -517,7 +517,7 @@ namespace
 		hz::parser::Token token;
 		if (readToken(impl, token))
 		{
-			hz::parser::ParamPrefix prefix = hz::parser::IN;
+			hz::parser::eParamPrefix prefix = hz::parser::IN;
 			// Prefix is optional
 			if (token.type == hz::parser::S_KEYWORD)
 			{
@@ -533,7 +533,7 @@ namespace
 				}
 				else if (keyword == "inout")
 				{
-					prefix = (hz::parser::ParamPrefix)(hz::parser::IN | hz::parser::OUT);
+					prefix = (hz::parser::eParamPrefix)(hz::parser::IN | hz::parser::OUT);
 				}
 				else
 				{
