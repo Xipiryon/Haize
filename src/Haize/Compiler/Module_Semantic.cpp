@@ -253,7 +253,7 @@ namespace
 
 		// Now we have all
 		hz::symbol::Function* decl;
-		if (!findFunctionDecl(impl, callNode->name, &decl))
+		if (!findFunctionDecl(impl, callNode->decl.name, &decl))
 		{
 			impl.error.message = "Couldn't find any function \"" + callNode->toString() + "\"";
 			return false;
