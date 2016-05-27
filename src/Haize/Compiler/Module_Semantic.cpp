@@ -281,7 +281,7 @@ namespace
 
 		// Write down the bytes
 		std::vector<hz::ByteCode> dataByteCode(requiredByteCode);
-		void* dataSrc = (isString ? (void*)var.get<m::String>().cStr() : var.get<void*>());
+		void* dataSrc = (isString ? dataSrc = (void*)var.get<m::String>().cStr() : dataSrc = var.getRaw());
 		void* dataDst = &dataByteCode[0].data;
 		::memcpy(dataDst, dataSrc, constSize);
 		impl.byteCode.insert(impl.byteCode.end(), dataByteCode.begin(), dataByteCode.end());

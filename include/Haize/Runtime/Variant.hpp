@@ -6,6 +6,6 @@
 
 namespace hz
 {
-	typedef m::traits::Variant<bool, m::i32, m::f32, m::String, void*> Variant;
+	typedef m::traits::Variant<bool, m::i32, m::f32, m::String> Variant;
 }
 #endif
