@@ -75,6 +75,7 @@ solution "Haize"
 		optimize "Debug"
 		flags   { "Symbols" }
 		defines { "HAIZE_DEBUG"}
+		if _OPTIONS["buildmuon"] then defines { "MUON_DEBUG" } end
 
 	filter "Release*"
 		targetsuffix "-r"
