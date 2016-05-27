@@ -553,7 +553,7 @@ namespace
 				{
 					popToken(impl);
 
-					hz::parser::DeclVariable declArg;
+					hz::symbol::Variable declArg;
 					declArg.prefix = prefix;
 					declArg.type = vartype;
 					declArg.name = token.value.get<m::String>();
