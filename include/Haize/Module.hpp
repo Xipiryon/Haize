@@ -6,6 +6,7 @@
 #include "Haize/Compiler/ASTNode.hpp"
 #include "Haize/Compiler/DeclStruct.hpp"
 #include "Haize/Runtime/ByteCode.hpp"
+#include "Haize/Runtime/Variant.hpp"
 
 namespace hz
 {

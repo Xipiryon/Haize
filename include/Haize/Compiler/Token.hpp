@@ -1,8 +1,8 @@
 #ifndef INCLUDE_HAIZE_TOKEN_INCLUDED
 #define INCLUDE_HAIZE_TOKEN_INCLUDED
 
-#include <Muon/Variant.hpp>
 #include "Haize/Core/Define.hpp"
+#include "Haize/Runtime/Variant.hpp"
 
 namespace hz
 {
@@ -250,17 +250,17 @@ namespace hz
 			{
 				char buffer[32];
 				m::String tokstr;
-				m::meta::MetaData* m = value.getMeta();
-				if (MUON_META(m::String) == m)
+				m::u64 id = value.id();
+				if (MUON_TRAITS_GET_ID(m::String) == id)
 				{
 					tokstr = value.get<m::String>();
 				}
-				else if (MUON_META(m::f32) == m)
+				else if (MUON_TRAITS_GET_ID(m::f32) == id)
 				{
 					m::ftoa(value.get<m::f32>(), buffer);
 					tokstr = buffer;
 				}
-				else if (MUON_META(m::i32) == m)
+				else if (MUON_TRAITS_GET_ID(m::i32) == id)
 				{
 					m::itoa((m::i64)value.get<m::i32>(), buffer);
 					tokstr = buffer;
@@ -273,7 +273,7 @@ namespace hz
 			}
 
 			eTokenType type;
-			m::Variant value;
+			Variant value;
 
 			m::u32 section;
 			m::u32 line;

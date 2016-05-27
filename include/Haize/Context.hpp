@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#include <Muon/Variant.hpp>
 #include <Muon/Memory/DoubleStackAllocator.hpp>
 #include <Muon/Memory/PoolAllocator.hpp>
 
 #include "Haize/Runtime/ByteCode.hpp"
+#include "haize/Runtime/Variant.hpp"
 
 #include "Haize/Module.hpp"
 #include "Haize/Compiler/ASTNode.hpp"
@@ -41,7 +41,7 @@ namespace hz
 		m::memory::DoubleStackAllocator m_stackAlloc;
 		m::memory::PoolAllocator m_poolAlloc;
 
-		m::Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
+		Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
 		ByteCode m_instr;
 		m::u32 m_stack;
 	};

@@ -128,22 +128,22 @@ namespace hz
 		{
 			char buffer[32];
 			m::String str;
-			m::meta::MetaData* m = decl.value.getMeta();
-			if (MUON_META(m::String) == m)
+			m::u64 id = decl.value.id();
+			if (MUON_TRAITS_GET_ID(m::String) == id)
 			{
 				str = decl.value.get<m::String>();
 			}
-			else if (MUON_META(m::f32) == m)
+			else if (MUON_TRAITS_GET_ID(m::f32) == id)
 			{
 				m::ftoa(decl.value.get<m::f32>(), buffer);
 				str = buffer;
 			}
-			else if (MUON_META(m::i32) == m)
+			else if (MUON_TRAITS_GET_ID(m::i32) == id)
 			{
 				m::itoa((m::i64)decl.value.get<m::i32>(), buffer);
 				str = buffer;
 			}
-			else if (MUON_META(bool) == m)
+			else if (MUON_TRAITS_GET_ID(bool) == id)
 			{
 				str = (decl.value.get<bool>() ? "true" : "false");
 			}

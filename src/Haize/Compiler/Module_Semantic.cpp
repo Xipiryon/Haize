@@ -270,9 +270,9 @@ namespace
 	{
 		GenCodeInfo info;
 		hz::ByteCode bytecode;
-		m::Variant& var = ((hz::parser::ASTNodeConstant*)node)->decl.value;
+		hz::Variant& var = ((hz::parser::ASTNodeConstant*)node)->decl.value;
 		bool isString = node->type == hz::parser::V_STRING;
-		m::u16 constSize = (isString ? var.get<m::String>().size() : var.getMeta()->size());
+		m::u16 constSize = (isString ? var.get<m::String>().size() : var.size());
 		m::u16 requiredByteCode = constSize / sizeof(m::u32) + 1;
 
 		// Push directly inside the byte code
@@ -281,7 +281,7 @@ namespace
 
 		// Write down the bytes
 		std::vector<hz::ByteCode> dataByteCode(requiredByteCode);
-		void* dataSrc = (isString ? (void*)var.get<m::String>().cStr() : var.getRawData());
+		void* dataSrc = (isString ? (void*)var.get<m::String>().cStr() : var.get<void*>());
 		void* dataDst = &dataByteCode[0].data;
 		::memcpy(dataDst, dataSrc, constSize);
 		impl.byteCode.insert(impl.byteCode.end(), dataByteCode.begin(), dataByteCode.end());

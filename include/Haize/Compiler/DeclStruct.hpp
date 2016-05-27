@@ -2,8 +2,8 @@
 #define INCLUDE_HAIZE_DECLSTRUCT_INCLUDED
 
 #include <map>
-#include <Muon/Variant.hpp>
 #include <Muon/String.hpp>
+#include "Haize/Runtime/Variant.hpp"
 #include "Haize/Runtime/ByteCode.hpp"
 
 namespace hz
@@ -25,7 +25,7 @@ namespace hz
 			};
 			m::String type;
 			m::String name;
-			m::Variant value;
+			Variant value;
 		};
 
 		struct HAIZE_API Function
