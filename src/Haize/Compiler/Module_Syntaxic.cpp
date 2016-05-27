@@ -1155,7 +1155,7 @@ namespace
 				{
 					auto* funcNode = MUON_NEW(hz::parser::ASTNodeFunctionCall);
 					auto* oldIdent = impl->exprValue.back();
-					funcNode->name = oldIdent->name;
+					funcNode->decl.name = oldIdent->name;
 					lparentNode->funcIdentNode = funcNode;
 					impl->exprValue.back() = funcNode;
 					MUON_DELETE(oldIdent);

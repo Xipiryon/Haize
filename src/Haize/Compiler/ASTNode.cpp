@@ -111,7 +111,7 @@ namespace hz
 
 		m::String ASTNodeFunctionCall::toString()
 		{
-			m::String str = decl.type + " " + decl.name + " (";
+			m::String str = decl.name + " (";
 			if (!decl.params.empty())
 			{
 				for (m::u32 i = 0; i < decl.params.size() - 1; ++i)
