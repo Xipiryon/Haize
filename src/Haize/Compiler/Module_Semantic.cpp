@@ -18,6 +18,8 @@ namespace
 			, rootNamespace(root)
 		{
 			currNamespace = &rootNamespace;
+			currRegister = 0;
+			hasReturnStmt = false;
 		}
 
 		hz::Error& error;
@@ -28,6 +30,8 @@ namespace
 
 		std::vector<GenCodeInfo> genCodeInfo;
 		std::vector<hz::ByteCode> byteCode;
+		m::i32 currRegister;
+		bool hasReturnStmt;
 	};
 
 	bool findFunctionDecl(InternalDataSemantic& impl, const m::String& name, hz::symbol::Function** outFuncDecl);
@@ -80,12 +84,16 @@ namespace hz
 			}
 		}
 
-		m::u32 bcs = impl.byteCode.size();
-		if (bcs > 0)
+		if (!impl.hasReturnStmt)
 		{
-			m_bytecode.reserve(m_bytecode.size() + bcs);
-			m_bytecode.insert(m_bytecode.end(), impl.byteCode.begin(), impl.byteCode.end());
+			ByteCode retStmt;
+			retStmt.setOpCode(hz::SYS_RETURN);
+			impl.byteCode.push_back(retStmt);
 		}
+
+		m::u32 bcs = impl.byteCode.size();
+		m_byteCode->reserve(m_byteCode->size() + bcs);
+		m_byteCode->insert(m_byteCode->end(), impl.byteCode.begin(), impl.byteCode.end());
 
 		error.state = Error::SUCCESS;
 		return true;
@@ -200,6 +208,8 @@ namespace
 				case hz::parser::NT_EXPR_FUNC_CALL:
 					ok = generateNTFuncCall(impl, expr);
 					break;
+				case hz::parser::NT_EXPR_RETURN:
+					break;
 				default:
 					MUON_ERROR("Not implemented '%s'", hz::parser::TokenTypeStr[expr->type]);
 					ok = false;
@@ -239,6 +249,11 @@ namespace
 					break;
 				case hz::parser::V_IDENTIFIER:
 					ok = generateTIdentifier(impl, expr);
+					break;
+				case hz::parser::NT_EXPR_FUNC_CALL:
+					ok = generateNTFuncCall(impl, expr);
+					break;
+				case hz::parser::UNARY_MINUS:
 					break;
 				default:
 					MUON_ERROR("Not implemented '%s'", hz::parser::TokenTypeStr[expr->type]);
@@ -281,7 +296,7 @@ namespace
 
 		// Write down the bytes
 		std::vector<hz::ByteCode> dataByteCode(requiredByteCode);
-		void* dataSrc = (isString ? dataSrc = (void*)var.get<m::String>().cStr() : dataSrc = var.getRaw());
+		void* dataSrc = (isString ? dataSrc = (void*)var.get<m::String>().cStr() : dataSrc = var.object());
 		void* dataDst = &dataByteCode[0].data;
 		::memcpy(dataDst, dataSrc, constSize);
 		impl.byteCode.insert(impl.byteCode.end(), dataByteCode.begin(), dataByteCode.end());

@@ -1,4 +1,4 @@
-#include <Muon/Memory/Allocator.hpp>
+#include <Muon/Memory/Utils.hpp>
 #include <Muon/System/Log.hpp>
 
 #include "Haize/Compiler/ASTNode.hpp"

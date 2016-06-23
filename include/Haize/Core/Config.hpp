@@ -1,11 +1,15 @@
 #ifndef INCLUDE_HAIZE_CONFIG_INCLUDE
 #define INCLUDE_HAIZE_CONFIG_INCLUDE
 
+#include <Muon/Memory/Utils.hpp>
 #include "Haize/Core/Define.hpp"
 
 #define HAIZE_VERSION_MAJOR		0
 #define HAIZE_VERSION_MINOR		0
 #define HAIZE_VERSION_REVISION	0
 #define HAIZE_VERSION MUON_STR(HAIZE_VERSION_MAJOR.HAIZE_VERSION_MINOR.HAIZE_VERSION_REVISION)
+
+#define HAIZE_CONTEXT_STACKSIZE		m::memory::KiB<256>::bytes
+#define HAIZE_CONTEXT_POOLSIZE		m::memory::KiB<512>::bytes
 
 #endif

@@ -3,47 +3,51 @@
 
 #include <vector>
 
-#include <Muon/Memory/DoubleStackAllocator.hpp>
+#include <Muon/Memory/StackAllocator.hpp>
 #include <Muon/Memory/PoolAllocator.hpp>
 
 #include "Haize/Runtime/ByteCode.hpp"
 #include "haize/Runtime/Variant.hpp"
-
 #include "Haize/Module.hpp"
 #include "Haize/Compiler/ASTNode.hpp"
 
 namespace hz
 {
-	class HAIZE_API ContextMemConfig
-	{
-		friend class Context;
-	public:
-		ContextMemConfig(m::u32 variableSize = m::memory::KiB<64>::bytes
-						 , m::u32 poolSize = m::memory::KiB<256>::bytes);
-
-	private:
-		m::u32 m_stackSize;
-		m::u32 m_poolSize;
-	};
-
 	class HAIZE_API Context
 	{
 	public:
 
-		Context(const Module& moduleRef, ContextMemConfig memConfig = ContextMemConfig());
+		Context(const Module& moduleRef);
 		~Context();
 
 		bool prepare(const m::String& func);
-
 		bool execute();
 
+		bool pushBoolean(bool value);
+		bool pushInteger(m::i32 value);
+		bool pushFloat(m::f32 value);
+		bool pushString(const m::String& value);
+		bool pushString(const char* value);
+		bool pushObject(void* object);
+
+		bool checkBoolean(m::u32 stack);
+		bool checkInteger(m::u32 stack);
+		bool checkFloat(m::u32 stack);
+		bool checkString(m::u32 stack);
+		bool checkObject(m::u32 stack);
+
+		bool getAsBoolean(m::u32 stack);
+		m::i32 getAsInteger(m::u32 stack);
+		m::f32 getAsFloat(m::u32 stack);
+		m::String getAsString(m::u32 stack);
+		void* getAsObject(m::u32 stack);
+
 	private:
-		m::memory::DoubleStackAllocator m_stackAlloc;
+		const Module& m_module;
+		m::memory::StackAllocator m_stackAlloc;
 		m::memory::PoolAllocator m_poolAlloc;
 
 		Variant m_registers[ByteCode::REG_MAX_AVAILABLE];
-		ByteCode m_instr;
-		m::u32 m_stack;
 	};
 }
 #endif

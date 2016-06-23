@@ -7,25 +7,28 @@
 
 namespace hz
 {
-	ModuleMemConfig::ModuleMemConfig()
-	{
-	}
-
-	Module::Module(const char* name, ModuleMemConfig memConfig)
+	Module::Module(const char* name, bool loadDefaultObjects)
 		: m_name(name)
 	{
 		m_sections = MUON_NEW(std::vector<Section>);
-		m_rootNamespace.name = parser::DeclNamespace::g_GlobalNamespaceName;
+		m_byteCode = MUON_NEW(std::vector<ByteCode>);
+		m_rootNamespace.name = symbol::Namespace::g_GlobalNamespaceName;
+
+		if (loadDefaultObjects)
+		{
+			registerDefaultObjects();
+		}
 	}
 
-	Module::Module(const m::String& name, ModuleMemConfig memConfig)
-		: Module(name.cStr(), memConfig)
+	Module::Module(const m::String& name, bool loadDefaultObjects)
+		: Module(name.cStr())
 	{
 	}
 
 	Module::~Module()
 	{
 		MUON_DELETE(m_sections);
+		MUON_DELETE(m_byteCode);
 	}
 
 	const m::String& Module::getName() const
@@ -33,7 +36,7 @@ namespace hz
 		return m_name;
 	}
 
-	Error Module::getLastError() const
+	Error Module::getError() const
 	{
 		return m_error;
 	}
@@ -83,5 +86,15 @@ namespace hz
 		clearVariable();
 		m_error.state = Error::SUCCESS;
 		return true;
+	}
+
+	m::u32 Module::getByteCodeSize() const
+	{
+		return m_byteCode->size() * sizeof(ByteCode);
+	}
+
+	ByteCode* Module::getByteCodePtr()
+	{
+		return (m_byteCode->empty() ? NULL : &(*m_byteCode)[0]);
 	}
 }

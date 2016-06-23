@@ -10,22 +10,15 @@
 
 namespace hz
 {
-	ContextMemConfig::ContextMemConfig(m::u32 stackSize, m::u32 poolSize)
-		: m_stackSize(stackSize)
-		, m_poolSize(poolSize)
+	Context::Context(const Module& module)
+		: m_module(module)
+		, m_stackAlloc(HAIZE_CONTEXT_STACKSIZE)
+		, m_poolAlloc(sizeof(m::u32), HAIZE_CONTEXT_POOLSIZE)
 	{
-	}
-	Context::Context(const Module& name, ContextMemConfig memConfig)
-		: m_stackAlloc(memConfig.m_stackSize)
-		, m_poolAlloc(sizeof(m::u64), memConfig.m_poolSize)
-		//	, m_stack(0)
-	{
-		//	m_byteCodeModules = MUON_NEW(ByteCodeModuleMap);
 	}
 
 	Context::~Context()
 	{
-		//	MUON_DELETE(m_byteCodeModules);
 	}
 
 	bool Context::prepare(const m::String& func)
@@ -36,5 +29,85 @@ namespace hz
 	bool Context::execute()
 	{
 		return true;
+	}
+
+	bool Context::pushBoolean(bool value)
+	{
+		return true;
+	}
+
+	bool Context::pushInteger(m::i32 value)
+	{
+		return true;
+	}
+
+	bool Context::pushFloat(m::f32 value)
+	{
+		return true;
+	}
+
+	bool Context::pushString(const m::String& value)
+	{
+		return true;
+	}
+
+	bool Context::pushString(const char* value)
+	{
+		return true;
+	}
+
+	bool Context::pushObject(void* object)
+	{
+		return true;
+	}
+
+	bool Context::checkBoolean(m::u32 stack)
+	{
+		return true;
+	}
+
+	bool Context::checkInteger(m::u32 stack)
+	{
+		return true;
+	}
+
+	bool Context::checkFloat(m::u32 stack)
+	{
+		return true;
+	}
+
+	bool Context::checkString(m::u32 stack)
+	{
+		return true;
+	}
+
+	bool Context::checkObject(m::u32 stack)
+	{
+		return true;
+	}
+
+	bool Context::getAsBoolean(m::u32 stack)
+	{
+		return true;
+	}
+
+	m::i32 Context::getAsInteger(m::u32 stack)
+	{
+		return 0;
+	}
+
+	m::f32 Context::getAsFloat(m::u32 stack)
+	{
+		return 0.0f;
+	}
+
+	m::String Context::getAsString(m::u32 stack)
+	{
+		return "";
+	}
+
+	void* Context::getAsObject(m::u32 stack)
+	{
+		return NULL;
 	}
 }
