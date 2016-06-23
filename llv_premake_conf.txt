@@ -1,0 +1,32 @@
+
+function llvmConfig(command)
+	local fd = io.popen(command)
+	local llvm_config = fd:read("*a")
+	fd:close()
+	return llvm_config
+end
+
+	if _OPTIONS["llvm"] then
+		-- LLVM compiler and link flags
+
+		-- Remove "\n" at the end of string, and specify for recursive folder
+		local llvm_incdir = string.sub(llvmConfig("llvm-config --includedir"), 1, -2).. "/**"
+		-- Folder where library should be
+		local llvm_libdir = llvmConfig("llvm-config --libdir")
+		-- All the library required (Premake is looking for raw names, not '-lLib' format)
+		local llvm_libs = llvmConfig("llvm-config engine --libnames")
+		-- Added required compiler flag options
+		local llvm_cxxflags = llvmConfig("llvm-config --cppflags")
+
+		includedirs { llvm_incdir }
+		libdirs { llvm_libdir }
+		links { llvm_libs }
+		buildoptions { "\""..llvm_cxxflags.."\"" }
+
+		defines { "HAIZE_LLVM" }
+	end
+
+newoption {
+	trigger     = "llvm",
+	description = "Compile Haize to use LLVM",
+}
